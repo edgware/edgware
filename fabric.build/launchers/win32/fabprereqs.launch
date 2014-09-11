@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><launchConfiguration type="org.eclipse.ui.externaltools.ProgramLaunchConfigurationType">
+<mapAttribute key="org.eclipse.debug.core.environmentVariables">
+<mapEntry key="ZIP" value="${workspace_loc:fabric.build}\work-no-os\core\edgware-0.4.0\prereqs\7za920\7za.exe"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/fabric.build/work-no-os/core/edgware-0.4.0/fabprereqs.bat}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/fabric.build/work-no-os/core/edgware-0.4.0}"/>
+</launchConfiguration>

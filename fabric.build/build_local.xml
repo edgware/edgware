@@ -1,0 +1,1111 @@
+<?xml version="1.0"?>
+
+<!--****************************************************************************-->
+<!-- Licensed Materials - Property of IBM                                       -->
+<!--                                                                            -->
+<!-- (C) Copyright IBM Corp. 2006, 2014. All Rights Reserved.                   -->
+<!--                                                                            -->
+<!-- US Government Users Restricted Rights - Use, duplication or                -->
+<!-- disclosure restricted by GSA ADP Schedule Contract with IBM Corp.          -->
+<!--****************************************************************************-->
+
+<!--****************************************************************************-->
+<!-- Fabric build                                                               -->
+<!--****************************************************************************-->
+
+<!-- Set the default target to "setup-tests" to build and run regression tests. -->
+<!-- <project name="project" default="setup-tests"> -->
+
+<project name="project" default="default">
+
+	<description>
+            Fabric build process.
+    </description>
+
+	<!--****************************************************************************-->
+	<!-- Configure the build                                                        -->
+	<!--****************************************************************************-->
+
+	<!-- Timestamp for build files -->
+
+	<tstamp>
+		<format property="timestamp" pattern="yyyyMMdd" timezone="UTC" />
+		<format property="fulltimestamp" pattern="yyyyMMdd-HHmm" timezone="UTC" />
+	</tstamp>
+
+	<property name="distribution.tstamp" value="${fulltimestamp}" />
+
+	<!-- Build Javadocs -->
+	<!--property name="generate.fabric.javadoc" value="true" /-->
+
+	<!-- Java version -->
+	<property name="fabric.javacSource.version" value="1.7" />
+	<property name="fabric.javacTarget.version" value="1.7" />
+	
+	<!-- OSGi version -->
+	<property name="osgi.version" value="3.6" />
+
+	<!-- Version number -->
+	<property name="release.major" value="0" />
+	<property name="release.minor" value="4" />
+	<property name="release.mod" value="0" />
+	<property name="release.id" value="edgware-${release.major}.${release.minor}.${release.mod}" />
+
+	<!-- The branch to build -->
+	<property name="fabric.branch" value="trunk" />
+
+	<!-- The root directory for builds -->
+	<property name="build.root.dir" value="./builds" />
+
+	<!-- Specific directory for this build -->
+	<property name="build.dir" value="${build.root.dir}/${fabric.branch}/${distribution.tstamp}" />
+	
+	<!-- The latest build directroy -->
+	<property name="fabric.latest" value="${build.root.dir}/${fabric.branch}/latest" />
+	
+	<!-- The file names for the packaged build build (Fabric and samples) -->
+	<property name="distribution.filename" value="${release.id}.v${distribution.tstamp}" />
+	<property name="samples.distribution.filename" value="${release.id}_samples.v${distribution.tstamp}" />
+
+	<!-- Version number and timestamp for Jar files -->
+	<property name="fabric.jar.version" value="${release.major}.${release.minor}.${release.mod}.v${distribution.tstamp}" />
+
+	<!-- The names of the README and FAQ files -->
+	<property name="fabric.documentation.readme" value="README.txt" />
+	<property name="fabric.documentation.faq" value="FAQ.txt" />
+	<property name="fabric.documentation.license" value="license_os" />
+
+	<!-- The root directory of the work/staging area -->
+	<property name="work.dir" value="./work" />
+
+	<!-- The root directory of the project sources -->
+	<property name="project.dir" value="${work.dir}/../.." />
+
+	<!-- Staging area for building the Fabric core -->
+	<property name="release.dir" value="${work.dir}/core/edgware-${release.major}.${release.minor}.${release.mod}" />
+
+	<!--****************************************************************************-->
+	<!-- Configure properties containing target folder paths (i.e. the fabric       -->
+	<!-- layout on disk)                                                            -->
+	<!--****************************************************************************-->
+
+	<!--============================================================================-->
+	<!-- Core                                                                       -->
+	<!--============================================================================-->
+
+	<!-- Staging area: fabric -->
+	<property name="staging.fabric" value="${release.dir}" />
+
+	<!-- Staging area: fabric/pid -->
+	<property name="staging.fabric.pid" value="${staging.fabric}/pid" />
+
+	<!-- Staging area: fabric/bin -->
+	<property name="staging.fabric.bin" value="${staging.fabric}/bin" />
+
+	<!-- Staging area: fabric/bin/rsmb -->
+	<property name="staging.fabric.bin.rsmb" value="${staging.fabric.bin}/rsmb" />
+
+	<!-- Staging area: fabric/bin/shared -->
+	<property name="staging.fabric.bin.shared" value="${staging.fabric.bin}/shared" />
+
+	<!-- Staging area: fabric/brokers -->
+	<property name="staging.fabric.brokers" value="${staging.fabric}/brokers" />
+
+	<!-- Staging area: fabric/db (directory where GaianDB and FABRIC databases are created) -->
+	<property name="staging.fabric.db" value="${staging.fabric}/db" />
+
+	<!-- Staging area: fabric/docs -->
+	<property name="staging.fabric.docs" value="${staging.fabric}/docs" />
+
+	<!-- Staging area: fabric/docs/javadoc -->
+	<property name="staging.fabric.docs.javadoc" value="${staging.fabric.docs}/javadoc" />
+
+	<!-- Staging area: fabric/prereqs -->
+	<property name="staging.fabric.prereqs" value="${staging.fabric}/prereqs" />
+
+	<!-- Staging area: fabric/lib -->
+	<property name="staging.fabric.lib" value="${staging.fabric}/lib" />
+
+	<!-- Staging area: fabric/lib/oslib -->
+	<property name="staging.fabric.lib.oslib" value="${staging.fabric.lib}/oslib" />
+
+	<!-- Staging area: fabric/lib/plugins -->
+	<property name="staging.fabric.lib.plugins" value="${staging.fabric.lib}/plugins" />
+
+	<!-- Staging area: fabric/lib/fabric -->
+	<property name="staging.fabric.lib.fabric" value="${staging.fabric.lib}/fabric" />
+
+	<!-- Staging area: fabric/lib/db-derby -->
+	<property name="staging.fabric.lib.derby" value="${staging.fabric.lib}/db-derby" />
+
+	<!-- Staging area: fabric/lib/gaian -->
+	<property name="staging.fabric.lib.gaian" value="${staging.fabric.lib}/gaiandb" />
+
+	<!-- Staging area: fabric/server -->
+	<property name="staging.fabric.server" value="${staging.fabric}/server" />
+
+	<!-- Staging area: fabric/server/linux -->
+	<property name="staging.fabric.server.linux" value="${staging.fabric.server}/linux" />
+
+	<!-- Staging area: fabric/server/win32 -->
+	<property name="staging.fabric.server.windows" value="${staging.fabric.server}/windows" />
+
+	<!-- Staging area: fabric/sql -->
+	<property name="staging.fabric.lib.sql" value="${staging.fabric.lib}/sql" />
+
+	<!-- Staging area: fabric/web -->
+	<property name="staging.fabric.web" value="${staging.fabric}/web" />
+
+	<!-- Staging area: Temporary folder to build fabric/web .war -->
+	<property name="staging.fabric.web.tmp" value="${staging.fabric.web}/tmp" />
+
+	<!-- Staging area: Temporary folder for fabric/web .jars -->
+	<property name="staging.fabric.web.tmp.lib" value="${staging.fabric.web.tmp}/WebContent/WEB-INF/lib" />
+
+	<!-- Staging area: fabric/osgi -->
+	<property name="staging.fabric.osgi" value="${staging.fabric}/osgi" />
+
+	<!--============================================================================-->
+	<!-- Samples                                                                    -->
+	<!--============================================================================-->
+
+	<!-- Staging area for building the Fabric samples -->
+	<property name="fabric.samples.dir" value="${work.dir}/samples/${release.id}/fabric" />
+
+	<!--****************************************************************************-->
+	<!-- Configure properties containing the paths to project sources, and project  -->
+	<!-- target directories and bundles                                             -->
+	<!--****************************************************************************-->
+
+	<!-- Project: bundle.apache.derby -->
+	<property name="project-src.bundle.apache.derby" value="${project.dir}/bundle.apache.derby" />
+
+	<!-- Project: bundle.jackson -->
+	<property name="project-src.bundle.jackson" value="${project.dir}/bundle.jackson" />
+	<property name="project-bin.bundle.jackson" value="${work.dir}/bundle.jackson" />
+	<property name="project-bundle.bundle.jackson" value="${staging.fabric.osgi}/bundle.jackson_${fabric.jar.version}.jar" />
+
+	<!-- Project: bundle.paho.mqtt -->
+	<property name="project-src.bundle.paho.mqtt" value="${project.dir}/bundle.paho.mqtt" />
+	<property name="project-bin.bundle.paho.mqtt" value="${work.dir}/bundle.paho.mqtt" />
+	<property name="project-bundle.bundle.paho.mqtt" value="${staging.fabric.osgi}/bundle.paho.mqtt_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.scripts -->
+	<property name="project-src.fabric.scripts" value="${project.dir}/fabric.scripts" />
+
+	<!-- Project: fabric.db -->
+	<property name="project-src.fabric.db" value="${project.dir}/fabric.db" />
+
+	<!-- Project: fabric.docs -->
+	<property name="project-src.fabric.docs" value="${project.dir}/fabric.docs" />
+	
+	<property name="edgware.github.io.site" value="${project.dir}/edgware.github.io/_site" />
+	
+	<!-- Project: fabric.prereqs -->
+	<property name="project-src.fabric.prereqs" value="${project.dir}/fabric.prereqs" />
+	<property name="project-src.fabric.prereqs.apache.commons" value="${project.dir}/fabric.prereqs/apache/commons" />
+
+	<!-- Project: fabric.core -->
+	<property name="project-src.fabric.core" value="${project.dir}/fabric.core" />
+	<property name="project-bin.fabric.core" value="${work.dir}/fabric.core" />
+	<property name="project-bundle.fabric.core" value="${staging.fabric.lib.fabric}/fabric.core_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.lib -->
+	<property name="project-src.fabric.lib" value="${project.dir}/fabric.lib" />
+	<property name="project-bin.fabric.lib" value="${work.dir}/fabric.lib" />
+	<property name="project-bundle.fabric.lib" value="${staging.fabric.lib.fabric}/fabric.lib_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.fabricmanager -->
+	<property name="project-src.fabric.fabricmanager" value="${project.dir}/fabric.fabricmanager" />
+	<property name="project-bin.fabric.fabricmanager" value="${work.dir}/fabric.fabricmanager" />
+	<property name="project-bundle.fabric.fabricmanager" value="${staging.fabric.lib.fabric}/fabric.fabricmanager_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.fablets.heartbeat -->
+	<property name="project-src.fabric.fablets.heartbeat" value="${project.dir}/fabric.fablets.heartbeat" />
+	<property name="project-bin.fabric.fablets.heartbeat" value="${work.dir}/fabric.fablets.heartbeat" />
+	<property name="project-bundle.fabric.fablets.heartbeat" value="${staging.fabric.lib.plugins}/fabric.fablets.heartbeat_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.fablets.autodiscovery -->
+	<property name="project-src.fabric.fablets.autodiscovery" value="${project.dir}/fabric.fablets.autodiscovery" />
+	<property name="project-bin.fabric.fablets.autodiscovery" value="${work.dir}/fabric.fablets.autodiscovery" />
+	<property name="project-bundle.fabric.fablets.autodiscovery" value="${staging.fabric.lib.plugins}/fabric.fablets.autodiscovery_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.samples -->
+	<property name="project-src.fabric.samples" value="${project.dir}/fabric.samples" />
+	<property name="project-bin.fabric.samples" value="${work.dir}/fabric.samples" />
+	<property name="project-bundle.fabric.samples" value="${fabric.samples.dir}/lib/plugins/fabric.samples_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.tools.simulator -->
+	<property name="project-src.fabric.tools.simulator" value="${project.dir}/fabric.tools.simulator" />
+	<property name="project-bin.fabric.tools.simulator" value="${work.dir}/fabric.tools.simulator" />
+	<property name="project-bundle.fabric.tools.simulator" value="${staging.fabric.lib.fabric}/fabric.tools.simulator_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.tools.rest -->
+	<property name="project-src.fabric.tools.rest" value="${project.dir}/fabric.tools.rest" />
+	<property name="project-bin.fabric.tools.rest" value="${work.dir}/fabric.tools.rest" />
+	<property name="project-bundle.fabric.tools.rest" value="${staging.fabric.web}/fabric.tools.rest_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.registry.monitor -->
+	<property name="project-src.fabric.registry.monitor" value="${project.dir}/fabric.registry.monitor" />
+	<property name="project-bin.fabric.registry.monitor" value="${work.dir}/fabric.registry.monitor" />
+	<property name="project-bundle.fabric.registry.monitor" value="${staging.fabric.lib.fabric}/fabric.registry.monitor_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.admin -->
+	<property name="project-src.fabric.admin" value="${project.dir}/fabric.admin" />
+	<property name="project-bin.fabric.admin" value="${work.dir}/fabric.admin" />
+	<property name="project-bundle.fabric.admin" value="${staging.fabric.lib.fabric}/fabric.admin_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.server -->
+	<property name="project-src.fabric.server" value="${project.dir}/fabric.server" />
+	<property name="project-bin.fabric.server" value="${work.dir}/fabric.server" />
+	<property name="project-bundle.fabric.server" value="${staging.fabric.server.windows}/WindowsService.jar" />
+
+	<!-- Project: fabric.services.proxypublisher -->
+	<property name="project-src.fabric.services.proxypublisher" value="${project.dir}/fabric.services.proxypublisher" />
+	<property name="project-bin.fabric.services.proxypublisher" value="${work.dir}/fabric.services.proxypublisher" />
+	<property name="project-bundle.fabric.services.proxypublisher" value="${staging.fabric.lib.plugins}/fabric.services.proxypublisher_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.services.interfaces.json -->
+	<property name="project-src.fabric.services.interfaces.json" value="${project.dir}/fabric.services.interfaces.json" />
+	<property name="project-bin.fabric.services.interfaces.json" value="${work.dir}/fabric.services.interfaces.json" />
+	<property name="project-bundle.fabric.services.interfaces.json" value="${staging.fabric.lib.fabric}/fabric.services.interfaces.json_${fabric.jar.version}.jar" />
+
+	<!-- Project: fabric.osgi -->
+	<property name="project-src.fabric.osgi" value="${project.dir}/fabric.osgi" />
+	<property name="project-src.fabric.osgi.config" value="${project-src.fabric.osgi}/configuration" />
+	<property name="project-src.fabric.osgi.bundles" value="${project-src.fabric.osgi}/${osgi.version}" />
+
+	<!-- Project: fabric.test (src, bin, prereqs, logs, testarea, testarea/install, testarea/zip) -->
+	<!--<property name="fabric.test.dir" value="${eclipse.workspace}/fabric.tests"/>-->
+	<property name="fabric.test.dir" value="../fabric.tests" />
+	<property name="fabric.test.src" value="${fabric.test.dir}/src" />
+	<property name="fabric.test.bin" value="${fabric.test.dir}/bin" />
+	<property name="fabric.test.prereqs.dir" value="${fabric.test.dir}/prereqs" />
+	<property name="fabric.test.logs.dir" value="${fabric.test.dir}/logs" />
+	<property name="fabric.testarea.install.dir" value="${fabric.test.dir}/testarea/install" />
+	<property name="fabric.testarea.installed_fabric.dir" value="${fabric.test.dir}/testarea/install/${release.id}" />
+	<property name="fabric.testarea.zip.dir" value="${fabric.test.dir}/testarea/zip" />
+
+	<!-- Project: fabric.tests.services (bin) -->
+	<!--<property name="fabric.tests.services.dir" value="${eclipse.workspace}/fabric.tests.services"/>-->
+	<property name="fabric.tests.services.dir" value="../fabric.tests.services" />
+	<property name="fabric.tests.services.bin" value="${fabric.tests.services.dir}/bin" />
+
+	<!-- Jetty source directory -->
+	<property name="jetty.dir" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-9.1.5.v20140505" />
+
+	<!--****************************************************************************-->
+	<!-- Configure properties for classpath Jars                                    -->
+	<!--****************************************************************************-->
+
+	<!-- Package: Apache Commons CLI -->
+	<property name="jar.apache.commons.cli" value="${project-src.fabric.prereqs.apache.commons}/commons-cli-1.2.jar" />
+
+	<!-- Package: Apache Commons Codec -->
+	<property name="jar.apache.commons.codec" value="${project-src.fabric.prereqs.apache.commons}/commons-codec-1.8.jar" />
+
+	<!-- Package: Apache Commons Daemon -->
+	<property name="jar.apache.commons.daemon" value="${project-src.fabric.prereqs.apache.commons}/commons-daemon-1.0.15.jar" />
+
+	<!-- Package: Apache Derby client -->
+	<property name="jar.apache.derby.client" value="${project-src.bundle.apache.derby}/db-derby-10.8.3.0-bin/lib/derbyclient.jar" />
+
+	<!-- Package: Paho MQTT Java client -->
+	<property name="jar.paho.mqtt.java" value="${project-src.bundle.paho.mqtt}/jars/mqtt-client-0.4.0.jar" />
+
+	<!-- Package: Eclipse OSGi core -->
+	<property name="jar.eclipse.osgi.core" value="${project-src.fabric.osgi.bundles}/org.eclipse.osgi_3.6.0.v20100517.jar" />
+
+	<!-- Package: Eclipse Jetty Web sockets -->
+	<property name="jar.eclipse.jetty.websockets" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/websocket-api-9.1.5.v20140505.jar" />
+
+	<!-- Package: Jackson core -->
+	<property name="jar.jackson.core" value="${project-src.bundle.jackson}/jars/jackson-core-2.2.3.jar" />
+
+	<!-- Package: Jackson annotations -->
+	<property name="jar.jackson.annotations" value="${project-src.bundle.jackson}/jars/jackson-annotations-2.2.3.jar" />
+
+	<!-- Package: Jackson databind -->
+	<property name="jar.jackson.databind" value="${project-src.bundle.jackson}/jars/jackson-databind-2.2.3.jar" />
+
+	<!-- Classpath fragment containing all of the JSON Jars -->
+	<property name="classpath.json" value="${jar.jackson.core};${jar.jackson.annotations};${jar.jackson.databind}" />
+
+	<!--****************************************************************************-->
+	<!-- Build targets                                                              -->
+	<!--****************************************************************************-->
+
+	<!--============================================================================-->
+	<!-- Target: buildJar                                                           -->
+	<!--                                                                            -->
+	<!-- Build a Jar (configured using ${bin.dir}, ${src.dir}, ${classpath}).       -->
+	<!--============================================================================-->
+	<target name="buildJar">
+
+		<mkdir dir="${bin.dir}" />
+		<mkdir dir="${bin.dir}/META-INF" />
+		<mkdir dir="${bin.dir}/jars" />
+
+		<javac srcdir="${src.dir}/src" destdir="${bin.dir}" classpath="${classpath}" debug="true" debuglevel="lines,vars,source" source="${fabric.javacSource.version}" target="${fabric.javacTarget.version}" includeAntRuntime="false" />
+
+		<copy todir="${bin.dir}">
+			<fileset dir="${src.dir}/src">
+				<include name="**/*properties" />
+			</fileset>
+		</copy>
+
+		<copy file="${src.dir}/META-INF/MANIFEST.MF" todir="${bin.dir}/META-INF" />
+
+		<!-- Copy any embedded Jars -->
+		<copy todir="${bin.dir}">
+			<fileset dir="${src.dir}">
+				<include name="*jars/*.jar" />
+			</fileset>
+		</copy>
+
+		<manifest file="${bin.dir}/META-INF/MANIFEST.MF" mode="update">
+			<attribute name="Implementation-Version" value="${release.major}.${release.minor}.${release.mod}.v${distribution.tstamp}" />
+			<attribute name="Bundle-Version" value="${release.major}.${release.minor}.${release.mod}" />
+		</manifest>
+
+		<jar jarfile="${jar.file}" basedir="${bin.dir}" manifest="${bin.dir}/META-INF/MANIFEST.MF" />
+
+		<delete dir="${bin.dir}" />
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: default                                                            -->
+	<!--                                                                            -->
+	<!-- Build all.                                                                 -->
+	<!--============================================================================-->
+	<target name="default" depends="clean,create.build.structure">
+
+		<mkdir dir="${work.dir}" />
+
+		<!-- Project: bundle.jackson -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.bundle.jackson}" />
+			<param name="bin.dir" value="${project-bin.bundle.jackson}" />
+			<param name="classpath" value="${jar.eclipse.osgi.core}" />
+			<param name="jar.file" value="${project-bundle.bundle.jackson}" />
+		</antcall>
+
+		<!-- Project: bundle.paho.mqtt -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.bundle.paho.mqtt}" />
+			<param name="bin.dir" value="${project-bin.bundle.paho.mqtt}" />
+			<param name="classpath" value="${jar.eclipse.osgi.core}" />
+			<param name="jar.file" value="${project-bundle.bundle.paho.mqtt}" />
+		</antcall>
+
+		<!-- Project: fabric.core -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.core}" />
+			<param name="bin.dir" value="${project-bin.fabric.core}" />
+			<param name="classpath" value="${jar.paho.mqtt.java};${jar.apache.commons.codec}" />
+			<param name="jar.file" value="${project-bundle.fabric.core}" />
+		</antcall>
+
+		<!-- Project: fabric.lib -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.lib}" />
+			<param name="bin.dir" value="${project-bin.fabric.lib}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${jar.apache.commons.cli}" />
+			<param name="jar.file" value="${project-bundle.fabric.lib}" />
+			<param name="debug" value="true" />
+			<param name="debuglevel" value="lines,vars,source" />
+		</antcall>
+
+		<!-- Project: fabric.fabricmanager -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.fabricmanager}" />
+			<param name="bin.dir" value="${project-bin.fabric.fabricmanager}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib};${jar.eclipse.osgi.core}" />
+			<param name="jar.file" value="${project-bundle.fabric.fabricmanager}" />
+		</antcall>
+
+		<!-- Project: fabric.admin -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.admin}" />
+			<param name="bin.dir" value="${project-bin.fabric.admin}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib};${jar.apache.commons.cli}" />
+			<param name="jar.file" value="${project-bundle.fabric.admin}" />
+		</antcall>
+
+		<!-- Project: fabric.registry.monitor -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.registry.monitor}" />
+			<param name="bin.dir" value="${project-bin.fabric.registry.monitor}" />
+			<param name="classpath" value="${jar.paho.mqtt.java};${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${project-bundle.fabric.registry.monitor}" />
+		</antcall>
+
+		<!-- Project: fabric.fablets.autodiscovery -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.fablets.autodiscovery}" />
+			<param name="bin.dir" value="${project-bin.fabric.fablets.autodiscovery}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${project-bundle.fabric.fablets.autodiscovery}" />
+		</antcall>
+
+		<!-- Project: fabric.fablets.availability -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project.dir}/fabric.fablets.availability" />
+			<param name="bin.dir" value="${work.dir}/fabric.fablets.availability" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${staging.fabric.lib.plugins}/fabric.fablets.availability_${fabric.jar.version}.jar" />
+		</antcall>
+
+		<!-- Project: fabric.fablets.heartbeat -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.fablets.heartbeat}" />
+			<param name="bin.dir" value="${project-bin.fabric.fablets.heartbeat}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${project-bundle.fabric.fablets.heartbeat}" />
+		</antcall>
+
+		<!-- Project: fabric.tools.traceroute -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project.dir}/fabric.tools.traceroute" />
+			<param name="bin.dir" value="${work.dir}/fabric.tools.traceroute" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${staging.fabric.lib.plugins}/fabric.tools.traceroute_${fabric.jar.version}.jar" />
+		</antcall>
+
+		<!-- Project: fabric.services.platformmanager -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project.dir}/fabric.services.platformmanager" />
+			<param name="bin.dir" value="${work.dir}/fabric.services.platformmanager" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${staging.fabric.lib.plugins}/fabric.services.platformmanager_${fabric.jar.version}.jar" />
+		</antcall>
+
+		<!-- Project: fabric.services.proxypublisher -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.services.proxypublisher}" />
+			<param name="bin.dir" value="${project-bin.fabric.services.proxypublisher}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${project-bundle.fabric.services.proxypublisher}" />
+		</antcall>
+
+		<!-- Project: fabric.tools.simulator -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.tools.simulator}" />
+			<param name="bin.dir" value="${project-bin.fabric.tools.simulator.bin}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib};${jar.apache.commons.cli}" />
+			<param name="jar.file" value="${project-bundle.fabric.tools.simulator}" />
+		</antcall>
+
+		<!-- Project: fabric.services.interfaces.json -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.services.interfaces.json}" />
+			<param name="bin.dir" value="${project-bin.fabric.services.interfaces.json}" />
+			<param name="classpath" value="${jar.jackson.annotations};${jar.jackson.core};${jar.jackson.databind};${project-bundle.fabric.core};${project-bundle.fabric.lib};${jar.paho.mqtt.java};${jar.eclipse.jetty.websockets};${jar.apache.commons.codec};${jar.eclipse.osgi.core};${classpath.json}" />
+			<param name="jar.file" value="${project-bundle.fabric.services.interfaces.json}" />
+		</antcall>
+
+		<!-- Project: fabric.server.windows -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.server}" />
+			<param name="bin.dir" value="${project-bin.fabric.server}" />
+			<param name="classpath" value="${project-bundle.fabric.admin}" />
+			<param name="jar.file" value="${project-bundle.fabric.server}" />
+		</antcall>
+
+		<!-- Generate Javadoc -->
+		<antcall target="generate.javadoc" />
+
+		<!-- Copy SQL into place -->
+		<antcall target="copy.sql" />
+
+		<!-- Copy scripts into place -->
+		<antcall target="copy.scripts" />
+
+		<!-- Copy server code into place -->
+		<antcall target="copy.server" />
+
+		<!-- Copy docs into place -->
+		<antcall target="copy.docs" />
+
+		<!-- Copy OSGi files into place -->
+		<antcall target="copy.osgi" />
+
+		<!-- Copy the Gaian database into place -->
+		<!--antcall target="copy.gaian" /-->
+
+		<!-- Copy Derby into place -->
+		<antcall target="copy.derby" />
+
+		<!-- Copy other open source libraries into place -->
+		<antcall target="copy.oslibs" />
+
+		<!-- Copy Jetty into place -->
+		<antcall target="copy.jetty" />
+
+		<!-- Copy Web files into place -->
+		<antcall target="copy.web" />
+
+		<!-- Create web .war file -->
+		<antcall target="create.web" />
+
+		<!-- Clean temporary web folder -->
+		<antcall target="clean.web" />
+
+		<!-- Ensure that text file line endings (e.g. .BAT files and scripts) are correct -->
+		<antcall target="fixLineEndings" />
+
+		<!-- Build the final package -->
+		<antcall target="package.fabric" />
+
+		<!-- Build and package the samples -->
+		<!--antcall target="create.samples" /-->
+
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: create.build.structure                                             -->
+	<!--                                                                            -->
+	<!-- Create the directory structure for the Fabric build.                       -->
+	<!--============================================================================-->
+	<target name="create.build.structure" depends="clean" description="Creates the directory structure for the Fabric build">
+
+		<mkdir dir="${staging.fabric}" />
+		<mkdir dir="${staging.fabric.bin}" />
+		<mkdir dir="${staging.fabric.brokers}" />
+		<mkdir dir="${staging.fabric.db}" />
+		<mkdir dir="${staging.fabric.db}/REGISTRY" />
+		<mkdir dir="${staging.fabric.lib.derby}" />
+		<mkdir dir="${staging.fabric.docs}" />
+		<mkdir dir="${staging.fabric.lib}" />
+		<mkdir dir="${staging.fabric.lib.fabric}" />
+		<mkdir dir="${staging.fabric.lib.gaian}" />
+		<mkdir dir="${staging.fabric.lib.oslib}" />
+		<mkdir dir="${staging.fabric.lib.plugins}" />
+		<mkdir dir="${staging.fabric.lib.sql}" />
+		<mkdir dir="${staging.fabric.osgi}" />
+		<!--mkdir dir="${staging.fabric.osgi}/plugins" /-->
+		<mkdir dir="${staging.fabric.pid}" />
+		<mkdir dir="${staging.fabric.prereqs}" />
+		<mkdir dir="${staging.fabric.web}" />
+		<mkdir dir="${staging.fabric.web.tmp}" />
+		<mkdir dir="${staging.fabric.web.tmp.lib}" />
+
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: create.web                                   			            -->
+	<!--                                                                            -->
+	<!-- Create the .war containining the Fabric tooling.	                        -->
+	<!--============================================================================-->
+	<target name="create.web" description="Creates the .war containing Fabric web tools">
+
+		<!-- Project: fabric.tools.rest -->
+		<war destfile="${staging.fabric.web}/webapps/rest.war" webxml="${staging.fabric.web.tmp}/WebContent/WEB-INF/web.xml">
+			<fileset dir="${staging.fabric.web.tmp}/WebContent">
+				<include name="**/*.*" />
+			</fileset>
+			<classes dir="${staging.fabric.web.tmp}/WebContent/WEB-INF/classes" />
+		</war>
+
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: create.samples                                                     -->
+	<!--                                                                            -->
+	<!-- Build and package the sameples.                                            -->
+	<!--============================================================================-->
+	<target name="create.samples">
+
+		<!-- Create the directory structure for the samples -->
+		<mkdir dir="${fabric.samples.dir}" />
+		<mkdir dir="${fabric.samples.dir}/lib/plugins" />
+		<mkdir dir="${fabric.samples.dir}/lib/sql" />
+		<mkdir dir="${fabric.samples.dir}/osgi/plugins" />
+		<mkdir dir="${fabric.samples.dir}/osgi/configuration" />
+		<mkdir dir="${fabric.samples.dir}/bin" />
+		<mkdir dir="${fabric.samples.dir}/docs/samples" />
+
+		<!-- Project: fabric.samples -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.samples}" />
+			<param name="bin.dir" value="${project-bin.fabric.samples}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
+			<param name="jar.file" value="${project-bundle.fabric.samples}" />
+		</antcall>
+
+		<!-- Copy the samples Jar into place -->
+		<copy file="${project-bundle.fabric.samples}" todir="${fabric.samples.dir}/osgi/plugins" />
+
+		<!-- Copy the samples SQL into place -->
+		<copy todir="${fabric.samples.dir}/lib/sql">
+			<fileset dir="${project-src.fabric.samples}/sql" />
+		</copy>
+
+		<!-- Copy the samples scripts into place -->
+		<copy todir="${fabric.samples.dir}/bin">
+			<fileset dir="${project-src.fabric.samples}/scripts" />
+		</copy>
+
+		<!-- Copy the samples OSGi configuration into place -->
+		<copy todir="${fabric.samples.dir}/osgi/configuration">
+			<fileset dir="${project-src.fabric.samples}/osgi/configuration" />
+		</copy>
+
+		<!-- Copy the samples source and license into place -->
+		<copy todir="${fabric.samples.dir}/docs/samples">
+			<fileset dir="${project-src.fabric.samples}">
+				<include name="src/**" />
+				<include name="license/**" />
+			</fileset>
+		</copy>
+
+		<!-- Build the samples tar file -->
+		<tar destfile="${build.dir}/${samples.distribution.filename}.tar" longfile="gnu">
+
+			<tarfileset dir="${work.dir}/samples">
+				<exclude name="${release.id}/bin/linux/*" />
+			</tarfileset>
+
+			<!-- Set executable permission on scripts -->
+			<tarfileset dir="${work.dir}/samples" mode="776">
+				<include name="${release.id}/bin/linux/*" />
+			</tarfileset>
+
+		</tar>
+
+		<!-- GZip the samples tar file -->
+		<gzip destfile="${build.dir}/${samples.distribution.filename}.tar.gz" src="${build.dir}/${samples.distribution.filename}.tar" />
+		<delete file="${build.dir}/${samples.distribution.filename}.tar" />
+
+		<!-- Build the samples zip file -->
+		<zip destfile="${build.dir}/${samples.distribution.filename}.zip">
+			<zipfileset dir="${work.dir}/samples" />
+		</zip>
+
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: generate.javadoc                                                   -->
+	<!--                                                                            -->
+	<!-- Generate Fabric Javadocs.                                                  -->
+	<!--============================================================================-->
+	<target name="generate.javadoc" if="generate.fabric.javadoc" description="Generate Javadoc for all Fabric modules">
+
+		<javadoc destdir="${staging.fabric.docs.javadoc}" author="false" version="true" use="true" windowtitle="Edgware Javadoc" useexternalfile="yes">
+
+			<group title="Edgware" packages="fabric*" />
+			<group title="Edgware Fablets" packages="fabric.fablets.*" />
+			<group title="Edgware Services" packages="fabric.services.*" />
+
+			<!-- Javadoc: fabric.fabricmanager -->
+			<fileset dir="${project-src.fabric.fabricmanager}/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<!-- Javadoc: fabric.lib -->
+			<fileset dir="${project-src.fabric.lib}/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<!-- Javadoc: fabric.core -->
+			<fileset dir="${project-src.fabric.core}/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<!-- Javadoc: fabric.fablets.autodiscovery -->
+			<fileset dir="${project.dir}/fabric.fablets.autodiscovery/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<!-- Javadoc: fabric.fablets.availability -->
+			<fileset dir="${project.dir}/fabric.fablets.availability/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<!-- Javadoc: fabric.fablets.heartbeat -->
+			<fileset dir="${project.dir}/fabric.fablets.heartbeat/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<!-- Javadoc: fabric.services.platformanager -->
+			<fileset dir="${project.dir}/fabric.services.platformmanager/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<!-- Javadoc: fabric.services.proxypublisher -->
+			<fileset dir="${project.dir}/fabric.services.proxypublisher/src" defaultexcludes="yes">
+				<include name="**/*.java" />
+			</fileset>
+
+			<doctitle>
+				<![CDATA[<h1>Edgware Fabric</h1>]]></doctitle>
+
+		<bottom>
+			<![CDATA[<i>&#169; Copyright IBM Corp. 2008-2011</i>]]></bottom>
+
+		</javadoc>
+
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.sql                                                           -->
+	<!--                                                                            -->
+	<!-- Copy Fabric Registry SQL files into place.                                 -->
+	<!--============================================================================-->
+	<target name="copy.sql" description="Copy across SQL used to generate databases">
+	
+		<!-- Copy SQL files into place -->
+		<copy todir="${staging.fabric.lib.sql}">
+			<fileset dir="${project-src.fabric.db}/registry">
+				<include name="**/*.sql" />
+				<include name="**/*.template" />
+			</fileset>
+		</copy>
+		
+		<!-- Copy properties files into place to launch the Registry correctly -->
+		<copy file="${project-src.fabric.db}/registry/derby.properties" todir="${staging.fabric.db}" />
+		<copy file="${project-src.fabric.db}/registry/logging.properties" todir="${staging.fabric.db}" />
+		<copy file="${project-src.fabric.db}/registry/gaiandb_config_fabric.properties" tofile="${staging.fabric.db}/gaiandb_config_fabric.properties.master" />
+	
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.gaian                                                         -->
+	<!--                                                                            -->
+	<!-- Copy the GaianDB files into place.                                         -->
+	<!--============================================================================-->
+	<target name="copy.gaian" description="Copy the GaianDB into place">
+		<copy todir="${staging.fabric.lib.gaian}">
+			<fileset dir="${project-src.fabric.prereqs}/gaiandb" />
+		</copy>
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.derby                                                         -->
+	<!--                                                                            -->
+	<!-- Copy Apache Derby files into place.                                        -->
+	<!--============================================================================-->
+	<target name="copy.derby" description="Copy Apache Derby into place">
+		<copy todir="${staging.fabric.lib.derby}">
+			<fileset dir="${project-src.bundle.apache.derby}/db-derby-10.8.3.0-bin">
+				<include name="LICENSE" />
+				<include name="NOTICE" />
+				<include name="RELEASE-NOTES.html" />
+				<include name="index.html" />
+				<include name="KEYS" />
+				<include name="lib/derbynet.jar" />
+				<include name="lib/derbyclient.jar" />
+				<include name="lib/derbytools.jar" />
+				<include name="lib/derby.jar" />
+				<include name="lib/derbyrun.jar" />
+				<include name="bin/*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.oslibs                                                        -->
+	<!--                                                                            -->
+	<!-- Copy open source libraries into place.                                     -->
+	<!--============================================================================-->
+	<target name="copy.oslibs" description="Copy across open source libraries">
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.apache.commons.cli}" />
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.apache.commons.codec}" />
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.apache.commons.daemon}" />
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.eclipse.jetty.websockets}" />
+		<!--copy todir="${staging.fabric.lib.oslib}" file="${jar.apache.derby.client}" /-->
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.paho.mqtt.java}" />
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.jackson.annotations}" />
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.jackson.core}" />
+		<copy todir="${staging.fabric.lib.oslib}" file="${jar.jackson.databind}" />
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.docs                                                          -->
+	<!--                                                                            -->
+	<!-- Copy Fabric documentation files into place.                                -->
+	<!--============================================================================-->
+	<target name="copy.docs" description="Copy across Fabric documentation">
+	
+		<!-- README -->
+		<copy file="${project-src.fabric.docs}/${fabric.documentation.readme}" todir="${staging.fabric}" />
+	
+		<!-- FAQ -->
+		<!-- <copy file="${project.fabric.docs.src}/${fabric.documentation.faq}" todir="${staging.fabric.dir}"/> -->
+	
+		<!-- License files -->
+		<copy todir="${staging.fabric}">
+			<fileset dir="${project-src.fabric.docs}/${fabric.documentation.license}">
+			</fileset>
+		</copy>
+	
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.jetty                                                         -->
+	<!--                                                                            -->
+	<!-- Copy jetty server to web path                                     -->
+	<!--============================================================================-->
+	<target name="copy.jetty" description="Copy the jetty server directory">
+	
+		<!-- Web files -->
+		<copy todir="${staging.fabric.web}">
+			<fileset dir="${jetty.dir}">
+			</fileset>
+		</copy>
+		<mkdir dir="${staging.fabric.web}/webapps/ROOT" />
+	
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.web                                                           -->
+	<!--                                                                            -->
+	<!-- Copy relevants jar to Web server path                                      -->
+	<!--============================================================================-->
+	<target name="copy.web" description="Populate the Web server directory">
+	
+		<!-- Web files -->
+		<copy todir="${staging.fabric.web.tmp}">
+			<fileset dir="${project-src.fabric.tools.rest}">
+				<exclude name="WebContent/WEB-INF/lib/**" />
+			</fileset>
+		</copy>
+			
+		<copy todir="${staging.fabric.web}/webapps/ROOT" file="${staging.fabric.web.tmp}/WebContent/index.html" />
+		
+		<!-- JARs needed for Web apps -->
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.apache.commons.cli}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.apache.commons.codec}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.apache.derby.client}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.paho.mqtt.java}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.jackson.annotations}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.jackson.core}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.jackson.databind}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${jar.eclipse.jetty.websockets}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${project-bundle.fabric.lib}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${project-bundle.fabric.fabricmanager}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${project-bundle.fabric.services.interfaces.json}" />
+		<copy todir="${staging.fabric.web.tmp.lib}" file="${project-bundle.fabric.core}" />
+		<!-- jetty-annotations is currently missing -->
+		
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.osgi                                                          -->
+	<!--                                                                            -->
+	<!-- Copy OSGi files into place.                                                -->
+	<!--============================================================================-->
+	<target name="copy.osgi" description="Populate the OSGi directory">
+	
+		<!-- Equinox OSGi bundles -->
+		<copy todir="${staging.fabric.osgi}">
+			<fileset dir="${project-src.fabric.osgi.bundles}">
+			</fileset>
+		</copy>
+	
+		<!-- Configuration files -->
+		<copy todir="${staging.fabric.osgi}/configuration">
+			<fileset dir="${project-src.fabric.osgi.config}">
+			</fileset>
+		</copy>
+	
+		<!-- OSGi bundles -->
+		<copy todir="${staging.fabric.osgi}" file="${jar.apache.derby.client}" />
+		<copy todir="${staging.fabric.osgi}" file="${jar.apache.commons.codec}" />
+		<copy todir="${staging.fabric.osgi}" file="${project-bundle.bundle.paho.mqtt}" />
+		<copy todir="${staging.fabric.osgi}" file="${project-bundle.bundle.jackson}" />
+		<copy todir="${staging.fabric.osgi}" file="${project-bundle.fabric.lib}" />
+		<copy todir="${staging.fabric.osgi}" file="${project-bundle.fabric.fabricmanager}" />
+		<copy todir="${staging.fabric.osgi}" file="${project-bundle.fabric.services.interfaces.json}" />
+		<copy todir="${staging.fabric.osgi}" file="${project-bundle.fabric.core}" />
+	
+		<!-- OSGi plug-in bundles -->
+		<copy todir="${staging.fabric.osgi}">
+			<fileset dir="${staging.fabric.lib.plugins}">
+				<include name="fabric.fablets*jar" />
+				<include name="fabric.services*jar" />
+				<include name="fabric.tools*jar" />
+			</fileset>
+		</copy>
+	
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.scripts                                                       -->
+	<!--                                                                            -->
+	<!-- Copy script files into place. Fixes line endings (CR/LF versus LF).        -->
+	<!--============================================================================-->
+	<target name="copy.scripts" description="Copy across scripts used to install and manage the Fabric">
+	
+		<!-- Files in the Fabric root directory -->
+		<copy todir="${staging.fabric}">
+			<fileset dir="${project-src.fabric.scripts}">
+				<exclude name="linux/**" />
+				<exclude name="win32/**" />
+				<exclude name="fabprereqs.sh" />
+				<exclude name="fabprereqs.bat" />
+				<exclude name="README_prereqs.html" />
+				<exclude name=".project" />
+			</fileset>
+		</copy>
+	
+		<!-- Files in directories under fabric/bin -->
+		<copy todir="${staging.fabric.bin}">
+			<fileset dir="${project-src.fabric.scripts}">
+				<include name="linux/**" />
+				<include name="win32/**" />
+			</fileset>
+		</copy>
+	
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: copy.server                                                        -->
+	<!--                                                                            -->
+	<!-- Copy server files into place.                                              -->
+	<!--============================================================================-->
+	<target name="copy.server" description="Copy files to help run Fabric as operating system services">
+	
+		<!-- Linux Files -->
+		<copy todir="${staging.fabric.server.linux}">
+			<fileset dir="${project-src.fabric.server}/linux" />
+		</copy>
+		
+		<!-- Windows Files -->
+		<copy todir="${staging.fabric.server.windows}">
+			<fileset dir="${project-src.fabric.server}/windows" />
+		</copy>
+	
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: fixLineEndings                                                     -->
+	<!--                                                                            -->
+	<!-- Fix line endings (CR/LF versus LF) on scripts and other text files.        -->
+	<!--============================================================================-->
+	<target name="fixLineEndings" description="Fix line endings (CR/LF versus LF) on scripts and other text files">
+	
+		<!-- Fix line endings on Windows BAT files -->
+		<fixcrlf srcdir="${staging.fabric}" includes="**/*.bat" eol="crlf" />
+		
+		<!-- Fix line endings on Windows README files -->
+		<fixcrlf srcdir="${staging.fabric.server.windows}" includes="**/*.txt" />
+		
+		<!-- Fix line endings on Linux scripts and man pages -->
+		<fixcrlf srcdir="${staging.fabric}" includes="**/*.sh" eol="lf" eof="remove" />
+		<fixcrlf srcdir="${staging.fabric}/bin/linux" includes="**/*" eol="lf" eof="remove" />
+		<fixcrlf srcdir="${staging.fabric.server.linux}" includes="**/*" eol="lf" eof="remove" />
+	
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: clean                                                              -->
+	<!--                                                                            -->
+	<!-- Clear the build/staging directory.                                         -->
+	<!--============================================================================-->
+	<target name="clean">
+		<delete dir="${work.dir}" />
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: clean web                                                          -->
+	<!--                                                                            -->
+	<!-- Clear the temporary web staging directory                                  -->
+	<!--============================================================================-->
+	<target name="clean.web">
+		<delete dir="${staging.fabric.web.tmp}" />
+	</target>
+
+	<!--============================================================================-->
+	<!-- Target: package.fabric                                                     -->
+	<!--                                                                            -->
+	<!-- Package the Fabric build for distribution.                                 -->
+	<!--============================================================================-->
+	<target name="package.fabric" description="Create a packaged distribution of the Fabric">
+	
+		<!-- Create the directory to hold the build -->
+		<mkdir dir="${build.dir}" />
+	
+		<!-- Create tar for Linux/OSX systems -->
+		<tar destfile="${build.dir}/${distribution.filename}.tar" longfile="gnu">
+	
+			<!-- Add files, excluding scripts -->
+			<tarfileset dir="${work.dir}/core">
+				<exclude name="${release.id}/fabinstall.sh" />
+				<exclude name="${release.id}/bin/linux/*" />
+			</tarfileset>
+	
+			<!-- Add scripts, with executable permission -->
+			<tarfileset dir="${work.dir}/core" mode="776">
+				<include name="${release.id}/fabinstall.sh" />
+				<include name="${release.id}/bin/linux/*" />
+				<include name="${release.id}/lib/gaiandb/*.sh" />
+			</tarfileset>
+	
+		</tar>
+	
+		<!-- Create gzip for Linux/OSX systems -->
+		<gzip destfile="${build.dir}/${distribution.filename}.tar.gz" src="${build.dir}/${distribution.filename}.tar" />
+		<delete file="${build.dir}/${distribution.filename}.tar"/>
+	
+		<!-- Create zip for Windows systems -->
+		<zip destfile="${build.dir}/${distribution.filename}.zip">
+			<zipfileset dir="${work.dir}/core" />
+		</zip>
+	
+		<!-- Replace latest versions -->
+		<delete dir="${fabric.latest}" />
+		<mkdir dir="${fabric.latest}" />
+		<copy file="${build.dir}/${distribution.filename}.tar.gz" tofile="${fabric.latest}/${release.id}_latest.tar.gz" />
+		<copy file="${build.dir}/${distribution.filename}.zip" tofile="${fabric.latest}/${release.id}_latest.zip" />
+	
+	</target>
+
+	<!--****************************************************************************-->
+	<!-- Build regression tests                                                     -->
+	<!--****************************************************************************-->
+
+	<path id="test-build-classpath">
+
+		<pathelement location="${fabric.test.bin}" />
+
+		<fileset dir="${fabric.test.prereqs.dir}">
+			<include name="junit-4.11.jar" />
+			<include name="hamcrest-core-1.3.jar" />
+		</fileset>
+
+		<fileset dir="${fabric.testarea.installed_fabric.dir}/lib">
+			<include name="**/*.jar" />
+		</fileset>
+
+	</path>
+
+	<!--============================================================================-->
+	<!-- Target: checkOS                                                            -->
+	<!--                                                                            -->
+	<!-- Determine the host OS, and configure appropriately.                        -->
+	<!--============================================================================-->
+	<target name="checkOS" description="check which OS we're on and call the right environment setup target">
+
+		<condition property="isUnix">
+			<os family="unix" />
+		</condition>
+
+		<condition property="isWindows">
+			<os family="windows" />
+		</condition>
+
+	</target>
+	
+	<!--============================================================================-->
+	<!-- Target: htmlDocs                                                           -->
+	<!--                                                                            -->
+	<!-- Copy HTML documentation.                                                   -->
+	<!--============================================================================-->
+	<target name="htmlDocs" description="Copy htmlDocs into the webserver in the build">
+		<copy todir="${staging.fabric.web}/webapps/docs">
+			<fileset dir="${edgware.github.io.site}" />
+		</copy>			
+	</target>
+	
+</project>

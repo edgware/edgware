@@ -1,0 +1,6 @@
+/.jazzignore
+/work
+/builds
+/builds-no-os
+/work-no-os
+/prereqs

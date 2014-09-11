@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>fabric.build</name>
+	<comment></comment>
+	<projects>
+		<project>bundle.apache.derby</project>
+		<project>bundle.jackson</project>
+		<project>bundle.paho.mqtt</project>
+		<project>fabric.admin</project>
+		<project>fabric.core</project>
+		<project>fabric.db</project>
+		<project>fabric.docs</project>
+		<project>fabric.fablets.autodiscovery</project>
+		<project>fabric.fablets.availability</project>
+		<project>fabric.fablets.heartbeat</project>
+		<project>fabric.fablets.location</project>
+		<project>fabric.fabricmanager</project>
+		<project>fabric.lib</project>
+		<project>fabric.osgi</project>
+		<project>fabric.prereqs</project>
+		<project>fabric.registry.monitor</project>
+		<project>fabric.samples</project>
+		<project>fabric.scripts</project>
+		<project>fabric.server</project>
+		<project>fabric.services.interfaces.json</project>
+		<project>fabric.services.platformmanager</project>
+		<project>fabric.services.proxypublisher</project>
+		<project>fabric.tools.rest</project>
+		<project>fabric.tools.simulator</project>
+		<project>fabric.tools.traceroute</project>
+	</projects>
+	<buildSpec>
+	</buildSpec>
+	<natures>
+	</natures>
+</projectDescription>

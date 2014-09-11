@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><launchConfiguration type="org.eclipse.ui.externaltools.ProgramLaunchConfigurationType">
+<mapAttribute key="org.eclipse.debug.core.environmentVariables">
+<mapEntry key="FABRIC_HOME" value="${workspace_loc:fabric.build}\work\core\edgware-0.4.0"/>
+<mapEntry key="PATH" value="${workspace_loc:fabric.build}\work\core\edgware-0.4.0\bin;${workspace_loc:fabric.build}\work\core\edgware-0.4.0\bin\win32;${workspace_loc:fabric.build}\work\core\edgware-0.4.0\bin;${workspace_loc:fabric.build}\work\core\edgware-0.4.0\bin\amqtdd\win32;${env_var:PATH}"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/fabric.build/work/core/edgware-0.4.0/bin/win32/fabadmin.bat}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-st -w"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/fabric.build/work/core/edgware-0.4.0/bin/win32}"/>
+</launchConfiguration>
