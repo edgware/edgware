@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-annotations-2.2.3.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-core-2.2.3.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-databind-2.2.3.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/websocket-api-9.1.5.v20140505.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

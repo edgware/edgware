@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Fabric JSON Interface
+Bundle-SymbolicName: fabric.services.interfaces.json
+Bundle-Version: 0.4.0
+Bundle-Copyright: (C) Copyright IBM Corp. 2013, 2014
+Bundle-Vendor: IBM
+Eclipse-RegisterBuddy: fabric.lib
+Export-Package: fabric.services.interfaces.json.osgi,
+ fabric.services.json,
+ fabric.services.jsonclient,
+ fabric.services.jsonclient.articles,
+ fabric.services.jsonclient.handler,
+ fabric.services.jsonclient.utilities,
+ fabric.services.systems
+Import-Package: org.eclipse.paho.client.mqttv3,
+ org.osgi.framework
+Bundle-ActivationPolicy: lazy
+Bundle-Activator: fabric.services.interfaces.json.osgi.Activator
+Require-Bundle: fabric.core;bundle-version="0.4.0",
+ fabric.lib;bundle-version="0.4.0",
+ bundle.jackson
