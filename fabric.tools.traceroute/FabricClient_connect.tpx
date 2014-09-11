@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--xtools2_universal_type_manager-->
+<?com.ibm.xtools.emf.core.signature <signature id="com.ibm.xtools.mmi.ui.signatures.topic" version="7.0.0"><feature description="" name="Rational Modeling Platform (com.ibm.xtools.rmp)" url="" version="7.0.0"/></signature>?>
+<topic:TopicQuery xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:topic="http://www.ibm.com/xtools/6.0.0/Topic" xmlns:uml="http://www.eclipse.org/uml2/3.0.0/UML" xmi:id="_c8Bv0NDNEeG15ermmGD1zQ" topicId="com.ibm.xtools.viz.j2se.ui.J2SEStaticMethodInteractions">
+  <context xmi:type="uml:Interaction" href="mmi:///#jmethod%5Ename=connect%5Esign=()V%5Bjsrctype%5Ename=FabricClient%5Bjcu%5Ename=FabricClient.java%5Bjpack%5Ename=fabric.client%5Bjsrcroot%5Esrcfolder=src%5Bproject%5Eid=fabric.lib%5D%5D%5D%5D%5D$uml.Interaction"/>
+</topic:TopicQuery>

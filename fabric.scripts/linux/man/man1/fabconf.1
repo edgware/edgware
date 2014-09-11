@@ -1,0 +1,77 @@
+.TH FABCONF 1 06/14
+
+.SH NAME
+\fBfabconf\fR \- command-line interface for Fabric configuration functions
+
+.SH SYNOPSIS
+.P
+\fBfabconf\fR [\fB-D\fR|\fB-s\fR|\fB-u\fR] [\fB-n node\fR|\fB-a actor\fR|\fB-p platform\fR]
+.P
+\fBfabconf\fR \fB-g\fR [\fB-d\fR|\fB-n node\fR|\fB-a actor\fR|\fB-p platform\fR]
+.P
+\fBfabconf\fR \fB-e [\fB-\fR|\fBfile\fR] [\fB-d\fR|\fB-n node\fR|\fB-a actor\fR|\fB-p platform\fR]
+.P
+\fBfabconf\fR \fB-i [\fB-\fR|\fBfile\fR] [\fB-d\fR|\fB-n node\fR|\fB-a actor\fR|\fB-p platform\fR]
+.P
+
+.SH DESCRIPTION
+.PP
+\fBfabconf\fR provides a command line interface to querying and setting Fabric configuration
+properties.
+
+.SH "OPTIONS"
+.IP "\fB\-a\fR" 4
+.PD
+actor (user) ID.
+
+.IP "\fB\-D\fR" 4
+.PD 0
+.IP "\fB\--delete\fR" 4
+.PD
+delete all properties for the specified node, actor or platform.
+
+.IP "\fB\-d\fR" 4
+.PD
+default properties.
+
+.IP "\fB\-e\fR [\fB-\fR|\fBfile\fR]" 4
+.PD 0
+.IP "\fB\--export [\fB-\fR|\fBfile\fR]\fR" 4
+.PD
+export configuration settings to either standard output (-) or a file.
+
+.IP "\fB\-g\fR" 4
+.PD 0
+.IP "\fB\--get\fR" 4
+.PD
+get a property value.
+
+.IP "\fB\-i\fR" 4
+.PD 0
+.IP "\fB\--import\fR" 4
+.PD
+import configuration settings from either standard input (-) or a file.
+
+.IP "\fB\-n\fR" 4
+.PD
+node name.
+
+.IP "\fB\-p\fR" 4
+.PD
+platform name.
+
+.IP "\fB\-s\fR" 4
+.PD 0
+.IP "\fB\--set\fR" 4
+.PD
+set a property.
+
+.IP "\fB\-u\fR" 4
+.PD 0
+.IP "\fB\--unset\fR" 4
+.PD
+unset a property.
+
+.SH "COPYRIGHT"
+
+(C) Copyright IBM Corp. 2008, 2014. All Rights Reserved.

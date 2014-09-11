@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# **************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2014
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+# **************************************************************************
+
+# **************************************************************************
+# Display license and confirm acceptance.
+# **************************************************************************
+
+echo "You must read and accept the license agreement for this software before installing and using it."
+read -p "Press enter to display the license agreement."
+   
+licenseFile="LICENSE.txt"
+   
+# If the license file exists...
+if [ -f "$licenseFile" ]
+then
+   
+	# Display it
+	more $licenseFile
+	echo
+        
+	licenseAccepted="tbd"
+
+	# While the user hasn't accepted or rejected the license...
+	while [ "$licenseAccepted" = "tbd" ]
+	do
+
+		read -p "Do you accept the license agreement (yes/no)? "
+
+		if [ "$REPLY" = "yes" ]
+		then
+			licenseAccepted="y"
+		elif [ "$REPLY" = "no" ]
+		then
+			licenseAccepted="n"
+		fi
+
+	done
+         
+else
+   
+	echo
+	echo "Error: cannot open the license file ($licenseFile)."
+	echo "Please contact your support representative."
+	licenseAccepted="n"
+
+fi
+
+# If the license was accepted...
+if [ "$licenseAccepted" = "y" ]
+then
+	exit 0
+else
+	exit 1
+fi

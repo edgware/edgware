@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Eclipse-RegisterBuddy: fabric.lib
+Bundle-ManifestVersion: 2
+Bundle-Name: Fabric Proxy Publisher Service
+Bundle-SymbolicName: fabric.services.proxypublisher
+Bundle-Version: 0.4.0
+Bundle-Copyright: (C) Copyright IBM Corp. 2012
+Import-Package: fabric,
+ fabric.bus,
+ fabric.bus.messages,
+ fabric.bus.plugins,
+ fabric.bus.services,
+ fabric.bus.services.impl,
+ fabric.core.io
+Fabric-Plugin: fabric.services.proxypublisher.ProxyPublisherService
+Require-Bundle: fabric.core,
+ fabric.lib,
+ fabric.fabricmanager
+Bundle-Vendor: IBM
+Export-Package: fabric.services.proxypublisher

@@ -1,0 +1,2002 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en-us" xml:lang="en-us">
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<meta name="copyright" content="(C) Copyright 2005" />
+<meta name="DC.rights.owner" content="(C) Copyright 2005" />
+<meta content="public" name="security" />
+<meta content="index,follow" name="Robots" />
+<meta http-equiv="PICS-Label" content='(PICS-1.1 "http://www.icra.org/ratingsv02.html" l gen true r (cz 1 lz 1 nz 1 oz 1 vz 1) "http://www.rsac.org/ratingsv01.html" l gen true r (n 0 s 0 v 0 l 0) "http://www.classify.org/safesurf/" l gen true r (SS~~000 1))' />
+<meta content="reference" name="DC.Type" />
+<meta name="DC.Title" content="Derby support for SQL-92 features" />
+<meta content="SQL-92, features supported by Derby, features not supported by Derby" name="DC.subject" />
+<meta content="SQL-92, features supported by Derby, features not supported by Derby" name="keywords" />
+<meta content="XHTML" name="DC.Format" />
+<meta content="rrefsql9241891" name="DC.Identifier" />
+<meta content="en-us" name="DC.Language" />
+<link href="commonltr.css" type="text/css" rel="stylesheet" />
+<title>Derby support for SQL-92 features </title>
+</head>
+<body id="rrefsql9241891"><a name="rrefsql9241891"><!-- --></a>
+
+
+<h1 class="topictitle1">Derby support for SQL-92 features </h1>
+
+
+<div>
+<div class="section"><div class="p"> There are four levels of SQL-92 support:   <ul>
+<li>SQL92E   <p>Entry</p>
+</li>
+
+<li>SQL92T   <p>Transitional, a level defined by NIST in a publication called
+FIPS 127-2</p>
+</li>
+
+<li>SQL92I   <p>Intermediate</p>
+</li>
+
+<li>SQL92F   <p>Full</p>
+</li>
+
+</ul>
+  </div>
+
+<p>The following tables show Derby support for SQL-92 features.</p>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 1. Support for SQL-92 features: Basic data types" frame="border" border="1" rules="all"><caption>Table 1. Support for SQL-92 features: Basic data types</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N100AE">Feature</th>
+
+<th valign="bottom" width="30%" id="N100B5">Source</th>
+
+<th valign="bottom" width="30%" id="N100BC"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N100AE">SMALLINT</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N100AE">INTEGER</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N100AE">DECIMAL(p,s)</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N100AE">NUMERIC(p,s)</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N100AE">REAL</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N100AE">FLOAT(p)</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N100AE">DOUBLE PRECISION</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N100AE">CHAR(n)</td>
+
+<td valign="top" width="30%" headers="N100B5">SQL92E</td>
+
+<td valign="top" width="30%" headers="N100BC">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 2. Support for SQL-92 features: Basic math operations" frame="border" border="1" rules="all"><caption>Table 2. Support for SQL-92 features: Basic math operations</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N101DF">Feature</th>
+
+<th valign="bottom" width="30%" id="N101E6">Source</th>
+
+<th valign="bottom" width="30%" id="N101ED"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N101DF">+, *, -, /, unary +, unary -</td>
+
+<td valign="top" width="30%" headers="N101E6">SQL92E</td>
+
+<td valign="top" width="30%" headers="N101ED">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 3. Support for SQL-92 features: Basic comparisons" frame="border" border="1" rules="all"><caption>Table 3. Support for SQL-92 features: Basic comparisons</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10253">Feature</th>
+
+<th valign="bottom" width="30%" id="N1025A">Source</th>
+
+<th valign="bottom" width="30%" id="N10261"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10253">&lt;, &gt;, &lt;= ,&gt;=, &lt;&gt;, =</td>
+
+<td valign="top" width="30%" headers="N1025A">SQL92E</td>
+
+<td valign="top" width="30%" headers="N10261">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 4. Support for SQL-92 features: Basic predicates" frame="border" border="1" rules="all"><caption>Table 4. Support for SQL-92 features: Basic predicates</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N102C7">Feature</th>
+
+<th valign="bottom" width="30%" id="N102CE">Source</th>
+
+<th valign="bottom" width="30%" id="N102D5"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N102C7">BETWEEN, LIKE, NULL</td>
+
+<td valign="top" width="30%" headers="N102CE">SQL92E</td>
+
+<td valign="top" width="30%" headers="N102D5">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 5. Support for SQL-92 features: Quantified predicates" frame="border" border="1" rules="all"><caption>Table 5. Support for SQL-92 features: Quantified predicates</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N1033B">Feature</th>
+
+<th valign="bottom" width="30%" id="N10342">Source</th>
+
+<th valign="bottom" width="30%" id="N10349"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N1033B">IN, ALL/SOME, EXISTS</td>
+
+<td valign="top" width="30%" headers="N10342">SQL92E</td>
+
+<td valign="top" width="30%" headers="N10349">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 6. Support for SQL-92 features: schema definition" frame="border" border="1" rules="all"><caption>Table 6. Support for SQL-92 features: schema definition</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N103AF">Feature</th>
+
+<th valign="bottom" width="30%" id="N103B6">Source</th>
+
+<th valign="bottom" width="30%" id="N103BD"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N103AF">Tables</td>
+
+<td valign="top" width="30%" headers="N103B6">SQL92E</td>
+
+<td valign="top" width="30%" headers="N103BD">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N103AF">Views</td>
+
+<td valign="top" width="30%" headers="N103B6">SQL92E</td>
+
+<td valign="top" width="30%" headers="N103BD">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N103AF">Privileges</td>
+
+<td valign="top" width="30%" headers="N103B6">SQL92E</td>
+
+<td valign="top" width="30%" headers="N103BD">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 7. Support for SQL-92 features: column attributes" frame="border" border="1" rules="all"><caption>Table 7. Support for SQL-92 features: column attributes</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10459">Feature</th>
+
+<th valign="bottom" width="30%" id="N10460">Source</th>
+
+<th valign="bottom" width="30%" id="N10467"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10459">Default values</td>
+
+<td valign="top" width="30%" headers="N10460">SQL92E</td>
+
+<td valign="top" width="30%" headers="N10467">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10459">Nullability</td>
+
+<td valign="top" width="30%" headers="N10460">SQL92E</td>
+
+<td valign="top" width="30%" headers="N10467">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 8. Support for SQL-92 features: constraints (non-deferrable)" frame="border" border="1" rules="all"><caption>Table 8. Support for SQL-92 features: constraints (non-deferrable)</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N104E8">Feature</th>
+
+<th valign="bottom" width="30%" id="N104EF">Source</th>
+
+<th valign="bottom" width="30%" id="N104F6"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N104E8">NOT NULL</td>
+
+<td valign="top" width="30%" headers="N104EF">SQL92E</td>
+
+<td valign="top" width="30%" headers="N104F6">Yes (not stored in SYSCONSTRAINTS)</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N104E8">UNIQUE/PRIMARY KEY</td>
+
+<td valign="top" width="30%" headers="N104EF">SQL92E</td>
+
+<td valign="top" width="30%" headers="N104F6">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N104E8">FOREIGN KEY</td>
+
+<td valign="top" width="30%" headers="N104EF">SQL92E</td>
+
+<td valign="top" width="30%" headers="N104F6">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N104E8">CHECK</td>
+
+<td valign="top" width="30%" headers="N104EF">SQL92E</td>
+
+<td valign="top" width="30%" headers="N104F6">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N104E8">View WITH CHECK OPTION</td>
+
+<td valign="top" width="30%" headers="N104EF">SQL92E</td>
+
+<td valign="top" width="30%" headers="N104F6">No, views cannot be updated</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 9. Support for SQL-92 features: Cursors" frame="border" border="1" rules="all"><caption>Table 9. Support for SQL-92 features: Cursors</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N105C8">Feature</th>
+
+<th valign="bottom" width="30%" id="N105CF">Source</th>
+
+<th valign="bottom" width="30%" id="N105D6"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N105C8">DECLARE, OPEN, FETCH, CLOSE</td>
+
+<td valign="top" width="30%" headers="N105CF">SQL92E</td>
+
+<td valign="top" width="30%" headers="N105D6">Yes, by using JDBC method calls</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N105C8">UPDATE, DELETE CURRENT</td>
+
+<td valign="top" width="30%" headers="N105CF">SQL92E</td>
+
+<td valign="top" width="30%" headers="N105D6">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 10. Support for SQL-92 features: Dynamic SQL 1" frame="border" border="1" rules="all"><caption>Table 10. Support for SQL-92 features: Dynamic SQL 1</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10657">Feature</th>
+
+<th valign="bottom" width="30%" id="N1065E">Source</th>
+
+<th valign="bottom" width="30%" id="N10665"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10657">ALLOCATE / DEALLOCATE / GET / SET DESCRIPTOR</td>
+
+<td valign="top" width="30%" headers="N1065E">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10665">Yes, by using JDBC method calls</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10657">PREPARE / EXECUTE / EXECUTE IMMEDIATE</td>
+
+<td valign="top" width="30%" headers="N1065E">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10665">Yes, by using JDBC method calls</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10657">DECLARE, OPEN, FETCH, CLOSE, UPDATE, DELETE dynamic
+cursor</td>
+
+<td valign="top" width="30%" headers="N1065E">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10665">Yes, by using JDBC method calls</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10657">DESCRIBE output</td>
+
+<td valign="top" width="30%" headers="N1065E">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10665">Yes, by using JDBC method calls</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 11. Support for SQL-92 features: Basic information schema" frame="border" border="1" rules="all"><caption>Table 11. Support for SQL-92 features: Basic information schema</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N1071C">Feature</th>
+
+<th valign="bottom" width="30%" id="N10723">Source</th>
+
+<th valign="bottom" width="30%" id="N1072A"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N1071C">TABLES</td>
+
+<td valign="top" width="30%" headers="N10723">SQL92T</td>
+
+<td valign="top" width="30%" headers="N1072A"><em>SYS.SYSTABLES, SYS.SYSVIEWS, SYS.SYSCOLUMNS</em></td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N1071C">VIEWS</td>
+
+<td valign="top" width="30%" headers="N10723">SQL92T</td>
+
+<td valign="top" width="30%" headers="N1072A"><em>SYS.SYSTABLES, SYS.SYSVIEWS, SYS.SYSCOLUMNS</em></td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N1071C">COLUMNS</td>
+
+<td valign="top" width="30%" headers="N10723">SQL92T</td>
+
+<td valign="top" width="30%" headers="N1072A"><em>SYS.SYSTABLES, SYS.SYSVIEWS, SYS.SYSCOLUMNS</em></td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 12. Support for SQL-92 features: Basic schema manipulation" frame="border" border="1" rules="all"><caption>Table 12. Support for SQL-92 features: Basic schema manipulation</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N107D2">Feature</th>
+
+<th valign="bottom" width="30%" id="N107D9">Source</th>
+
+<th valign="bottom" width="30%" id="N107E0"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N107D2">CREATE / DROP TABLE</td>
+
+<td valign="top" width="30%" headers="N107D9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N107E0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N107D2">CREATE / DROP VIEW</td>
+
+<td valign="top" width="30%" headers="N107D9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N107E0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N107D2">GRANT / REVOKE</td>
+
+<td valign="top" width="30%" headers="N107D9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N107E0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N107D2">ALTER TABLE ADD COLUMN</td>
+
+<td valign="top" width="30%" headers="N107D9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N107E0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N107D2">ALTER TABLE DROP COLUMN</td>
+
+<td valign="top" width="30%" headers="N107D9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N107E0">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 13. Support for SQL-92 features: Joined table" frame="border" border="1" rules="all"><caption>Table 13. Support for SQL-92 features: Joined table</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N108B2">Feature</th>
+
+<th valign="bottom" width="30%" id="N108B9">Source</th>
+
+<th valign="bottom" width="30%" id="N108C0"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N108B2">INNER JOIN</td>
+
+<td valign="top" width="30%" headers="N108B9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N108C0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N108B2">natural join</td>
+
+<td valign="top" width="30%" headers="N108B9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N108C0">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N108B2">LEFT, RIGHT OUTER JOIN</td>
+
+<td valign="top" width="30%" headers="N108B9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N108C0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N108B2">join condition</td>
+
+<td valign="top" width="30%" headers="N108B9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N108C0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N108B2">named columns join</td>
+
+<td valign="top" width="30%" headers="N108B9">SQL92T</td>
+
+<td valign="top" width="30%" headers="N108C0">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 14. Support for SQL-92 features: Date and time data types" frame="border" border="1" rules="all"><caption>Table 14. Support for SQL-92 features: Date and time data types</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10992">Feature</th>
+
+<th valign="bottom" width="30%" id="N10999">Source</th>
+
+<th valign="bottom" width="30%" id="N109A0"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10992">simple DATE, TIME, TIMESTAMP, INTERVAL</td>
+
+<td valign="top" width="30%" headers="N10999">SQL92T</td>
+
+<td valign="top" width="30%" headers="N109A0">Yes, not INTERVAL</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10992">datetime constants</td>
+
+<td valign="top" width="30%" headers="N10999">SQL92T</td>
+
+<td valign="top" width="30%" headers="N109A0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10992">datetime math</td>
+
+<td valign="top" width="30%" headers="N10999">SQL92T</td>
+
+<td valign="top" width="30%" headers="N109A0">Yes, with Java methods</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10992">datetime comparisons</td>
+
+<td valign="top" width="30%" headers="N10999">SQL92T</td>
+
+<td valign="top" width="30%" headers="N109A0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10992">predicates: OVERLAPS</td>
+
+<td valign="top" width="30%" headers="N10999">SQL92T</td>
+
+<td valign="top" width="30%" headers="N109A0">Yes, with Java methods</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 15. Support for SQL-92 features: VARCHAR" frame="border" border="1" rules="all"><caption>Table 15. Support for SQL-92 features: VARCHAR</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10A72">Feature</th>
+
+<th valign="bottom" width="30%" id="N10A79">Source</th>
+
+<th valign="bottom" width="30%" id="N10A80"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10A72">LENGTH</td>
+
+<td valign="top" width="30%" headers="N10A79">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10A80">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10A72">concatenation (||)</td>
+
+<td valign="top" width="30%" headers="N10A79">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10A80">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 16. Support for SQL-92 features: Transaction isolation" frame="border" border="1" rules="all"><caption>Table 16. Support for SQL-92 features: Transaction isolation</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10B01">Feature</th>
+
+<th valign="bottom" width="30%" id="N10B08">Source</th>
+
+<th valign="bottom" width="30%" id="N10B0F"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10B01">READ WRITE / READ ONLY</td>
+
+<td valign="top" width="30%" headers="N10B08">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10B0F">By using JDBC, database properties, and storage media</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10B01">RU, RC, RR, SER</td>
+
+<td valign="top" width="30%" headers="N10B08">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10B0F">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 17. Support for SQL-92 features: Multiple schemas per user" frame="border" border="1" rules="all"><caption>Table 17. Support for SQL-92 features: Multiple schemas per user</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10B90">Feature</th>
+
+<th valign="bottom" width="30%" id="N10B97">Source</th>
+
+<th valign="bottom" width="30%" id="N10B9E"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10B90">SCHEMATA view</td>
+
+<td valign="top" width="30%" headers="N10B97">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10B9E"><em>SYS.SYSSCHEMAS</em></td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 18. Support for SQL-92 features: Privilege tables" frame="border" border="1" rules="all"><caption>Table 18. Support for SQL-92 features: Privilege tables</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10C08">Feature</th>
+
+<th valign="bottom" width="30%" id="N10C0F">Source</th>
+
+<th valign="bottom" width="30%" id="N10C16"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10C08">TABLE_PRIVILEGES</td>
+
+<td valign="top" width="30%" headers="N10C0F">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10C16">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10C08">COLUMNS_PRIVILEGES</td>
+
+<td valign="top" width="30%" headers="N10C0F">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10C16">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10C08">USAGE_PRIVILEGES</td>
+
+<td valign="top" width="30%" headers="N10C0F">SQL92T</td>
+
+<td valign="top" width="30%" headers="N10C16">No</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 19. Support for SQL-92 features: Table operations" frame="border" border="1" rules="all"><caption>Table 19. Support for SQL-92 features: Table operations</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10CB2">Feature</th>
+
+<th valign="bottom" width="30%" id="N10CB9">Source</th>
+
+<th valign="bottom" width="30%" id="N10CC0"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10CB2">UNION relaxations</td>
+
+<td valign="top" width="30%" headers="N10CB9">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10CC0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10CB2">EXCEPT</td>
+
+<td valign="top" width="30%" headers="N10CB9">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10CC0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10CB2">INTERSECT</td>
+
+<td valign="top" width="30%" headers="N10CB9">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10CC0">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10CB2">CORRESPONDING</td>
+
+<td valign="top" width="30%" headers="N10CB9">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10CC0">No</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 20. Support for SQL-92 features: Schema definition statement" frame="border" border="1" rules="all"><caption>Table 20. Support for SQL-92 features: Schema definition statement</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10D77">Feature</th>
+
+<th valign="bottom" width="30%" id="N10D7E">Source</th>
+
+<th valign="bottom" width="30%" id="N10D85"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10D77">CREATE SCHEMA</td>
+
+<td valign="top" width="30%" headers="N10D7E">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10D85">Partial support</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 21. Support for SQL-92 features: User authorization" frame="border" border="1" rules="all"><caption>Table 21. Support for SQL-92 features: User authorization</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10DEB">Feature</th>
+
+<th valign="bottom" width="30%" id="N10DF2">Source</th>
+
+<th valign="bottom" width="30%" id="N10DF9"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10DEB">SET SESSION AUTHORIZATION</td>
+
+<td valign="top" width="30%" headers="N10DF2">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10DF9">Use SET SCHEMA</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10DEB">CURRENT_USER</td>
+
+<td valign="top" width="30%" headers="N10DF2">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10DF9">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10DEB">SESSION_USER</td>
+
+<td valign="top" width="30%" headers="N10DF2">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10DF9">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10DEB">SYSTEM_USER</td>
+
+<td valign="top" width="30%" headers="N10DF2">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10DF9">No</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 22. Support for SQL-92 features: Constraint tables" frame="border" border="1" rules="all"><caption>Table 22. Support for SQL-92 features: Constraint tables</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10EB0">Feature</th>
+
+<th valign="bottom" width="30%" id="N10EB7">Source</th>
+
+<th valign="bottom" width="30%" id="N10EBE"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10EB0">TABLE CONSTRAINTS</td>
+
+<td valign="top" width="30%" headers="N10EB7">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10EBE"><em>SYS.SYSCONSTRAINTS</em></td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10EB0">REFERENTIAL CONSTRAINTS</td>
+
+<td valign="top" width="30%" headers="N10EB7">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10EBE"><em>SYS.SYSFOREIGNKEYS</em></td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10EB0">CHECK CONSTRAINTS</td>
+
+<td valign="top" width="30%" headers="N10EB7">SQL92I</td>
+
+<td valign="top" width="30%" headers="N10EBE"><em>SYS.SYSCHECKS</em></td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 23. Support for SQL-92 features: Documentation schema" frame="border" border="1" rules="all"><caption>Table 23. Support for SQL-92 features: Documentation schema</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10F66">Feature</th>
+
+<th valign="bottom" width="30%" id="N10F6D">Source</th>
+
+<th valign="bottom" width="30%" id="N10F74"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10F66">SQL_FEATURES</td>
+
+<td valign="top" width="30%" headers="N10F6D">SQL92I/FIPS 127-2</td>
+
+<td valign="top" width="30%" headers="N10F74">Use JDBC <em>DatabaseMetaData</em></td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N10F66">SQL_SIZING</td>
+
+<td valign="top" width="30%" headers="N10F6D">SQL92I/FIPS 127-2</td>
+
+<td valign="top" width="30%" headers="N10F74">Use JDBC <em>DatabaseMetaData</em></td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 24. Support for SQL-92 features: Full DATETIME" frame="border" border="1" rules="all"><caption>Table 24. Support for SQL-92 features: Full DATETIME</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N10FFF">Feature</th>
+
+<th valign="bottom" width="30%" id="N11006">Source</th>
+
+<th valign="bottom" width="30%" id="N1100D"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N10FFF">precision for TIME and TIMESTAMP</td>
+
+<td valign="top" width="30%" headers="N11006">SQL92F</td>
+
+<td valign="top" width="30%" headers="N1100D">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 25. Support for SQL-92 features: Full character functions" frame="border" border="1" rules="all"><caption>Table 25. Support for SQL-92 features: Full character functions</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N11073">Feature</th>
+
+<th valign="bottom" width="30%" id="N1107A">Source</th>
+
+<th valign="bottom" width="30%" id="N11081"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N11073">POSITION expression</td>
+
+<td valign="top" width="30%" headers="N1107A">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11081">Use Java methods or LOCATE</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11073">UPPER/LOWER functions</td>
+
+<td valign="top" width="30%" headers="N1107A">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11081">Yes</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 26. Support for SQL-92 features: Miscellaneous" frame="border" border="1" rules="all"><caption>Table 26. Support for SQL-92 features: Miscellaneous</caption>
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="40%" id="N11102">Feature</th>
+
+<th valign="bottom" width="30%" id="N11109">Source</th>
+
+<th valign="bottom" width="30%" id="N11110"><span>Derby</span></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="40%" headers="N11102">Delimited identifiers</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Correlated subqueries</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Insert, Update, Delete statements</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Joins</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Where qualifications</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Group by</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Having</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Aggregate functions</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Order by</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Select expressions</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Select *</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">SQLCODE</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">No, deprecated in SQL-92</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">SQLSTATE</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92E</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">UNION, INTERSECT, and EXCEPT in views</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Implicit numeric casting</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Implicit character casting</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Get diagnostics</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Use JDBC <em>SQLExceptions</em></td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Grouped operations</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Qualified * in select list</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Lowercase identifiers</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">nullable PRIMARY KEYs</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Multiple module support</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">No (not required and not part of JDBC)</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Referential delete actions</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">CASCADE, SET NULL, RESTRICT, and NO ACTION</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">CAST functions</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">INSERT expressions</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Explicit defaults</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Keyword relaxations</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92T</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Domain definition</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">CASE expression</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Partial support</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Compound character string constants</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Use concatenation</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">LIKE enhancements</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">UNIQUE predicate</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Usage tables</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110"><em>SYS.SYSDEPENDS</em> </td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Intermediate information schema</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Use JDBC <em>DatabaseMetaData</em> and <span>Derby</span> system
+tables</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Subprogram support</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Not relevant to JDBC, which is much richer</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Intermediate SQL Flagging</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Schema manipulation</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Long identifiers</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Full outer join</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Time zone specification</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Scrolled cursors</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Partial support (scrollable insensitive result sets
+through JDBC 2.0)</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Intermediate set function support</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Partial support</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Character set definition</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Support for Java locales</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Named character sets</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Support for Java locales</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Scalar subquery values</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Expanded null predicate</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Constraint management</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92I</td>
+
+<td valign="top" width="30%" headers="N11110">Yes (ADD/DROP CONSTRAINT)</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">FOR BIT DATA types</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes </td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Assertion constraints</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Temporary tables</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Partial support, with DECLARE GLOBAL TEMPORARY TABLE </td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Full dynamic SQL</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Full value expressions</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Truth value tests</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Derived tables in FROM</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Trailing underscore</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Indicator data types</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Not relevant to JDBC</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Referential name order</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Full SQL Flagging</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Row and table constructors</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Catalog name qualifiers</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Simple tables</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Subqueries in CHECK</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No, but can with Java methods</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Union join</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Collation and translation</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Java locales supported</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Referential update actions</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">RESTRICT and NO ACTION. Can do others with triggers.</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">ALTER domain</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">nNo</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">INSERT column privileges</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Referential MATCH types</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">View CHECK enhancements</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No, views cannot be updated</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Session management</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Use JDBC</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Connection management</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Use JDBC</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Self-referencing operations</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Insensitive cursors</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Yes through JDBC 2.0</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Full set function</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">Partial support</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Catalog flagging</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Local table references</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="40%" headers="N11102">Full cursor update</td>
+
+<td valign="top" width="30%" headers="N11109">SQL92F</td>
+
+<td valign="top" width="30%" headers="N11110">No</td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+</div>
+
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Apache Commons Codec Bundle
+Bundle-SymbolicName: bundle.apache.commons.codec
+Bundle-Version: 1.8
+Import-Package: org.osgi.framework
+Bundle-ClassPath: jars/commons-codec-1.8.jar,
+ .
+Export-Package: org.apache.commons.codec,
+ org.apache.commons.codec.binary,
+ org.apache.commons.codec.digest,
+ org.apache.commons.codec.language,
+ org.apache.commons.codec.language.bm,
+ org.apache.commons.codec.net
+Bundle-Vendor: Apache
+Bundle-ActivationPolicy: lazy
+Bundle-Activator: bundle.apache.commons.codec.Activator

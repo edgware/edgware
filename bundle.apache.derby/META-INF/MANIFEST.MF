@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Derby Client Plug-in
+Bundle-SymbolicName: bundle.apache.derby
+Bundle-Version: 10.8.3.0
+Bundle-ClassPath: db-derby-10.8.3.0-bin/lib/derbyclient.jar,
+ .
+Export-Package: org.apache.derby.client,
+ org.apache.derby.client.am,
+ org.apache.derby.client.am.stmtcache,
+ org.apache.derby.client.net,
+ org.apache.derby.iapi.services.info,
+ org.apache.derby.iapi.tools.i18n,
+ org.apache.derby.impl.tools.sysinfo,
+ org.apache.derby.jdbc,
+ org.apache.derby.shared.common.error,
+ org.apache.derby.shared.common.i18n,
+ org.apache.derby.tools

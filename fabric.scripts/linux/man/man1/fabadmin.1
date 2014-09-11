@@ -1,0 +1,100 @@
+.TH FABADMIN 1 06/14
+
+.SH NAME
+\fBfabadmin\fR \- command line tool to manage Fabric runtime components.
+
+.SH SYNOPSIS
+.P
+\fBfabadmin\fR  \fB-s\fR [\fB-d\fR] \fB-gaian\fR|\fB-distributed\fR \fB-r\fR \fBnode\fR
+.P
+\fBfabadmin\fR  \fB-s\fR [\fB-d\fR] \fB-n\fR [\fB-c\fR] \fBnode\fR
+.P
+\fBfabadmin\fR  \fB-s\fR [\fB-d\fR] \fB-w\fR \fBnode\fR
+.P
+\fBfabadmin\fR  \fB-st\fR \fB-gaian\fR|\fB-distributed\fR \fB-r\fR 
+.P
+\fBfabadmin\fR  \fB-st\fR \fB-n\fR \fBnode\fR
+.P
+\fBfabadmin\fR  \fB-st\fR \fB-w\fR
+.P
+\fBfabadmin\fR \fB-status\fR
+.P
+\fBfabadmin\fR \fB-clean\fR \fB-r\fR \fB-gaian\fR|\fB-distributed\fR
+.P
+\fBfabadmin\fR \fB-p\fR [\fBarguments\fR]
+
+.SH DESCRIPTION
+.PP
+\fBfabadmin\fR is an interface to the Fabric launcher tool, which manages the
+lifecycle of the Fabric's runtime components including the node's OSGi
+runtime, the Fabric Registry and the broker.
+.PP
+\fBNote:\fR this command should not be used for any runtime components
+that are managed as system services.
+
+.SH "OPTIONS"
+.IP "\fB\-c\fR" 4
+.PD 0
+.IP "\fB\--console\fR" 4
+.PD
+launch the Fabric OSGi runtime framework with the interactive console option.
+
+.IP "\fB\-d\fR" 4
+.PD 0
+.IP "\fB\--daemon\fR" 4
+.PD
+start a runtime component as a background process.
+
+.IP "\fB\-s\fR" 4
+.PD 0
+.IP "\fB\--start\fR" 4
+.PD
+start a Fabric runtime component.
+
+.IP "\fB\-st\fR" 4
+.PD 0
+.IP "\fB\--stop\fR" 4
+.PD
+stop a Fabric runtime component.
+
+.IP "\fB\-clean\fR" 4
+.PD 0
+.IP "\fB\--clean\fR" 4
+.PD
+re-initialise a Fabric runtime component (currently only the Fabric Registry).
+
+.IP "\fB\-status\fR" 4
+.PD 0
+.IP "\fB\--status\fR" 4
+.PD
+show the status of Fabric runtime components.
+
+.IP "\fB\-p\fR" 4
+.PD 0
+.IP "\fB\--passthrough\fR" 4
+.PD
+invoke the Fabric launcher application directly. Command line arguments are
+passed through as-is. Using the \fB\-p\fR option with no arguments will
+display the launcher's usage help.
+
+.IP "\fB\-r\fR" 4
+.PD 0
+.IP "\fB\--registry\fR" 4
+.PD
+perform an action on the Fabric Registry.
+
+.IP "\fB\-w\fR" 4
+.PD 0
+.IP "\fB\--web\fR" 4
+.PD
+perform an action on the web server.
+
+.IP "\fB\-n\fR" 4
+.PD 0
+.IP "\fB\--node\fR" 4
+.PD
+perform an action on the Fabric OSGi runtime.
+
+.SH "COPYRIGHT"
+
+(C) Copyright IBM Corp. 2008, 2014. All Rights Reserved.

@@ -1,0 +1,138 @@
+#!/bin/bash
+
+#**************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2014. All Rights Reserved.
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# US Government Users Restricted Rights - Use, duplication or
+# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+#**************************************************************************
+
+### BEGIN INIT INFO
+# Provides: edgware-webserver
+# Required-Start: $local_fs $network $remote_fs edgware-nodes
+# Required-Stop: $local_fs $network $remote_fs edgware_nodes
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: start and stop the Edgware Web Server
+# Description: LSB Compliant Sys V Init Script for the Edgware Web Server
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+### REQUIRED VARIABLE
+# Please ensure this is set correctly for your installation
+
+[ -z "$FABRIC_HOME" ] && export FABRIC_HOME=/opt/ibm/edgware-0.4.0
+
+### END REQUIRED VARIABLE
+
+[ -e "$FABRIC_HOME/server/linux/sysconfig" ] && . "$FABRIC_HOME/server/linux/sysconfig"
+
+[ -z "$JAVA_HOME" ] && export JAVA_HOME=/etc/alternatives/jre
+
+FABADMIN="$FABRIC_HOME/bin/linux/fabadmin"
+WEBSERVER_NODE="default"
+PORT="8080"
+SERVICE="Edgware Web Server"
+TIMEOUT="60"
+RETVAL="0"
+LOG="/dev/null"
+
+start() {
+	"$FABADMIN" -s -w "$WEBSERVER_NODE" >>"$LOG" 2>&1 &
+	let count=0
+	let max_checks="$TIMEOUT"
+	while [ $count -lt $max_checks ]; do
+		is_running
+		if [ $? -ne 1 ]; then
+			let count=$count+1
+			sleep 1
+		else
+			break
+		fi
+	done
+
+	is_running
+	if [ $? -eq 1 ]; then
+		log_success_msg "$SERVICE"
+	else
+		log_failure_msg "$SERVICE"
+		RETVAL="1"
+	fi
+}
+
+stop() {
+	"$FABADMIN" -stop -b >>"$LOG" 2>&1
+	let count=0
+	let max_checks="$TIMEOUT"
+	while [ $count -lt $max_checks ]; do
+		is_running
+		if [ $? -ne 0 ]; then
+			let count=$count+1
+			sleep 1
+		else
+			break
+		fi
+	done
+
+	is_running
+	if [ $? -eq 1 ]; then
+		log_failure_msg "$SERVICE"
+		RETVAL="1"
+	else
+		log_success_msg "$SERVICE"
+	fi
+}
+
+status() {
+	is_running
+	if [ $? -eq 1 ]; then
+		echo "$SERVICE is running..."
+	else
+		echo "$SERVICE is stopped"
+	fi
+}
+
+is_running() {
+	if [ $(netstat -tln | grep -c "$PORT") -eq 0 ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+case "$1" in
+	start)
+		start
+		;;
+
+	stop)
+		stop
+		;;
+
+	restart)
+		stop
+		start
+		;;
+
+	force-reload)
+		stop
+		start
+		;;
+
+	status)
+		status
+		;;
+
+	*)
+		echo $"Usage: $0 {start|stop|restart|force-reload|status}"
+		RETVAL="2"
+
+esac
+
+exit "$RETVAL"

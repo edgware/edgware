@@ -1,0 +1,33 @@
+#!/bin/sh
+
+#**************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2014. All Rights Reserved.
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# US Government Users Restricted Rights - Use, duplication or
+# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+
+# The location of your JRE
+JAVA_HOME=/etc/alternatives/jre
+
+# The root location of your Edgware installation
+FABRIC_HOME=/opt/ibm/edgware-0.4.0
+
+# Add Edgware and Java to the PATH
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:$JAVA_HOME/jre/bin:$FABRIC_HOME/bin/linux
+
+#The type of edgware registry in use
+REGISTRY_TYPE="distributed"
+
+#The Node to receive registry triggers
+REGISTRY_NODE="default"
+
+#The Node for the web server content to communicate with
+WEBSERVER_NODE="default"
+
+# Space separated list of Node names to start (used only in the sysvinit script)
+NODES="$HOSTNAME"

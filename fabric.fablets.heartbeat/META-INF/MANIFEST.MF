@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Eclipse-RegisterBuddy: fabric.lib
+Bundle-ManifestVersion: 2
+Bundle-Name: Fabric Heartbeat Fablet
+Bundle-SymbolicName: fabric.fablets.heartbeat
+Bundle-Version: 0.4.0
+Bundle-Copyright: (C) Copyright IBM Corp. 2010, 2012
+Import-Package: fabric,
+ fabric.bus,
+ fabric.bus.messages,
+ fabric.bus.plugins,
+ fabric.core.io
+Bundle-ActivationPolicy: lazy
+Fabric-Plugin: fabric.fablets.heartbeat.HeartbeatFablet
+Bundle-Vendor: IBM
+Require-Bundle: fabric.core;bundle-version="0.4.0",
+ fabric.lib;bundle-version="0.4.0",
+ fabric.fabricmanager;bundle-version="0.4.0"
+Export-Package: fabric.fablets.heartbeat

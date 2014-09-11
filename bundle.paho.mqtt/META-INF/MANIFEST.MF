@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Paho MQTT Java Client Plug-in
+Bundle-SymbolicName: bundle.paho.mqtt
+Bundle-Version: 0.4.0
+Bundle-ClassPath: jars/mqtt-client-0.4.0.jar,
+ .
+Export-Package: bundle.paho.mqtt,
+ org.eclipse.paho.client.mqttv3,
+ org.eclipse.paho.client.mqttv3.internal,
+ org.eclipse.paho.client.mqttv3.internal.security,
+ org.eclipse.paho.client.mqttv3.internal.wire,
+ org.eclipse.paho.client.mqttv3.logging,
+ org.eclipse.paho.client.mqttv3.persist,
+ org.eclipse.paho.client.mqttv3.util
+Import-Package: javax.net,
+ javax.net.ssl,
+ org.osgi.framework
+Bundle-Activator: bundle.paho.mqtt.Activator
+Bundle-Vendor: Eclipse
+Bundle-ActivationPolicy: lazy

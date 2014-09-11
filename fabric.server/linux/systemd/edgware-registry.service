@@ -1,0 +1,23 @@
+#**************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2014. All Rights Reserved.
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# US Government Users Restricted Rights - Use, duplication or
+# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+#**************************************************************************
+
+[Unit]
+Description=Start and stop the Edgware Registry
+After=network.target
+
+[Service]
+EnvironmentFile=/opt/ibm/edgware-0.4.0/server/linux/sysconfig
+ExecStart=/opt/ibm/edgware-0.4.0/linux/fabadmin -s -distributed -r default 
+ExecStop=/opt/ibm/edgware-0.4.0/linux/fabadmin -st -distributed -r
+
+[Install]
+WantedBy=multi-user.target

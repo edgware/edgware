@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# **************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2012
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+# **************************************************************************
+
+# **************************************************************************
+# Invokes the main entry point for the specified Fabric app.
+# **************************************************************************
+
+# Test the various environment variables
+bash $FABRIC_HOME/bin/linux/test.sh
+
+if [ ! $? -eq 0 ]
+then
+	exit 1
+fi
+
+DAEMON=0
+NODE=default
+GET_NODE=0
+
+for arg in "$@"
+do
+    case "$arg" in
+    	'-d'|'-daemon'|'--daemon')
+    		DAEMON=1
+    		;;
+    	'-n'|'-node'|'--node')
+    		TYPE=NODE
+    		GET_NODE=1
+    		;;
+    	-*)
+    		;;
+    	*)
+  			[ $GET_NODE -eq 1 ] && NODE=$arg
+    		GET_NODE=0
+    		;;
+    esac
+done
+
+echo - NODE is $NODE
+
+export CLASSPATH=$(echo $FABRIC_HOME/lib/gaiandb/lib/*.jar | tr ' ' ':')
+export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/plugins/*.jar | tr ' ' ':')
+export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/fabric/*.jar | tr ' ' ':')
+export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/oslib/*.jar | tr ' ' ':')
+export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/db-derby/lib/*.jar | tr ' ' ':')
+
+if [ $DAEMON -eq 0 ]
+then
+	java -Djava.util.logging.config.file=$FABRIC_HOME/osgi/configuration/logging.properties -Dfabric.node=$NODE $*
+else
+	exec java -Djava.util.logging.config.file=$FABRIC_HOME/osgi/configuration/logging.properties -Dfabric.node=$NODE $*
+fi
+

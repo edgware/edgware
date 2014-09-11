@@ -1,0 +1,523 @@
+#!/bin/bash
+
+# **************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2012, 2014
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+# **************************************************************************
+
+#FABRIC_DEBUG=true
+
+# **************************************************************************
+# Function declarations
+# **************************************************************************
+
+function debug {
+	if [ -n "$FABRIC_DEBUG" ]
+	then
+		echo $* >&2
+		#echo "Enter to continue" >&2
+		#read
+	fi
+}
+
+function startRegistry {
+
+	REGISTRY_HOME=$FABRIC_HOME/db/REGISTRY
+	REGISTRY_LOG_FILE=$FABRIC_HOME/log/registry.log
+
+	if [ ! -e $REGISTRY_HOME ]
+	then
+		mkdir $REGISTRY_HOME
+	fi
+	
+	if [ ! -e $REGISTRY_HOME/derby.properties ]
+	then
+		cp $REGISTRY_HOME/../derby.properties $REGISTRY_HOME/derby.properties
+	fi
+	
+	if [ ! -e $REGISTRY_HOME/logging.properties ]
+	then
+		cp $REGISTRY_HOME/../logging.properties $REGISTRY_HOME/logging.properties
+	fi
+	
+
+	echo - Starting the Registry
+
+	export CLASSPATH=$(echo $FABRIC_HOME/lib/plugins/*.jar | tr ' ' ':')
+	export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/fabric/*.jar | tr ' ' ':')
+	export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/oslib/*.jar | tr ' ' ':')
+
+	cd $REGISTRY_HOME
+
+	if [ "$DBTYPE" == "gaian" ]
+	then
+	
+		REGISTRY_PID_FILE=$FABRIC_HOME/pid/.registry.gaian
+		
+		if [ ! -e $REGISTRY_HOME/gaiandb_config_fabric.properties ]
+		then
+			cp $REGISTRY_HOME/../gaiandb_config_fabric.properties.master $REGISTRY_HOME/gaiandb_config_fabric.properties
+		fi
+	
+		export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/gaiandb/lib/*.jar | tr ' ' ':')
+
+		if [ $DAEMON -eq 0 ]
+		then
+			echo $$ > $REGISTRY_PID_FILE
+			exec java -cp $CLASSPATH -Dfabric.node="$NODE" -Dfabric.feeds.onramp="$COMMAND_TOPIC" -Djava.util.logging.config.file=$REGISTRY_HOME/logging.properties -Xmx128m com.ibm.gaiandb.GaianNode -c ./gaiandb_config_fabric.properties
+		else
+			echo "  (background)"
+			java -cp $CLASSPATH -Dfabric.node="$NODE" -Dfabric.feeds.onramp="$COMMAND_TOPIC" -Djava.util.logging.config.file=$REGISTRY_HOME/logging.properties -Xmx128m com.ibm.gaiandb.GaianNode -c ./gaiandb_config_fabric.properties >$REGISTRY_LOG_FILE 2>&1 &
+			echo $! > $REGISTRY_PID_FILE
+			waitForRegistry
+		fi
+		
+	else
+	
+		REGISTRY_PID_FILE=$FABRIC_HOME/pid/.registry.distributed
+		
+		# Start Derby
+		
+		export DERBY_HOME=$FABRIC_HOME/db/REGISTRY
+
+		export CLASSPATH=$CLASSPATH:$(echo $FABRIC_HOME/lib/db-derby/lib/*.jar | tr ' ' ':')
+
+		if [ $DAEMON -eq 0 ]
+		then
+			echo $$ > $REGISTRY_PID_FILE
+			java -cp $CLASSPATH -Dfabric.node="$NODE" -Dfabric.feeds.onramp="$COMMAND_TOPIC" -jar $FABRIC_HOME/lib/db-derby/lib/derbyrun.jar server start -p 6414 -noSecurityManager
+		else
+			echo "  (background)"
+			java -cp $CLASSPATH -Dfabric.node="$NODE" -Dfabric.feeds.onramp="$COMMAND_TOPIC" -jar $FABRIC_HOME/lib/db-derby/lib/derbyrun.jar server start -p 6414 -noSecurityManager >$REGISTRY_LOG_FILE 2>&1 &
+			echo $! > $REGISTRY_PID_FILE
+			waitForRegistry
+		fi
+	fi
+}
+
+function waitForRegistry {
+
+	echo - Waiting for Registry to start
+
+	WAIT=20
+	while [ $WAIT -gt 0 ]
+	do
+		sleep 1
+		if [ `isRegistryRunning` == "yes" ]
+		then
+			break
+		fi
+		WAIT=$(($WAIT-1))
+		echo - Still waiting $WAIT
+	done
+
+	if [ $WAIT -eq 0 ]
+	then
+		echo "Registry failed to start. Check $FABRIC_HOME/log/registry.log for errors."
+		return 1
+	fi
+
+	return 0
+}
+
+function isRegistryRunning {
+
+	runLauncher --registry -testConnection -$DBTYPE
+	
+	if [ $? -eq 0 ]
+	then
+		isRunning=yes
+	else
+		isRunning=no
+	fi
+
+	echo $isRunning
+}
+
+function stopRegistry {
+
+	if [ `isRegistryRunning` == "yes" ]
+	then
+   
+		echo - Stopping the Registry
+
+		if [ "$DBTYPE" == "gaian" ]
+		then
+
+			# Gaian 2.0+
+			#runLauncher --registry --stop
+
+			pid=`ps -ef | grep -i com.ibm.gaiandb.GaianNode | grep -v grep | awk '{print $2}'`
+			kill $pid
+
+		else
+
+			export DERBY_INSTALL=$FABRIC_HOME/db/REGISTRY
+			sh $FABRIC_HOME/lib/db-derby/bin/stopNetworkServer -user fabric -password fabric -p 6414
+
+		fi
+
+		if [ `isRegistryRunning` == "no" ]
+		then	
+			echo - Registry stopped
+			registryRunning=0
+		else
+			registryRunning=1
+		fi
+	else
+		registryRunning=0
+	fi
+
+	return $registryRunning
+}
+
+function startNode {
+
+	echo - Starting node
+
+	export NODE_HOME=$FABRIC_HOME/osgi
+	export NODE_CONFIG_DIR=$NODE_HOME/configuration
+	export NODE_LOG_FILE=$FABRIC_HOME/log/node.$NODE.log
+	export NODE_LOGGING_FILE=$NODE_CONFIG_DIR/logging_$NODE.properties
+	
+	if [ ! -e $NODE_LOGGING_FILE ]
+	then
+		export NODE_LOGGING_FILE=$NODE_CONFIG_DIR/logging.properties
+	fi
+	
+	export NODE_CONFIG_FILE=$NODE_CONFIG_DIR/fabricConfig_$NODE.properties
+	if [ ! -e $NODE_CONFIG_FILE ]
+	then
+		export NODE_CONFIG_FILE=$NODE_CONFIG_DIR/fabricConfig_default.properties
+		if [ ! -e $NODE_CONFIG_FILE ]
+		then
+			echo "Cannot find configuration file: $NODE_CONFIG_FILE"
+			return 1
+		fi
+	fi	
+
+	cd $NODE_HOME
+
+	OSGI_JAR=`echo org.eclipse.osgi_*.jar`
+	
+	if [ $DAEMON -eq 0 ]
+	then
+		exec java -Dfabric.config=$NODE_CONFIG_FILE -Djava.util.logging.config.file=$NODE_LOGGING_FILE -Dfabric.node=$NODE -jar $OSGI_JAR $CONSOLE
+	else
+		java -Dfabric.config=$NODE_CONFIG_FILE -Djava.util.logging.config.file=$NODE_LOGGING_FILE -Dfabric.node=$NODE -jar $OSGI_JAR >$NODE_LOG_FILE 2>&1 &
+		return 0
+	fi
+}
+
+function startWeb {
+
+	echo - Starting Web server
+
+	export NODE_LOGGING_FILE=$NODE_CONFIG_DIR/logging_$NODE.properties
+	if [ ! -e $NODE_LOGGING_FILE ]
+	then
+		export NODE_LOGGING_FILE=$NODE_CONFIG_DIR/logging.properties
+	fi
+	export JETTY_PORT=8080
+	export WEB_LOG_FILE=$FABRIC_HOME/log/web.log
+	export WEBSERVER_PID_FILE=$FABRIC_HOME/pid/.web.$JETTY_PORT
+	
+	cd $FABRIC_HOME/web
+	
+	if [ $DAEMON -eq 0 ]
+	then
+		echo $$ > $WEBSERVER_PID_FILE
+		exec java -DSTOP.PORT=$PORT -Djava.util.logging.config.file=$NODE_LOGGING_FILE -Dfabric.node=$NODE -DSTOP.KEY=stop_jetty -jar start.jar jetty.port=$JETTY_PORT
+	else
+		java -DSTOP.PORT=$PORT -Djava.util.logging.config.file=$NODE_LOGGING_FILE -Dfabric.node=$NODE -DSTOP.KEY=stop_jetty -jar start.jar jetty.port=$JETTY_PORT >$WEB_LOG_FILE 2>&1 &
+		echo $! > $WEBSERVER_PID_FILE
+		return 0
+	fi
+}
+
+function stopWeb {
+
+	echo - Stopping Web server
+
+	cd $FABRIC_HOME/web
+
+	java -jar start.jar -DSTOP.PORT=$PORT -DSTOP.KEY=stop_jetty --stop
+}
+
+function checkBrokerStatus {
+
+       response=`service mosquitto status`
+       echo ${response}
+}
+
+
+function checkStatus {
+
+	debug "Checking status of: $@"
+
+	DONEHEADER=0
+
+	for f in `ls -1 $FABRIC_HOME/pid/.$2.* 2>/dev/null`
+	do
+		nn=${f##*.}
+		if [ "$1" == "Node" ]
+		then
+			p=`cat $f | cut -d':' -f3`
+			c=`netstat -tan | grep $p | grep LISTEN | wc -l`
+		else
+			p=`cat $f`
+			c=`ps aux | grep -v grep | grep  " $p "| wc -l`
+		fi
+		if [ $c -eq 0 ]
+		then
+			rm $f
+		else
+			if [ $DONEHEADER -eq 0 ]
+			then
+				echo $1
+				DONEHEADER=1
+			fi
+			echo "  $nn: running"
+		fi
+	done
+	if [ $DONEHEADER -eq 0 ]
+		then
+			echo "$1 Not Running"
+	fi
+}
+
+function runLauncher {
+
+	# Invoke the Fabric launcher directly
+	debug "Running launcher with arguments: $*"
+
+	export CLASSPATH=$FABRIC_HOME/lib/db-derby/lib/derbyclient.jar:$FABRIC_HOME/lib/oslib/commons-cli-1.2.jar:$(echo $FABRIC_HOME/lib/fabric/*.jar | tr ' ' ':')
+	
+	if [ "$DBTYPE" == "gaian" ]
+	then
+		export CLASSPATH=$(echo $FABRIC_HOME/lib/gaiandb/lib/*.jar | tr ' ' ':'):$CLASSPATH
+	fi
+
+	java -Dfabric.node=$NODE fabric.tools.launchers.FabricLauncher "$@"
+	return $?
+}
+
+# **************************************************************************
+
+DBTYPE=distributed
+DAEMON=0
+ACTION=
+TYPE=
+NODE=default
+CONSOLE=
+PORT=9080
+REGISTRY_NOTIFICATIONS=ALL
+COMMAND_TOPIC='$fabric/{0}/$feeds/$onramp'
+
+PASSTHROUGH=0
+GET_NODE=0
+GET_PORT=0
+
+for arg in "$@"
+do
+	case "$arg" in
+		'-p'|'--passthrough')
+			PASSTHROUGH=1
+			;;
+		'-c'|'--console')
+			CONSOLE="-console"
+			;;
+		'-d'|'--daemon')
+			DAEMON=1
+			;;
+		'-s'|'--start')
+			ACTION=START
+			;;
+		'-st'|'--stop')
+			ACTION=STOP
+			;;
+		'-clean')
+			ACTION=CLEAN
+			;;
+		'-status')
+			ACTION=STATUS
+			;;
+		'-r'|'--registry')
+			TYPE=REGISTRY
+			GET_NODE=1
+			;;
+		'-gaian')
+			DBTYPE=gaian
+			;;
+		'-distributed')
+			DBTYPE=distributed
+			;;
+		'-n'|'--node')
+			TYPE=NODE
+			GET_NODE=1
+			;;
+		'-w'|'--web')
+			TYPE=WEB
+			GET_NODE=1
+			;;
+		'-port')
+			GET_PORT=1
+			;;
+		-*)
+			;;
+		*)
+			if [ $GET_NODE -eq 1 ]
+			then
+				NODE=$arg
+				GET_NODE=0
+			elif [ $GET_PORT -eq 1 ]
+			then
+				PORT=$arg
+				GET_PORT=0
+			fi
+			;;
+	esac
+done
+
+
+if [ "$PASSTHROUGH" -eq 1 ]
+then
+
+	debug "[main:passthrough] entering"
+	
+	runLauncher "$@"
+	exit $?
+fi
+
+case "$ACTION" in
+
+	STATUS)
+
+		debug "[main:status] entering"
+
+		checkBrokerStatus
+		checkStatus Registry registry
+		checkStatus Node fm
+		checkStatus WebServer web
+		exit 0
+		;;
+
+	STOP)
+	
+		debug "[main:stop] entering"
+
+		case "$TYPE" in
+
+			REGISTRY)
+
+				debug "[main:stop:registry] entering (node is $NODE, database type is $DBTYPE)"
+				
+				stopRegistry
+				exit $?
+				;;
+
+			WEB)
+			
+				debug "[main:stop:web] entering"
+				
+				stopWeb
+				exit $?
+				;;
+				
+			*)
+
+				debug "[main:stop:$TYPE] entering (node is $NODE)"
+				
+				echo "- Stopping $TYPE"
+				runLauncher "$@"
+				exit $?
+				;;
+
+		esac
+		;;
+	
+	START)
+
+		debug "[main:start] entering"
+		
+		case "$TYPE" in
+
+			REGISTRY)
+
+				debug "[main:start:registry] entering (node is $NODE, database type is $DBTYPE)"
+				startRegistry
+				;;
+
+			NODE)
+			
+				debug "[main:start:node] entering (node is $NODE)"
+				startNode
+				;;
+
+			WEB)
+			
+				debug "[main:start:web] entering (node is $NODE)"
+				startWeb
+				;;
+
+		esac
+		;;
+
+	CLEAN)
+
+		case "$TYPE" in
+
+			REGISTRY)
+
+				debug "[main:clean:registry] entering (database type is $DBTYPE)"
+				
+				stopRegistry
+				if [ $? -eq 0 ]
+				then
+
+					echo - Deleting existing Registry
+
+					runLauncher --registry -delete -$DBTYPE
+					if [ $? -eq 0 ]
+					then
+
+						fabadmin --registry --start --daemon -$DBTYPE
+
+						waitForRegistry
+
+						echo - Creating the Registry database
+						runLauncher --registry -create -$DBTYPE > $FABRIC_HOME/log/fabregistry_create.log
+
+						echo - Loading default values into the Registry
+						runLauncher --registry -load -$DBTYPE > $FABRIC_HOME/log/fabregistry_load.log
+
+						fabadmin --registry --stop -$DBTYPE 
+					fi
+				else
+					echo - Registry failed to stop - cannot perform clean
+					exit 1
+				fi
+				;;
+
+		esac
+		;;
+
+	*)
+
+     echo "Usage:"
+		echo "fabadmin -s [-d] -gaian|-distributed -r node"
+		echo "fabadmin -s -n [-d] [-c] node"
+		echo "fabadmin -s -w [-d] node"
+		echo "fabadmin -st -gaian|-distributed -r"
+		echo "fabadmin -st -n node"
+		echo "fabadmin -st w"
+		echo "fabadmin -status"
+		echo "fabadmin -clean -r"
+		echo "fabadmin -p [arguments]"
+		;;
+
+esac

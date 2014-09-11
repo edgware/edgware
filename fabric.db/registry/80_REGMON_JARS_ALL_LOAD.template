@@ -1,0 +1,35 @@
+--------------------------------------------------------------------------------
+-- Licensed Materials - Property of IBM
+--
+-- (C) Copyright IBM Corp. 2006, 2014. All Rights Reserved.
+--
+-- LICENSE: Eclipse Public License v1.0
+-- http://www.eclipse.org/legal/epl-v10.html
+--
+-- US Government Users Restricted Rights - Use, duplication or
+-- disclosure restricted by GSA ADP Schedule Contract with IBM Corp
+--------------------------------------------------------------------------------
+
+CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=true;user=gaiandb;password=passw0rd;';
+
+-------------------------------------------------------------------------------
+-- Configure Derby for the Registry update notification JARs
+-------------------------------------------------------------------------------
+
+-- Remove old Registry trigger JARs
+CALL SQLJ.remove_jar('Fabric.FabricMonitorJar', 0);
+CALL SQLJ.remove_jar('Fabric.FabricLibJar', 0);
+CALL SQLJ.remove_jar('Fabric.FabricCoreJar', 0);
+CALL SQLJ.remove_jar('Fabric.MqttJar', 0);
+
+-- Install new JARs
+CALL SQLJ.install_jar('file:@@MONITOR_JAR@@', 'Fabric.FabricMonitorJar', 0);
+CALL SQLJ.install_jar('file:@@LIB_JAR@@', 'Fabric.FabricLibJar', 0);
+CALL SQLJ.install_jar('file:@@CORE_JAR@@', 'Fabric.FabricCoreJar', 0);
+CALL SQLJ.install_jar('file:@@MQTT_JAR@@', 'Fabric.MqttJar', 0);
+
+-- Set the derby classpath (note: this will obliterate any other java classes in there!)
+CALL SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.database.classpath', 'Fabric.FabricMonitorJar:Fabric.FabricLibJar:Fabric.FabricCoreJar:Fabric.MqttJar');
+
+DISCONNECT;
+EXIT;

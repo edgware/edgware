@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# **************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2012, 2014
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+# **************************************************************************
+
+# **************************************************************************
+# Invokes the Fabric configuration tool.
+# **************************************************************************
+
+# Test the various environment variables
+bash $FABRIC_HOME/bin/linux/test.sh
+
+if [ ! $? -eq 0 ]
+then
+	exit 1
+fi
+
+export CLASSPATH=$FABRIC_HOME/lib/db-derby/lib/derbyclient.jar:$FABRIC_HOME/lib/oslib/commons-cli-1.2.jar:`ls -1 $FABRIC_HOME/lib/fabric/fabric.admin*.jar`
+
+java fabric.tools.FabricConfig $*

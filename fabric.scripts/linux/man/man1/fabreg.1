@@ -1,0 +1,129 @@
+.TH FABREG 1 06/14
+
+.SH NAME
+\fBfabreg\fR \- command-line interface for Fabric Registry management functions
+
+.SH SYNOPSIS
+.P
+\fBfabreg\fR [\fB-B\fR|\fB-d\fR|\fB-g\fR|\fB-I\fR|\fB-n\fR|\fB-N\fR|\fB-P\fR|\fB-S\fR|\fB-SV\fR|\fB-T\fR|\fB-V\fR]
+.P
+\fBfabreg\fR \fB-r file\fR
+.P
+\fBfabreg\fR \fB-sd name value\fR
+.P
+\fBfabreg\fR \fB-sn node name value\fR
+.P
+\fBfabreg\fR \fB-ud name\fR
+.P
+\fBfabreg\fR \fB-un node name\fR
+.P
+
+.SH DESCRIPTION
+.PP
+\fBfabreg\fR allows a set of database operations (query, insert, update and delete)
+to be run against the Fabric Registry. A number of pre-defined queries are provided
+or alternatively raw SQL can be run from a file.
+
+.SH "OPTIONS"
+.IP "\fB\-B\fR" 4
+.PD 0
+.IP "\fB\--list-neighbours\fR" 4
+.PD
+list all Fabric node neighbours.
+
+.IP "\fB\-d\fR" 4
+.PD 0
+.IP "\fB\--list-default-config\fR" 4
+.PD
+list all default configuration settings.
+
+.IP "\fB\-g\fR" 4
+.PD 0
+.IP "\fB\--gaian\fR" 4
+.PD
+execute queries against the Gaian Database (if the Gaian Database is installed then
+a distributed query will be performed and the node provenance of each row be
+included in the results).
+
+.IP "\fB\-I\fR" 4
+.PD 0
+.IP "\fB\--list-ip\fR" 4
+.PD
+list all Fabric Node/IP mappings.
+
+.IP "\fB\-n\fR" 4
+.PD 0
+.IP "\fB\--list-node-config\fR" 4
+.PD
+list all node configuration settings.
+
+.IP "\fB\-N\fR" 4
+.PD 0
+.IP "\fB\--list-nodes\fR" 4
+.PD
+list all Fabric nodes.
+
+.IP "\fB\-P\fR" 4
+.PD 0
+.IP "\fB\--list-platforms\fR" 4
+.PD
+list all Fabric platforms.
+
+.IP "\fB\-r file\fR" 4
+.PD 0
+.IP "\fB\--run-sql file\fR" 4
+.PD
+run a file of SQL statements.
+
+.IP "\fB\-S\fR" 4
+.PD 0
+.IP "\fB\--list-systems\fR" 4
+.PD
+list all Fabric systems.
+
+.IP "\fB\-sd name value\fR" 4
+.PD 0
+.IP "\fB\--set-default-config name value\fR" 4
+.PD
+set a default configuration property.
+
+.IP "\fB\-sn node name value\fR" 4
+.PD 0
+.IP "\fB\--set-node-config node name value\fR" 4
+.PD
+set a node configuration property (will override default configuration properties
+of the same name on the node).
+
+.IP "\fB\-SV\fR" 4
+.PD 0
+.IP "\fB\--list-services\fR" 4
+.PD
+list all Fabric services.
+
+.IP "\fB\-T\fR" 4
+.PD 0
+.IP "\fB\--list-tables\fR" 4
+.PD
+list all tables in the database FABRIC.
+
+.IP "\fB\-ud name\fR" 4
+.PD 0
+.IP "\fB\--unset-default-config name\fR" 4
+.PD
+unset (delete) a default configuration property.
+
+.IP "\fB\-un node name\fR" 4
+.PD 0
+.IP "\fB\--unset-node-config node name\fR" 4
+.PD
+unset (delete) a node configuration property.
+
+.IP "\fB\-V\fR" 4
+.PD 0
+.IP "\fB\--list-views\fR" 4
+.PD
+list all views in the database FABRIC.
+
+.SH "COPYRIGHT"
+
+(C) Copyright IBM Corp. 2008, 2014. All Rights Reserved.

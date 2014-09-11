@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Fabric Base Abstraction API
+Bundle-SymbolicName: fabric.core
+Bundle-Version: 0.4.0
+Bundle-Copyright: (C) Copyright IBM Corp. 2007, 2014
+Bundle-Localization: plugin
+Bundle-Vendor: IBM
+Export-Package: fabric.core.cache,
+ fabric.core.cache.impl,
+ fabric.core.io,
+ fabric.core.io.mqtt,
+ fabric.core.logging,
+ fabric.core.net,
+ fabric.core.properties,
+ fabric.core.util,
+ fabric.core.xml,
+ fabric.core.xml.nosax,
+ fabric.core.xml.sax
+Import-Package: org.apache.commons.codec.binary;resolution:=optional,
+ org.eclipse.paho.client.mqttv3

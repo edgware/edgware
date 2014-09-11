@@ -1,0 +1,152 @@
+#!/bin/bash
+
+#**************************************************************************
+# Licensed Materials - Property of IBM
+#
+# (C) Copyright IBM Corp. 2014. All Rights Reserved.
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# US Government Users Restricted Rights - Use, duplication or
+# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+#**************************************************************************
+
+### BEGIN INIT INFO
+# Provides: edgware-nodes
+# Required-Start: $local_fs $network $remote_fs edgware-registry
+# Required-Stop: $local_fs $network $remote_fs edgware-registry
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: start and stop the Edgware Nodes
+# Description: LSB Compliant Sys V Init Script for the Edgware Nodes
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+### REQUIRED VARIABLE
+# Please ensure this is set correctly for your installation
+
+[ -z "$FABRIC_HOME" ] && export FABRIC_HOME=/opt/ibm/edgware-0.4.0
+
+### END REQUIRED VARIABLE
+
+[ -e "$FABRIC_HOME/server/linux/sysconfig" ] && . "$FABRIC_HOME/server/linux/sysconfig"
+
+[ -z "$JAVA_HOME" ] && export JAVA_HOME=/etc/alternatives/jre
+
+[ -z "$NODES" ] && NODES="default"
+
+FABADMIN="$FABRIC_HOME/bin/linux/fabadmin"
+SERVICE="Edgware Node"
+TIMEOUT="60"
+RETVAL="0"
+LOG="/dev/null"
+
+IFS=' ' read -ra NODEARR <<< "$NODES"
+
+start() {
+	for node in "${NODEARR[@]}"; do
+		"$FABADMIN" -s -n $node >> "$LOG" 2>&1 &
+	done
+
+	let count=0
+	let max_checks="$TIMEOUT"
+	while [ $count -lt $max_checks ]; do
+		is_running
+		if [ $? -ne 1 ]; then
+			let count=$count+1
+			sleep 1
+		else
+			break
+		fi
+	done
+
+	is_running
+	if [ $? -eq 1 ]; then
+		log_success_msg "$SERVICE"
+	else
+		log_failure_msg "$SERVICE"
+		RETVAL="1"
+	fi
+}
+
+stop() {
+	for node in "${NODEARR[@]}"; do
+		"$FABADMIN" -st -n $node >> "$LOG" 2>&1 &
+	done
+
+	let count=0
+	let max_checks="$TIMEOUT"
+	while [ $count -lt $max_checks ]; do
+		is_running
+		if [ $? -ne 0 ]; then
+			let count=$count+1
+			sleep 1
+		else
+			break
+		fi
+	done
+
+	is_running
+	if [ $? -eq 1 ]; then
+		log_failure_msg "$SERVICE"
+		RETVAL="1"
+	else
+		log_success_msg "$SERVICE"
+	fi
+}
+
+status() {
+	for node in "${NODEARR[@]}"; do
+		pgrep -f "fabric.config=${FABRIC_HOME}/osgi/configuration/fabricConfig_${node}.properties" >>"$LOG" 2>&1
+		if [ $? -eq 0 ]; then
+			echo "Edgware Node \"${node}\" is running..."
+		else
+			echo "Edgware Node \"${node}\" is stopped"
+		fi
+	done
+}
+
+is_running() {
+	IS_RUNNING=1
+	for node in "${NODEARR[@]}"; do
+		pgrep -f "fabric.config=${FABRIC_HOME}/osgi/configuration/fabricConfig_${node}.properties" >>"$LOG" 2>&1
+		if [ $? -eq 1 ]; then
+			IS_RUNNING=0
+		fi
+	done
+
+	return $IS_RUNNING
+}
+
+case "$1" in
+	start)
+		start
+		;;
+
+	stop)
+		stop
+		;;
+
+	restart)
+		stop
+		start
+		;;
+
+	force-reload)
+		stop
+		start
+		;;
+
+	status)
+		status
+		;;
+
+	*)
+		echo $"Usage: $0 {start|stop|restart|force-reload|status}"
+		RETVAL="2"
+
+esac
+
+exit "$RETVAL"

@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Fabric TraceRoute Service
+Bundle-SymbolicName: fabric.tools.traceroute
+Bundle-Version: 0.4.0
+Bundle-Copyright: (C) Copyright IBM Corp. 2009, 2012
+Export-Package: fabric.tools.traceroute
+Import-Package: fabric,
+ fabric.bus,
+ fabric.bus.messages,
+ fabric.bus.messages.impl,
+ fabric.bus.routing,
+ fabric.bus.routing.impl,
+ fabric.bus.services,
+ fabric.bus.services.impl,
+ fabric.client,
+ fabric.client.services,
+ fabric.core.io,
+ fabric.core.io.mqtt,
+ fabric.core.xml,
+ fabric.registry,
+ org.osgi.framework;version="1.3.0"
+Fabric-Plugin: fabric.tools.traceroute.TraceRouteService
+Bundle-Vendor: IBM
+Require-Bundle: fabric.core,
+ fabric.lib,
+ fabric.fabricmanager

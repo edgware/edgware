@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Eclipse-LazyStart: true
+Bundle-ManifestVersion: 2
+Bundle-Name: Fabric Manager
+Bundle-SymbolicName: fabric.fabricmanager;singleton:=true
+Bundle-Version: 0.4.0
+Bundle-Copyright: (C) Copyright IBM Corp. 2006, 2014
+Bundle-Activator: fabric.fabricmanager.osgi.Activator
+Bundle-Vendor: IBM
+Bundle-Localization: plugin
+Require-Bundle: fabric.lib,
+ fabric.core
+Export-Package: fabric.fabricmanager,
+ fabric.fabricmanager.osgi
+Import-Package: org.osgi.framework,
+ org.osgi.util.tracker

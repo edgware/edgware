@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en-us" xml:lang="en-us">
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<meta name="copyright" content="(C) Copyright 2005" />
+<meta name="DC.rights.owner" content="(C) Copyright 2005" />
+<meta content="public" name="security" />
+<meta content="index,follow" name="Robots" />
+<meta http-equiv="PICS-Label" content='(PICS-1.1 "http://www.icra.org/ratingsv02.html" l gen true r (cz 1 lz 1 nz 1 oz 1 vz 1) "http://www.rsac.org/ratingsv01.html" l gen true r (n 0 s 0 v 0 l 0) "http://www.classify.org/safesurf/" l gen true r (SS~~000 1))' />
+<meta content="reference" name="DC.Type" />
+<meta name="DC.Title" content="SYSTRIGGERS system table" />
+<meta name="abstract" content="The SYSTRIGGERS table describes the database's triggers." />
+<meta name="description" content="The SYSTRIGGERS table describes the database's triggers." />
+<meta content="system tables, SYSTRIGGERS, triggers, SYSTRIGGERS system table" name="DC.subject" />
+<meta content="system tables, SYSTRIGGERS, triggers, SYSTRIGGERS system table" name="keywords" />
+<meta scheme="URI" name="DC.Relation" content="rrefsistabs38369.html" />
+<meta content="XHTML" name="DC.Format" />
+<meta content="rrefsistabs79888" name="DC.Identifier" />
+<meta content="en-us" name="DC.Language" />
+<link href="commonltr.css" type="text/css" rel="stylesheet" />
+<title>SYSTRIGGERS system table</title>
+</head>
+<body id="rrefsistabs79888"><a name="rrefsistabs79888"><!-- --></a>
+
+
+<h1 class="topictitle1">SYSTRIGGERS system table</h1>
+
+
+
+<div><p>The SYSTRIGGERS table describes the database's triggers.</p>
+
+<div class="section">
+<p>The following table shows the contents of the SYSTRIGGERS system table.</p>
+
+
+<div class="tablenoborder"><table cellspacing="0" cellpadding="4" summary="Table 1. SYSTRIGGERS system table" frame="border" border="1" rules="all"><caption>Table 1. SYSTRIGGERS system table</caption>
+
+
+
+
+
+<thead align="left">
+<tr valign="bottom">
+<th valign="bottom" width="28.999999999999996%" id="N10099">Column Name</th>
+
+<th valign="bottom" width="24%" id="N100A0">Type</th>
+
+<th valign="bottom" width="11%" id="N100A7">Length</th>
+
+<th valign="bottom" width="12%" id="N100AE">Nullable</th>
+
+<th valign="bottom" width="24%" id="N100B5">Contents</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">TRIGGERID</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">36</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5">Unique identifier for the trigger</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">TRIGGERNAME</td>
+
+<td valign="top" width="24%" headers="N100A0">VARCHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">128</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5">Name of the trigger</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">SCHEMAID</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">36</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5">ID of the trigger's schema (join with SYSSCHEMAS.SCHEMAID)</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">CREATIONTIMESTAMP</td>
+
+<td valign="top" width="24%" headers="N100A0">TIMESTAMP</td>
+
+<td valign="top" width="11%" headers="N100A7">29</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5">Time the trigger was created</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">EVENT</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">1</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5"><em>'U'</em> for update, <em>'D'</em> for delete, <em>'I</em>' for
+insert</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">FIRINGTIME</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">1</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5"><em>'B'</em> for before, <em>'A'</em> for after</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">TYPE</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">1</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5"><em>'R'</em> for row, <em>'S'</em> for statement</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">STATE</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">1</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5"><em>'E'</em> for enabled, <em>'D'</em> for disabled</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">TABLEID</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">36</td>
+
+<td valign="top" width="12%" headers="N100AE">false</td>
+
+<td valign="top" width="24%" headers="N100B5">ID of the table on which the trigger is defined</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">WHENSTMTID</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">36</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">Used only if there is a WHEN clause (not yet supported)</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">ACTIONSTMTID</td>
+
+<td valign="top" width="24%" headers="N100A0">CHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">36</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">ID of the stored prepared statement for the triggered-SQL-statement
+(join with SYSSTATEMENTS.STMTID)</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">REFERENCEDCOLUMNS</td>
+
+<td valign="top" width="24%" headers="N100A0"><em>org.apache.derby.
+catalog.
+ReferencedColumns</em> <p>This class
+is not part of the public API.</p>
+</td>
+
+<td valign="top" width="11%" headers="N100A7">2,147,483,647</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">Descriptor of the columns to be updated, if this trigger is
+an update trigger (that is, if the EVENT column contains 'U')</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">TRIGGERDEFINITION</td>
+
+<td valign="top" width="24%" headers="N100A0">LONG VARCHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">32,700</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">Text of the action SQL statement</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">REFERENCINGOLD</td>
+
+<td valign="top" width="24%" headers="N100A0">BOOLEAN</td>
+
+<td valign="top" width="11%" headers="N100A7">1</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">Whether or not the OLDREFERENCINGNAME, if non-null, refers
+to the OLD row or table</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">REFERENCINGNEW </td>
+
+<td valign="top" width="24%" headers="N100A0">BOOLEAN</td>
+
+<td valign="top" width="11%" headers="N100A7">1</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">Whether or not the NEWREFERENCINGNAME, if non-null, refers
+to the NEW row or table</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">OLDREFERENCINGNAME</td>
+
+<td valign="top" width="24%" headers="N100A0">VARCHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">128</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">Pseudoname as set using the REFERENCING OLD AS clause</td>
+
+</tr>
+
+<tr>
+<td valign="top" width="28.999999999999996%" headers="N10099">NEWREFERENCINGNAME</td>
+
+<td valign="top" width="24%" headers="N100A0">VARCHAR</td>
+
+<td valign="top" width="11%" headers="N100A7">128</td>
+
+<td valign="top" width="12%" headers="N100AE">true</td>
+
+<td valign="top" width="24%" headers="N100B5">Pseudoname as set using the REFERENCING NEW AS clause </td>
+
+</tr>
+
+</tbody>
+
+</table>
+</div>
+</div>
+
+<div class="section"><p>Any SQL text that is part of a triggered-SQL-statement is compiled
+and stored in the SYSSTATEMENTS table. ACTIONSTMTID and WHENSTMTID are
+foreign keys that reference SYSSTATEMENTS.STMTID. The statements for
+a trigger are always in the same schema as the trigger.</p>
+</div>
+
+</div>
+
+<div>
+<div class="familylinks">
+<div class="parentlink"><strong>Parent topic:</strong> <a href="rrefsistabs38369.html" title="">Derby system tables</a></div>
+</div>
+</div>
+
+</body>
+</html>
