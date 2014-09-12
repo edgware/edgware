@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!---------------------------------------------------------------------------->
+<!-- 
+ * Licensed Materials - Property of IBM
+ *  
+ * (C) Copyright IBM Corp. 2014
+ * 
+ * LICENSE: Eclipse Public License v1.0
+ * http://www.eclipse.org/legal/epl-v10.html
+-->
+<html>
+	<head>
+		<title>JSON Adapter</title>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link rel="stylesheet" href="css/main.css" type="text/css">
+		<script type="text/javascript" src="./js/jquery-1.8.2.min.js"></script>
+		<script type="text/javascript" src="js/json-handler.js"></script>
+	</head>
+	<body><font face="Arial">
+		<div id="head">
+			<h1>Edgware Fabric</h1>
+		</div>
+		<div id="intro">
+			<h2>Introduction</h2>
+			<p>This page provides a UI to test sending JSON messages to Edgware over HTTP.
+		</div>
+		<div id="main">
+			<h2>Fabric JSON test harness</h2>
+
+			<div id="content">
+				<p>
+					<em>Sample message:</em>
+					{"op":"register:platform-type","type":"Panther","desc":"Panther CLV
+					from Iveco","correl":"2100"}
+				</p>
+				<div class="input">
+					<textarea id="jsonInput" type="text" width="100%"
+						placeholder="Enter JSON messages here" class="inputBox"></textarea>
+				</div>
+				<button type="button" onclick="sendJson();">Send JSON</button>
+				<hr>
+				<button type="button" onclick="clearTable();">Clear incoming messages</button>				
+				<table id="incoming" width="100%">
+					<tr>
+						<th>Message</th>
+						<th>Time Received</th>
+					</tr>
+					<tbody>
+						<tr>
+							<td>msg</td>
+							<td>timestamp</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div></font>
+	</body>
+</html>

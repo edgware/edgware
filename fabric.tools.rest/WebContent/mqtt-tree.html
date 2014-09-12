@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!-- 
+ * Licensed Materials - Property of IBM
+ *  
+ * (C) Copyright IBM Corp. 2014
+ * 
+ * LICENSE: Eclipse Public License v1.0
+ * http://www.eclipse.org/legal/epl-v10.html
+-->
+<html>
+	<head>
+		<title>Edgware Fabric MQTT Tree Visualiser</title>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<link type="text/css" rel="stylesheet" href="css/mqtt.css" />
+		<script type="text/javascript" src="js/d3.js"></script>
+		<script type="text/javascript" src="./js/jquery-1.8.2.min.js"></script>
+		<script type="text/javascript" src="js/mqtt-tree-handler.js"></script>
+		<script type="text/javascript" src="js/mqttws31.js"></script>
+		<script type="text/javascript" src="js/topic-tree.js"></script>
+	</head>
+	<body>
+		<div id="setup">
+			<h1 id="title">Please connect to a MQTT broker</h1>	
+			<input id="brokerURI" type="text" placeholder="tcp://hostname:port"></input>
+			<button id="connect" onclick="connectToBroker();">Connect</button>
+			
+			<input id="subscribeToTopic" type="text" placeholder="Enter topic to subscribe to" />
+			<button id="subscribeButton" onclick="subscribeToTopic();">Subscribe</button>			
+		</div>
+		<div id="body" style="width: 1280px; height: 800px;"></div>
+		<script type="text/javascript">
+			setup("body");
+		</script>
+	</body>
+</html>

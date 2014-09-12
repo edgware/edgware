@@ -1,0 +1,114 @@
+@CHARSET "ISO-8859-1";
+/*
+ * Licensed Materials - Property of IBM
+ *  
+ * (C) Copyright IBM Corp. 2014
+ * 
+ * LICENSE: Eclipse Public License v1.0
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+ 
+HTML {
+	height: 100%;
+}
+
+BODY {
+	font-family: Verdana;
+	font-size: 9pt;
+	height: 95%;
+	margin-left:4em;
+}
+
+#content{
+	width:100%;
+	margin-bottom:5em;
+}
+
+#leftBlock{
+	width:45%;
+	float:left;
+}
+
+#leftBlock h2{
+	margin-left:2em;
+}
+
+#leftBlock table{
+	margin-left:5em;
+}
+
+table, td, th{
+	border: 1px solid black;
+}
+
+table{
+	border-collapse: collapse;
+	width:70%;
+}
+
+#addElements{
+	clear: both;
+	padding-top: 5em;
+	margin-left: 6em;
+	margin-bottom: 5em;
+}
+
+#incoming{
+	width:45%;
+	margin-top:3em;
+	margin-left:2em;
+}
+
+#incoming caption{
+	text-align:left;
+	padding-left:5em;
+	font-size:14pt;
+	margin-bottom:0.5em;
+}
+
+#rightTable{
+	float:right;
+	margin-right:10em;	
+}
+
+#rightBlock button{
+	float:right;
+	margin-right:10em;
+	margin-top:5em;
+}
+
+#incoming th{
+	text-align:left;
+	padding-left:0.5em;
+}
+
+tr span{
+	font-size:180%;
+	cursor:pointer;
+}
+
+#sendCR{
+	clear:both;
+}
+.input {
+	width:20%;
+}
+
+.inputBox {
+	width: 96%; 
+	max-width:550px;
+	border: 1px solid; 
+	resize: both;
+	min-width: 350px;
+	min-height: 100px;
+}
+
+.empty {
+	font-size: 100%;
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+   	font-weight: 300;
+   	font-style: italic;
+   	margin-left: 1em;
+   	cursor:default;
+   	
+}
