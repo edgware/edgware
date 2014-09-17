@@ -235,11 +235,6 @@
 	<property name="project-bin.fabric.samples" value="${work.dir}/fabric.samples" />
 	<property name="project-bundle.fabric.samples" value="${fabric.samples.dir}/lib/plugins/fabric.samples_${fabric.jar.version}.jar" />
 
-	<!-- Project: fabric.tools.simulator -->
-	<property name="project-src.fabric.tools.simulator" value="${project.dir}/fabric.tools.simulator" />
-	<property name="project-bin.fabric.tools.simulator" value="${work.dir}/fabric.tools.simulator" />
-	<property name="project-bundle.fabric.tools.simulator" value="${staging.fabric.lib.fabric}/fabric.tools.simulator_${fabric.jar.version}.jar" />
-
 	<!-- Project: fabric.tools.rest -->
 	<property name="project-src.fabric.tools.rest" value="${project.dir}/fabric.tools.rest" />
 	<property name="project-bin.fabric.tools.rest" value="${work.dir}/fabric.tools.rest" />
@@ -486,14 +481,6 @@
 			<param name="bin.dir" value="${project-bin.fabric.services.proxypublisher}" />
 			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib}" />
 			<param name="jar.file" value="${project-bundle.fabric.services.proxypublisher}" />
-		</antcall>
-
-		<!-- Project: fabric.tools.simulator -->
-		<antcall target="buildJar">
-			<param name="src.dir" value="${project-src.fabric.tools.simulator}" />
-			<param name="bin.dir" value="${project-bin.fabric.tools.simulator.bin}" />
-			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib};${jar.apache.commons.cli}" />
-			<param name="jar.file" value="${project-bundle.fabric.tools.simulator}" />
 		</antcall>
 
 		<!-- Project: fabric.services.interfaces.json -->
@@ -1056,8 +1043,8 @@
 		<!-- Replace latest versions -->
 		<delete dir="${fabric.latest}" />
 		<mkdir dir="${fabric.latest}" />
-		<copy file="${build.dir}/${distribution.filename}.tar.gz" tofile="${fabric.latest}/${release.id}_latest.tar.gz" />
-		<copy file="${build.dir}/${distribution.filename}.zip" tofile="${fabric.latest}/${release.id}_latest.zip" />
+		<copy file="${build.dir}/${distribution.filename}.tar.gz" tofile="${fabric.latest}/${distribution.filename}.tar.gz" />
+		<copy file="${build.dir}/${distribution.filename}.zip" tofile="${fabric.latest}/${distribution.filename}.zip" />
 	
 	</target>
 
