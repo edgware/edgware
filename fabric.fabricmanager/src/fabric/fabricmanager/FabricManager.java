@@ -224,17 +224,20 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
 		/* Get access to the core configuration information for the Fabric Manager */
 		initFabricConfig();
+		name = homeNode();
+
+		String signon1 = "Edgware Fabric Manager";
+		String signon2 = String.format("(build %s)", getBuildVersion());
+		String signon3 = String.format("tarting node: %s", name);
+		System.out.println(signon1 + '\n' + signon2 + '\n' + signon3);
 
 		/* We can now access enough configuration information to start logging */
-		name = homeNode();
 		initLogging("fabric.fabricmanager", name);
-		String message = String.format("\nEdgware Fabric Manager\n(build %s)\nStarting node: %s", getBuildVersion(),
-				name);
-		System.out.println(message);
-		logger.info(message);
+		logger.log(Level.INFO, "\n{0}\n{1}\n{2}", new Object[] {signon1, signon2, signon3});
 
-		/* Establish a connection to the Fabric Registry database */
+		/* Establish a connection to the Fabric Registry database, and clean-up old information */
 		initRegistry();
+		cleanRegistry();
 
 		/* Now that we have a Registry connection we can access the full Fabric configuration for this node */
 		initNodeConfig();
@@ -281,6 +284,46 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
 		/* Initialize Fabric trace */
 		logger.log(Level.INFO, "Fabric Manager on \"{0}\" started", name);
+
+	}
+
+	/**
+	 * Removes old information from the Registry left over from the last Fabric Manager was run.
+	 * <p>
+	 * The tables cleaned up are:
+	 * <ul>
+	 * <li><code>ACTORS</code></li>
+	 * <li><code>BEARERS</code></li>
+	 * <li><code>DATA_FEEDS</code></li>
+	 * <li><code>NODE_IP_MAPPING</code></li>
+	 * <li><code>NODES</code></li>
+	 * <li><code>PLATFORMS</code></li>
+	 * <li><code>SERVICES</code></li>
+	 * <li><code>TASK_NODES</code></li>
+	 * <li><code>TASK_SERVICES</code></li>
+	 * <li><code>TASK_SUBSCRIPTIONS</code></li>
+	 * <li><code>TASKS</code></li>
+	 * </ul>
+	 */
+	private void cleanRegistry() {
+
+		String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistence\"=\"static\"%%'";
+
+		String[] updates = new String[] {String.format(template, "ACTORS", "ATTRIBUTES", "ATTRIBUTES"),
+				String.format(template, "BEARERS", "ATTRIBUTES", "ATTRIBUTES"),
+				String.format(template, "DATA_FEEDS", "ATTRIBUTES", "ATTRIBUTES"), "DELETE FROM NODE_IP_MAPPING",
+				String.format(template, "NODES", "ATTRIBUTES", "ATTRIBUTES"),
+				String.format(template, "PLATFORMS", "ATTRIBUTES", "ATTRIBUTES"),
+				String.format(template, "SERVICES", "ATTRIBUTES", "ATTRIBUTES"),
+				String.format(template, "TASK_NODES", "CONFIGURATION", "CONFIGURATION"),
+				String.format(template, "TASK_SERVICES", "CONFIGURATION", "CONFIGURATION"),
+				"DELETE FROM TASK_SUBSCRIPTIONS", String.format(template, "TASKS", "TASK_DETAIL", "TASK_DETAIL"),};
+
+		try {
+			FabricRegistry.runUpdates(updates);
+		} catch (PersistenceException e) {
+			logger.log(Level.WARNING, "Registry clean failed: {1}", e);
+		}
 
 	}
 
