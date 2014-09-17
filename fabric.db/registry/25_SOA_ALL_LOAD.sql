@@ -31,9 +31,9 @@ CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=true;user=gaiandb;password=pa
 --    The URI of additional type attributes.
 -------------------------------------------------------------------------------
 
-INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('app', 'Built-in platform type for applications', null, null);
-INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('service', 'Built-in platform type for services', null, null);
-INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('sensor', 'Built-in generic sensor platform type', null, null);
+INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('app', 'Built-in platform type for applications', '{"persistence"="static"}', null);
+INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('service', 'Built-in platform type for services', '{"persistence"="static"}', null);
+INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('sensor', 'Built-in generic sensor platform type', '{"persistence"="static"}', null);
 
 -------------------------------------------------------------------------------
 -- FABRIC.SYSTEM_TYPES

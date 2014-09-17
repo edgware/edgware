@@ -17,20 +17,20 @@ CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=true;user=gaiandb;password=pa
 -- Configure the services used to distribute Registry update notifications
 -------------------------------------------------------------------------------
 
-INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('$virtual', 'Built-in platform type for virtual systems', null, null);
-INSERT INTO FABRIC.PLATFORMS VALUES ('$fabric', '$virtual', '$virtual', null, null, 'DEPLOYED', 'AVAILABLE', 0.0, 0.0, 0.0, 0.0, 0.0, 'Built-in platform for Registry virtual systems', null, null);
+INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('$virtual', 'Built-in platform type for virtual systems', '{"persistence"="static"}', null);
+INSERT INTO FABRIC.PLATFORMS VALUES ('$fabric', '$virtual', '$virtual', null, null, 'DEPLOYED', 'AVAILABLE', 0.0, 0.0, 0.0, 0.0, 0.0, 'Built-in platform for Registry virtual systems', '{"persistence"="static"}', null);
     
 INSERT INTO FABRIC.SERVICE_TYPES VALUES ('$registry', 'Registry update system type', '$registry_updates', null);
-INSERT INTO FABRIC.SERVICES VALUES ('$fabric', '$registry', '$registry', 'service', null, 'DEPLOYED', 'AVAILABLE', 0.0, 0.0, 0.0, 0.0, 0.0, 'The Fabric Registry update system', null, null);
+INSERT INTO FABRIC.SERVICES VALUES ('$fabric', '$registry', '$registry', 'SERVICE', null, 'DEPLOYED', 'AVAILABLE', 0.0, 0.0, 0.0, 0.0, 0.0, 'The Fabric Registry update system', '{"persistence"="static"}', null);
 
 INSERT INTO FABRIC.FEED_TYPES VALUES('$registry_updates', 'Registry update data feed', 'output-feed', null);
-INSERT INTO FABRIC.DATA_FEEDS VALUES('$fabric', '$registry', '$registry_updates', '$registry_updates', 'OUTPUT', null, 'AVAILABLE', 'The Fabric Registry update service', null, null);
+INSERT INTO FABRIC.DATA_FEEDS VALUES('$fabric', '$registry', '$registry_updates', '$registry_updates', 'output', null, 'AVAILABLE', 'The Fabric Registry update service', '{"persistence"="static"}', null);
 
-INSERT INTO FABRIC.TASKS VALUES ('$fabric', null, null, 'Built-in Fabric task', null, null);
-INSERT INTO FABRIC.TASK_SERVICES VALUES('$fabric', '$fabric', '$registry', '$registry_updates', 'The Fabric Registry update service', null, null);
+INSERT INTO FABRIC.TASKS VALUES ('$fabric', null, null, 'Built-in Fabric task', '{"persistence"="static"}', null);
+INSERT INTO FABRIC.TASK_SERVICES VALUES('$fabric', '$fabric', '$registry', '$registry_updates', 'The Fabric Registry update service', '{"persistence"="static"}', null);
 
-INSERT INTO FABRIC.ACTOR_TYPES VALUES ('$daemon', 'Fabric built-in system user type', null, null);
-INSERT INTO FABRIC.ACTORS VALUES ('$fabric', '$daemon', '$fabric', null, null, 'Fabric built-in system user', null, null);
+INSERT INTO FABRIC.ACTOR_TYPES VALUES ('$daemon', 'Fabric built-in system user type', '{"persistence"="static"}', null);
+INSERT INTO FABRIC.ACTORS VALUES ('$fabric', '$daemon', '$fabric', null, null, 'Fabric built-in system user', '{"persistence"="static"}', null);
     
 -------------------------------------------------------------------------------
 -- Configure the triggers
