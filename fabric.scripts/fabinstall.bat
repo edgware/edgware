@@ -95,7 +95,8 @@ if "%2" NEQ "" (
 ) else (
 	set DBTYPE=distributed
 )
-	
+
+echo.
 echo Installing !DBTYPE! !INSTALL!.
 echo Log files will be written to %FABRIC_HOME%\log.
 
@@ -121,18 +122,25 @@ if "!INSTALL!"=="registry" (
 	)
 )
 
+echo.
 echo Installation complete, now please:
-echo 1. Start the Registry using the command:
+echo 1. Set the following environment variables:
+echo         FABRIC_HOME=%FABRIC_HOME%
+echo         PATH=%%PATH%%;%%FABRIC_HOME%%\bin\win32
+echo 2. Start the Registry using the command:
 echo         fabadmin -s -!DBTYPE! -r ^<node-name^>
 echo    Where:
 echo         ^<node-name^> is the name of the Fabric node that will run on this system
-echo 2. Configure the node's network adapters using the command:
+echo 3. Display the list of available network adapters on this system using the command:
+echo         fabadmin -i
+echo 4. Configure the Fabric node to use one or more of the available network adapters
+echo    displayed in step 3 (this only needs to be done once) using the command:
 echo         fabreg -sn ^<node-name^> fabric.node.interfaces ^<network-adapter-list^>
 echo    Where:
 echo         ^<network-adapter-list^> is a comma separated list ^(no spaces^) of network
 echo         adapters e.g. "en0,en5"
-echo 3. Ensure that your Mosquitto broker's configuration matches:
-echo         "%FABRIC_HOME%\etc\broker.conf"
-echo 4. Set the following environment variables:
-echo         FABRIC_HOME=%FABRIC_HOME%
-echo         PATH=^%PATH^%;^%FABRIC_HOME^%\bin\win32
+echo    The Fabric node will discover and connect to neighbours using these adapters.
+echo 5. Ensure that the Mosquitto broker is running with a configuration matching:
+echo         %FABRIC_HOME%\etc\broker.conf
+echo 6. You can now start the Fabric node using the command:
+echo         fabadmin -s -n ^<node-name^>

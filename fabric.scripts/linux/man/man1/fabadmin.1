@@ -5,17 +5,19 @@
 
 .SH SYNOPSIS
 .P
-\fBfabadmin\fR  \fB-s\fR [\fB-d\fR] \fB-gaian\fR|\fB-distributed\fR \fB-r\fR \fBnode\fR
+\fBfabadmin\fR \fB-s\fR [\fB-d\fR] \fB-gaian\fR|\fB-distributed\fR \fB-r\fR \fBnode\fR
 .P
-\fBfabadmin\fR  \fB-s\fR [\fB-d\fR] \fB-n\fR [\fB-c\fR] \fBnode\fR
+\fBfabadmin\fR \fB-s\fR [\fB-d\fR] \fB-n\fR [\fB-c\fR] \fBnode\fR
 .P
-\fBfabadmin\fR  \fB-s\fR [\fB-d\fR] \fB-w\fR \fBnode\fR
+\fBfabadmin\fR \fB-s\fR [\fB-d\fR] \fB-w\fR \fBnode\fR
 .P
-\fBfabadmin\fR  \fB-st\fR \fB-gaian\fR|\fB-distributed\fR \fB-r\fR 
+\fBfabadmin\fR \fB-st\fR \fB-gaian\fR|\fB-distributed\fR \fB-r\fR 
 .P
-\fBfabadmin\fR  \fB-st\fR \fB-n\fR \fBnode\fR
+\fBfabadmin\fR \fB-st\fR \fB-n\fR \fBnode\fR
 .P
-\fBfabadmin\fR  \fB-st\fR \fB-w\fR
+\fBfabadmin\fR \fB-st\fR \fB-w\fR
+.P
+\fBfabadmin\fR \fB-i\fR
 .P
 \fBfabadmin\fR \fB-status\fR
 .P
@@ -58,14 +60,16 @@ start a Fabric runtime component.
 stop a Fabric runtime component.
 
 .IP "\fB\-clean\fR" 4
-.PD 0
-.IP "\fB\--clean\fR" 4
 .PD
 re-initialise a Fabric runtime component (currently only the Fabric Registry).
 
-.IP "\fB\-status\fR" 4
+.IP "\fB\-i\fR" 4
 .PD 0
-.IP "\fB\--status\fR" 4
+.IP "\fB\--interfaces\fR" 4
+.PD
+display the available network interfaces.
+
+.IP "\fB\-status\fR" 4
 .PD
 show the status of Fabric runtime components.
 
@@ -81,19 +85,19 @@ display the launcher's usage help.
 .PD 0
 .IP "\fB\--registry\fR" 4
 .PD
-perform an action on the Fabric Registry.
+perform the specified action on the Fabric Registry.
 
 .IP "\fB\-w\fR" 4
 .PD 0
 .IP "\fB\--web\fR" 4
 .PD
-perform an action on the web server.
+perform the specified action on the Web server.
 
 .IP "\fB\-n\fR" 4
 .PD 0
 .IP "\fB\--node\fR" 4
 .PD
-perform an action on the Fabric OSGi runtime.
+perform the specified action on the Fabric OSGi runtime.
 
 .SH "COPYRIGHT"
 

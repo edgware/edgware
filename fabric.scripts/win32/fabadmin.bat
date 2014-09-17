@@ -264,6 +264,11 @@ rem **************************************************************************
 	call:debug [stopWeb] exit: !retval!
 	goto:EOF
 
+:displayInterfaces
+
+	call:runLauncher -p --interfaces
+	goto:EOF
+
 :checkStatus
 
 	call:debug [checkStatus] enter: %*
@@ -417,6 +422,13 @@ set GET_PORT=0
    			set ACTION=CLEAN
    		)
    		
+   		if "!_T!"=="--interfaces" (
+   			set ACTION=INTERFACES
+   		)
+   		if "!_T!"=="-i" (
+   			set ACTION=INTERFACES
+   		)
+   		
    		if "!_T!"=="-status" (
    			set ACTION=STATUS
    		)
@@ -492,6 +504,15 @@ if "!PASSTHROUGH!"=="1" (
 
 	call:runLauncher %*
 	exit /b !retval!
+	
+)
+
+if "!ACTION!"=="INTERFACES" (
+
+	call:debug [main:interfaces] entering
+
+	call:displayInterfaces
+	exit /b 0
 	
 )
 
@@ -620,6 +641,7 @@ echo fabadmin -s -w [-d] node
 echo fabadmin -st -gaian^|-distributed -r
 echo fabadmin -st -n node
 echo fabadmin -st w
+echo fabadmin -i
 echo fabadmin -status
 echo fabadmin -clean -r
 echo fabadmin -p [arguments]

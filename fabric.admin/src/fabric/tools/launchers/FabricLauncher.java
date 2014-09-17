@@ -22,6 +22,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import fabric.session.RegistryDescriptor;
+import fabric.tools.NetworkInterfaces;
 import fabric.tools.RegistryTool;
 
 public class FabricLauncher {
@@ -67,8 +68,9 @@ public class FabricLauncher {
 		actionOptions.addOption(new Option("delete", "delete the Fabric Registry database"));
 		actionOptions.addOption(new Option("testConnection",
 				"test the connection to the Registry (to determine if the Regstry is running)"));
-		actionOptions.addOption(new Option("s", "status", false, "Determine the status of Fabric runtime components"));
+		actionOptions.addOption(new Option("status", false, "determine the status of Fabric runtime components"));
 		actionOptions.addOption(new Option("run", true, "run sql"));
+		actionOptions.addOption(new Option("i", "interfaces", false, "list network interfaces"));
 
 		actionOptions.setRequired(true);
 
@@ -78,7 +80,7 @@ public class FabricLauncher {
 		entityGroup.addOption(new Option("r", "registry", false, "Registry"));
 		entityGroup.addOption(new Option("a", "all", false, "all runtime components"));
 
-		Option passthrough = new Option("p", "passthrough", false, "Passthrough (for script use only)");
+		Option passthrough = new Option("p", "passthrough", false, "passthrough (for script use only)");
 
 		OptionGroup registryTypeGroup = new OptionGroup();
 		registryTypeGroup.addOption(new Option(RegistryDescriptor.TYPE_DISTRIBUTED, false, "Distributed Registry"));
@@ -94,15 +96,17 @@ public class FabricLauncher {
 		CommandLineParser parser = new PosixParser();
 		CommandLine line = null;
 		try {
-			// parse the command line arguments
+			
 			line = parser.parse(options, args);
 
 			if ((options.hasOption("n") || options.hasOption("b")) && line.getArgs().length > 1) {
 				throw new ParseException("Unexpected arguments:" + line.getArgList());
 			}
+			
 			if (options.hasOption("configure") && !options.hasOption("b")) {
 				throw new ParseException("configure only valid for brokers");
 			}
+			
 			if (options.hasOption("b") && !options.hasOption("configure")) {
 				throw new ParseException(
 						"Can only generate a broker configuration, use broker commands directly to start and stop");
@@ -116,14 +120,20 @@ public class FabricLauncher {
 		}
 
 		try {
+			
 			String node = "default";
 			String registryType = RegistryDescriptor.TYPE_DISTRIBUTED;
+			
 			// Check for left over Arguments
 			if (line.getArgs().length == 1) {
 				node = line.getArgs()[0];
 			}
-			if (line.hasOption("n")) {
-				if (line.hasOption("st")) {
+			
+			if (line.hasOption("i") || line.hasOption("interfaces")) {
+				NetworkInterfaces.printInterfaces();
+			}
+			else if (line.hasOption("n")) {
+				if (line.hasOption("st") || line.hasOption("stop")) {
 					FabricManager.stopNode(node);
 				}
 			} else if (line.hasOption("b")) {
@@ -137,7 +147,7 @@ public class FabricLauncher {
 				} else if (line.hasOption(RegistryDescriptor.TYPE_SINGLETON)) {
 					registryType = RegistryDescriptor.TYPE_SINGLETON;
 				}
-				if (line.hasOption("st")) {
+				if (line.hasOption("st") || line.hasOption("stop")) {
 					if (Registry.stopRegistry(registryType)) {
 						System.exit(0);
 					} else {
@@ -162,9 +172,9 @@ public class FabricLauncher {
 				} else if (line.hasOption("run")) {
 					RegistryTool.run(new File(line.getOptionValue("run")), line.hasOption("failOnError"));
 				}
-			} else if (line.hasOption("s")) {
+			} else if (line.hasOption("status")) {
 				status();
-			} else if (line.hasOption("a") && line.hasOption("st")) {
+			} else if (line.hasOption("a") && (line.hasOption("st") || line.hasOption("stop"))) {
 				stopFabric();
 			}
 		} catch (Exception e) {

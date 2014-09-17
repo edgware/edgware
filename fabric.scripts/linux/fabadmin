@@ -254,6 +254,10 @@ function checkBrokerStatus {
        echo ${response}
 }
 
+function displayInterfaces {
+
+	runLauncher -p --interfaces
+}
 
 function checkStatus {
 
@@ -343,6 +347,9 @@ do
 		'-clean')
 			ACTION=CLEAN
 			;;
+		'-i'|'--interfaces')
+			ACTION=INTERFACES
+			;;
 		'-status')
 			ACTION=STATUS
 			;;
@@ -394,6 +401,14 @@ then
 fi
 
 case "$ACTION" in
+
+	INTERFACES)
+
+		debug "[main:interfaces] entering"
+
+		displayInterfaces
+		exit 0
+		;;
 
 	STATUS)
 
@@ -515,6 +530,7 @@ case "$ACTION" in
 		echo "fabadmin -st -gaian|-distributed -r"
 		echo "fabadmin -st -n node"
 		echo "fabadmin -st w"
+		echo "fabadmin -i"
 		echo "fabadmin -status"
 		echo "fabadmin -clean -r"
 		echo "fabadmin -p [arguments]"

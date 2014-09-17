@@ -88,6 +88,7 @@ else
 	dbtype="distributed"
 fi
 
+echo
 echo "Installing $dbtype $install."
 echo "Log files will be written to $FABRIC_HOME/log."
 
@@ -119,20 +120,9 @@ then
 	fi
 fi
 
+echo
 echo -e "Installation complete, now please:"
-echo -e "1. Start the Registry using the command:"
-echo -e "\tfabadmin -s -$dbtype -r <node-name>"
-echo -e "   Where:"
-echo -e "\t<node-name> is the name of the Fabric node that will run on this system"
-echo -e "2. Configure the node's network adapters using the command:"
-echo -e "\tfabreg -sn <node-name> fabric.node.interfaces <network-adapter-list>"
-echo -e "   Where:"
-echo -e "\t<network-adapter-list> is a comma separated list (no spaces) of network"
-echo -e "\tadapters e.g. \"en0,en5\""
-echo -e "3. Ensure that your Mosquitto broker's configuration matches:"
-echo -e "\t\"$FABRIC_HOME/etc/broker.conf\""
-echo -e "4. Set the following environment variables:"
-
+echo -e "1. Set the following environment variables:"
 if [ $(uname) == "Darwin" ]
 then
 	echo -e "\tFABRIC_HOME=$FABRIC_HOME"
@@ -142,3 +132,20 @@ else
 	echo -e "\t(where <java_location> is the home directory of your system\'s JRE"
 	echo -e "\tPATH=\$JAVA_HOME/jre/bin:\$PATH:\$FABRIC_HOME/bin/linux\n";
 fi
+echo -e "2. Start the Registry using the command:"
+echo -e "\tfabadmin -s -$dbtype -r <node-name>"
+echo -e "   Where:"
+echo -e "\t<node-name> is the name of the Fabric node that will run on this system"
+echo -e "3. Display the list of available network adapters on this system using the command:"
+echo -e "\tfabadmin -i"
+echo -e "4. Configure the Fabric node to use one or more of the available network adapters"
+echo -e "   displayed in step 3 (this only needs to be done once) using the command:"
+echo -e "\tfabreg -sn <node-name> fabric.node.interfaces <network-adapter-list>"
+echo -e "   Where:"
+echo -e "\t<network-adapter-list> is a comma separated list (no spaces) of network"
+echo -e "\tadapters e.g. \"en0,en5\""
+echo -e "   The Fabric node will discover and connect to neighbours using these adapters."
+echo -e "5. Ensure that the Mosquitto broker is running with a configuration matching:"
+echo -e "\t$FABRIC_HOME/etc/broker.conf"
+echo -e "6. You can now start the Fabric node using the command:"
+echo -e "\tfabadmin -s -n <node-name>"
