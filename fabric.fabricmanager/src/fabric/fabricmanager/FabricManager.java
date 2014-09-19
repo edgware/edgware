@@ -228,7 +228,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
 		String signon1 = "Edgware Fabric Manager";
 		String signon2 = String.format("(build %s)", getBuildVersion());
-		String signon3 = String.format("tarting node: %s", name);
+		String signon3 = String.format("Starting node: %s", name);
 		System.out.println(signon1 + '\n' + signon2 + '\n' + signon3);
 
 		/* We can now access enough configuration information to start logging */
