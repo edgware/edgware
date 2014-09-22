@@ -646,5 +646,5 @@ echo fabadmin -st -n node
 echo fabadmin -st w
 echo fabadmin -i
 echo fabadmin -status
-echo fabadmin -clean -r
+echo fabadmin -clean -gaian^|-distributed -r
 echo fabadmin -p [arguments]
