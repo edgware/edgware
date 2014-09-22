@@ -572,7 +572,6 @@
 		<mkdir dir="${staging.fabric.osgi}" />
 		<!--mkdir dir="${staging.fabric.osgi}/plugins" /-->
 		<mkdir dir="${staging.fabric.pid}" />
-		<mkdir dir="${staging.fabric.prereqs}" />
 		<mkdir dir="${staging.fabric.web}" />
 		<mkdir dir="${staging.fabric.web.tmp}" />
 		<mkdir dir="${staging.fabric.web.tmp.lib}" />
@@ -929,18 +928,24 @@
 			<fileset dir="${project-src.fabric.scripts}">
 				<exclude name="linux/**" />
 				<exclude name="win32/**" />
-				<exclude name="fabprereqs.sh" />
-				<exclude name="fabprereqs.bat" />
+				<exclude name="prereqs/**" />
 				<exclude name="README_prereqs.html" />
 				<exclude name=".project" />
 			</fileset>
 		</copy>
-	
+		
 		<!-- Files in directories under fabric/bin -->
 		<copy todir="${staging.fabric.bin}">
 			<fileset dir="${project-src.fabric.scripts}">
 				<include name="linux/**" />
 				<include name="win32/**" />
+			</fileset>
+		</copy>
+		
+		<!-- Files in directories under fabric/prereqs -->
+		<copy todir="${staging.fabric}">
+			<fileset dir="${project-src.fabric.scripts}">
+				<include name="prereqs/**" />
 			</fileset>
 		</copy>
 	
@@ -1025,6 +1030,7 @@
 			<!-- Add scripts, with executable permission -->
 			<tarfileset dir="${work.dir}/core" mode="776">
 				<include name="${release.id}/fabinstall.sh" />
+				<include name="${release.id}/prereqs/fabgaian.sh" />
 				<include name="${release.id}/bin/linux/*" />
 				<include name="${release.id}/lib/gaiandb/*.sh" />
 			</tarfileset>
