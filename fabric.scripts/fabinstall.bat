@@ -50,7 +50,11 @@ rem **************************************************************************
 
 rem - Set FABRIC_HOME to the location of the fabinstall script
 set FABRIC_HOME=%~d0%~p0
-set PATH=%PATH%;%FABRIC_HOME%\bin\win32
+REM Remove any spaces from the FABRIC_HOME path
+for %%H in ("!FABRIC_HOME!") do set FABRIC_HOME=%%~sH
+cd !FABRIC_HOME!
+
+set PATH=%PATH%;!FABRIC_HOME!\bin\win32
 
 rem - Confirm acceptance of the license agreement
 
@@ -98,9 +102,9 @@ if "%2" NEQ "" (
 
 echo.
 echo Installing !DBTYPE! !INSTALL!.
-echo Log files will be written to %FABRIC_HOME%\log.
+echo Log files will be written to !FABRIC_HOME!\log.
 
-if not exist "%FABRIC_HOME%\log" mkdir "%FABRIC_HOME%\log"
+if not exist "!FABRIC_HOME!\log" mkdir "!FABRIC_HOME!\log"
 
 if "!INSTALL!"=="registry" (
 
@@ -112,12 +116,12 @@ if "!INSTALL!"=="registry" (
 	call:configRegistryJars
 	
 	rem - Initialise the Registry
-	cmd /c fabadmin.bat --registry -clean -!DBTYPE! >"%FABRIC_HOME%\log\fabregistry_reset.log" 2>&1
+	cmd /c fabadmin.bat --registry -clean -!DBTYPE! >"!FABRIC_HOME!\log\fabregistry_reset.log" 2>&1
 	
 	if !ERRORLEVEL!==0 (
 	    echo Registry initialised.
 	) else (
-		echo Failed to initialise the Registry. Check %FABRIC_HOME%\log for details.
+		echo Failed to initialise the Registry. Check !FABRIC_HOME!\log for details.
 		exit /b 1
 	)
 )
@@ -125,7 +129,7 @@ if "!INSTALL!"=="registry" (
 echo.
 echo Installation complete, now please:
 echo 1. Set the following environment variables:
-echo         FABRIC_HOME=%FABRIC_HOME%
+echo         FABRIC_HOME=!FABRIC_HOME!
 echo         PATH=%%PATH%%;%%FABRIC_HOME%%\bin\win32
 echo 2. Start the Registry using the command:
 echo         fabadmin -s -!DBTYPE! -r ^<node-name^>
@@ -141,6 +145,6 @@ echo         ^<network-adapter-list^> is a comma separated list ^(no spaces^) of
 echo         adapters e.g. "en0,en5"
 echo    The Fabric node will discover and connect to neighbours using these adapters.
 echo 5. Ensure that the Mosquitto broker is running with a configuration matching:
-echo         %FABRIC_HOME%\etc\broker.conf
+echo         !FABRIC_HOME!\etc\broker.conf
 echo 6. You can now start the Fabric node using the command:
 echo         fabadmin -s -n ^<node-name^>

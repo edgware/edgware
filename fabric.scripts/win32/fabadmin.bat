@@ -355,10 +355,13 @@ rem **************************************************************************
 
 call:debug [main] enter: %*
 
-if not exist "%FABRIC_HOME%" (
-	echo ^%FABRIC_HOME^% not set
+if not exist "!FABRIC_HOME!" (
+	echo Environment variable FABRIC_HOME not set
 	goto:EOF
 )
+
+REM Remove any spaces from the FABRIC_HOME path
+for %%H in ("!FABRIC_HOME!") do set FABRIC_HOME=%%~sH
 
 set DBTYPE=distributed
 set DAEMON=0
