@@ -312,6 +312,14 @@ function runLauncher {
 
 # **************************************************************************
 
+# Test the various environment variables
+bash $FABRIC_HOME/bin/linux/test.sh
+
+if [ ! $? -eq 0 ]
+then
+	exit 1
+fi
+
 DBTYPE=distributed
 DAEMON=0
 ACTION=
@@ -389,7 +397,6 @@ do
 			;;
 	esac
 done
-
 
 if [ "$PASSTHROUGH" -eq 1 ]
 then

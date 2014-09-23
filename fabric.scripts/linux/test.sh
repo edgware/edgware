@@ -20,7 +20,7 @@ ERROR=0
 # Is $FABRIC_HOME set?
 if [ ! -n "$FABRIC_HOME"  ]
 then
-	echo "\$FABRIC_HOME is not set"
+	echo "Environment variable FABRIC_HOME not set"
 	ERROR=1
 else
 	# Does the $FABRIC_HOME directory exist?
@@ -44,8 +44,6 @@ else
 		ERROR=1
 	fi
 fi
-
-
 
 # Is $JAVA_HOME set?
 if [ ! -n "$JAVA_HOME"  ]
