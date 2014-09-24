@@ -84,11 +84,10 @@ public class DiscoverySweeper implements Runnable, ICallback {
 							// Tell the Fabric (AutoDiscoveryFablet) that the node has disappeared
 							myFablet.publishMessage(myFablet.nodeMessageCache.get(n).getDiscoveryMessage(
 									MulticastNodeMessage.UNAVAILABLE));
-
 							logger.log(
-									Level.FINE,
-									"We haven't seen the following node for {0} seconds, deleting it as a neighbour: {1}",
-									new Object[] {nodeTimeout, n});
+									Level.INFO,
+									"We haven't seen neighbour {0} for {1} seconds, marking this neighbour as unavailable",
+									new Object[] {n.toString(), nodeTimeout});
 
 							cache_it.remove(); /*
 												 * must remove elements from the iterator rather than the hashtable
