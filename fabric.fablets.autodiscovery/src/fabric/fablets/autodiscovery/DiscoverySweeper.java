@@ -86,8 +86,8 @@ public class DiscoverySweeper implements Runnable, ICallback {
 									MulticastNodeMessage.UNAVAILABLE));
 							logger.log(
 									Level.INFO,
-									"We haven't seen neighbour {0} for {1} seconds, marking this neighbour as unavailable",
-									new Object[] {n.toString(), nodeTimeout});
+									"Neighbour {0} not observed for {1} milliseconds; requesting removal from the Registry",
+									new Object[] {n.toString(), Integer.toString(nodeTimeout)});
 
 							cache_it.remove(); /*
 												 * must remove elements from the iterator rather than the hashtable
