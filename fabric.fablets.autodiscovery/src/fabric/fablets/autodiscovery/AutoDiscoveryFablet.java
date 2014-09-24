@@ -288,7 +288,7 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
 
 			// remove it
 			FabricRegistry.delete(neighbour);
-			logger.log(Level.INFO, "Neighbour removed: {0}, status: {1}", new Object[] {neighbour,
+			logger.log(Level.INFO, "Neighbour removed from the registry: {0}, status: {1}", new Object[] {neighbour,
 					neighbourAvailability});
 		}
 	}
