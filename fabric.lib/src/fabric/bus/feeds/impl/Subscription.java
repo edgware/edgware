@@ -17,6 +17,7 @@ import fabric.bus.BusIOChannels;
 import fabric.bus.SharedChannel;
 import fabric.bus.feeds.ISubscription;
 import fabric.bus.feeds.ISubscriptionCallback;
+import fabric.bus.feeds.SubscriptionException;
 import fabric.bus.messages.FabricMessageFactory;
 import fabric.bus.messages.IClientNotificationMessage;
 import fabric.bus.messages.IFabricMessage;
@@ -57,8 +58,8 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 	/** The correlation ID for this subscription */
 	private final String correlationID = FabricMessageFactory.generateUID();
 
-	/** The feed(s) represented by this subscription. */
-	private TaskServiceDescriptor taskFeed = null;
+	/** The services represented by this subscription. */
+	private TaskServiceDescriptor activeServiceDescriptor = null;
 
 	/** The unsubscribe message for this subscriber. */
 	private ServiceMessage unsubscribeMessage;
@@ -119,34 +120,38 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 	 * @see ISubscription#subscribe(TaskServiceDescriptor, String[], ISubscriptionCallback)
 	 */
 	@Override
-	public TaskServiceDescriptor subscribe(TaskServiceDescriptor feed, String[] route, ISubscriptionCallback callback)
-			throws IllegalArgumentException, Exception {
+	public TaskServiceDescriptor subscribe(TaskServiceDescriptor serviceDescriptor, String[] route,
+			ISubscriptionCallback callback) throws IllegalArgumentException, Exception {
 
 		// Ensure the feed does not contain wildcards
-		if (feed.service() == null || feed.service().equals("*") || feed.platform() == null
-				|| feed.platform().equals("*") || feed.system() == null || feed.system().equals("*")
-				|| feed.task() == null || feed.task().equals("*")) {
-			throw new IllegalArgumentException("ServiceDescriptor must not contain null or wildcards");
+		if (serviceDescriptor.service() == null || serviceDescriptor.service().equals("*")
+				|| serviceDescriptor.platform() == null || serviceDescriptor.platform().equals("*")
+				|| serviceDescriptor.system() == null || serviceDescriptor.system().equals("*")
+				|| serviceDescriptor.task() == null || serviceDescriptor.task().equals("*")) {
+			throw new IllegalArgumentException("Task service descriptor must not contain null or wildcards");
 		}
 
-		if (taskFeed != null) {
-			throw new IllegalStateException("Subscription already active");
+		if (activeServiceDescriptor != null) {
+			throw new SubscriptionException(SubscriptionException.Reason.ALREADY_SUBSCRIBED,
+					"Subscription already active");
 		}
 
-		taskFeed = feed;
+		activeServiceDescriptor = serviceDescriptor;
 
-		logger.log(Level.FINE, "Subscribing to feed \"{0}\"", feed);
+		logger.log(Level.FINE, "Subscribing to feed \"{0}\"", serviceDescriptor);
 
 		this.callback = callback;
 
-		topic = generateTopic(taskFeed);
+		topic = generateTopic(activeServiceDescriptor);
 		channel = fabricClient.homeNodeEndPoint().openInputChannel(new InputTopic(topic), this);
 		logger.log(Level.FINER, "Listening for subscription messages on \"{0}\"", topic);
 
 		/* No route specified, so determine one for ourselves */
 		if (route == null) {
+
 			/* Get the matching feeds and their routes */
-			FeedRoutes feedRoute = getFeedRoute(taskFeed);
+			FeedRoutes feedRoute = getFeedRoute(activeServiceDescriptor);
+
 			if (feedRoute != null) {
 				route = FabricRegistry.getRouteFactory().getRouteNodes(fabricClient.homeNode(),
 						feedRoute.getEndNodeId(), feedRoute.getRoute());
@@ -157,8 +162,9 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 		if (route == null) {
 
 			/* We've failed to subscribe */
-			logger.log(Level.FINE, "Subscription failed; cannot find route to feed \"{0}\"", new Object[] {taskFeed});
-			taskFeed = null;
+			logger.log(Level.FINE, "Subscription failed; cannot find route to feed \"{0}\"",
+					new Object[] {activeServiceDescriptor});
+			activeServiceDescriptor = null;
 
 		} else {
 
@@ -185,7 +191,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
 			/* Store the feed list in the subscription message payload */
 			FeedList feedList = new FeedList();
-			feedList.addFeed(taskFeed);
+			feedList.addFeed(activeServiceDescriptor);
 			subscriptionMessage.setFeedList(feedList);
 
 			/* Set the message's routing */
@@ -203,8 +209,9 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
 			TaskSubscriptionFactory factory = FabricRegistry.getTaskSubscriptionFactory();
 
-			TaskSubscription ts = factory.createTaskSubscription(taskFeed.task(), fabricClient.actor(), taskFeed
-					.platform(), taskFeed.system(), taskFeed.service(), fabricClient.platform());
+			TaskSubscription ts = factory.createTaskSubscription(activeServiceDescriptor.task(), fabricClient.actor(),
+					activeServiceDescriptor.platform(), activeServiceDescriptor.system(), activeServiceDescriptor
+							.service(), fabricClient.platform());
 			try {
 				factory.save(ts);
 			} catch (IncompleteObjectException e) {
@@ -217,7 +224,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
 		}
 
-		return taskFeed;
+		return activeServiceDescriptor;
 	}
 
 	/**
@@ -226,11 +233,11 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 	@Override
 	public void unsubscribe() throws Exception {
 
-		if (taskFeed == null) {
-			throw new IllegalStateException("No active subscription");
+		if (activeServiceDescriptor == null) {
+			throw new SubscriptionException(SubscriptionException.Reason.NOT_SUBSCRIBED, "No active subscription");
 		}
 
-		logger.log(Level.FINER, "Unsubscribing from feed {0}", taskFeed);
+		logger.log(Level.FINER, "Unsubscribing from feed {0}", activeServiceDescriptor);
 		fabricClient.homeNodeEndPoint().closeChannel(channel, false);
 		logger.log(Level.FINEST, "Stopped listening for subscription messages on \"{0}\"", topic);
 
@@ -247,8 +254,9 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 		/* Remove this subscription from the Registry */
 		TaskSubscriptionFactory factory = FabricRegistry.getTaskSubscriptionFactory(true);
 
-		TaskSubscription ts = factory.createTaskSubscription(taskFeed.task(), fabricClient.actor(),
-				taskFeed.platform(), taskFeed.system(), taskFeed.service(), fabricClient.platform());
+		TaskSubscription ts = factory.createTaskSubscription(activeServiceDescriptor.task(), fabricClient.actor(),
+				activeServiceDescriptor.platform(), activeServiceDescriptor.system(),
+				activeServiceDescriptor.service(), fabricClient.platform());
 		factory.delete(ts);
 
 	}
@@ -262,7 +270,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 	@Override
 	public TaskServiceDescriptor feed() {
 
-		return taskFeed;
+		return activeServiceDescriptor;
 	}
 
 	/**
@@ -466,7 +474,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 	@Override
 	public String toString() {
 
-		return this.taskFeed.toString();
+		return this.activeServiceDescriptor.toString();
 	}
 
 }
