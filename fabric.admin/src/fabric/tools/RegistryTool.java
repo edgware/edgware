@@ -639,7 +639,8 @@ public class RegistryTool {
 		while (rs.next()) {
 			for (int i = 0; i < cols; i++) {
 				String nextField = rs.getString(i + 1);
-				maxLengths[i] = (nextField.length() > maxLengths[i]) ? nextField.length() : maxLengths[i];
+				maxLengths[i] = (nextField != null && (nextField.length() > maxLengths[i])) ? nextField.length()
+						: maxLengths[i];
 			}
 		}
 
