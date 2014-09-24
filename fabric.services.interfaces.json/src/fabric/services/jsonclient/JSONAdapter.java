@@ -102,6 +102,7 @@ public abstract class JSONAdapter extends FabricBus implements IHomeNodeConnecti
 		fabricPlatform.registerActor(adapterUserID, "USER");
 
 		runtimeManager = new RuntimeManager(fabricPlatform);
+		runtimeManager.init();
 
 		/* Passing through the home node */
 		Nodes.setNode(fabricPlatform.homeNode());
@@ -114,6 +115,7 @@ public abstract class JSONAdapter extends FabricBus implements IHomeNodeConnecti
 	 */
 	public void stop() {
 
+		runtimeManager.stop();
 		fabricPlatform.deregisterActor(adapterUserID);
 		fabricPlatform.deregisterPlatform(adapterPlatformID);
 	}

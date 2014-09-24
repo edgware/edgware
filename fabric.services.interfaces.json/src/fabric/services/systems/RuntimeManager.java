@@ -15,9 +15,16 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fabric.Fabric;
 import fabric.FabricBus;
 import fabric.ServiceDescriptor;
 import fabric.SystemDescriptor;
+import fabric.TaskServiceDescriptor;
+import fabric.bus.feeds.ISubscription;
+import fabric.bus.feeds.ISubscriptionCallback;
+import fabric.bus.feeds.impl.Subscription;
+import fabric.bus.messages.IFeedMessage;
+import fabric.bus.messages.IServiceMessage;
 import fabric.client.FabricPlatform;
 import fabric.core.logging.LogUtil;
 import fabric.registry.FabricRegistry;
@@ -27,12 +34,18 @@ import fabric.registry.SystemFactory;
 /**
  * Manages a set of active systems.
  */
-public class RuntimeManager extends FabricBus {
+public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
 
-	private static final String JSON_SYSTEM_ADAPTER = "fabric.services.systems.JSONSystem";
+	/*
+	 * Class constants
+	 */
+
+	/** The descriptor for the Registry update notification service. */
+	private static final TaskServiceDescriptor registryUpdatesDescriptor = new TaskServiceDescriptor("DEFAULT",
+			"$fabric", "$registry", "$registry_updates");
 
 	/*
 	 * Class fields
@@ -46,6 +59,9 @@ public class RuntimeManager extends FabricBus {
 
 	/** The connection to the Fabric. */
 	private FabricPlatform fabricClient = null;
+
+	/** The subscription to Registry update notifications. */
+	private ISubscription registryUpdates = null;
 
 	/*
 	 * Class methods
@@ -74,6 +90,46 @@ public class RuntimeManager extends FabricBus {
 		/* Determine if Registry queries should be local or distributed */
 		doQueryLocal = Boolean.parseBoolean(config("fabric.composition.queryLocal", "false"));
 
+	}
+
+	/**
+	 * Initialises this instance.
+	 */
+	public void init() {
+
+		try {
+
+			/* Subscribe to Registry update notifications */
+			registryUpdates = new Subscription(fabricClient);
+			registryUpdates.subscribe(registryUpdatesDescriptor, this);
+
+		} catch (Exception e) {
+
+			String message = Fabric.format(
+					"Cannot subscribe to service '%s'; active subscription functions will not be available: %s",
+					LogUtil.stackTrace(e), registryUpdatesDescriptor);
+			logger.log(Level.WARNING, message);
+
+		}
+	}
+
+	/**
+	 * Stops this instance.
+	 */
+	public void stop() {
+
+		try {
+
+			/* Unsubscribe from Registry update notifications */
+			registryUpdates.unsubscribe();
+
+		} catch (Exception e) {
+
+			String message = Fabric.format("Cannot unsubscribe from feed '%s': %s", LogUtil.stackTrace(e),
+					registryUpdatesDescriptor);
+			logger.log(Level.WARNING, message);
+
+		}
 	}
 
 	/**
@@ -619,5 +675,39 @@ public class RuntimeManager extends FabricBus {
 
 			}
 		}
+	}
+
+	/**
+	 * @see fabric.bus.feeds.ISubscriptionCallback#startSubscriptionCallback()
+	 */
+	@Override
+	public void startSubscriptionCallback() {
+		logger.log(Level.INFO, "startSubscriptionCallback()");
+	}
+
+	/**
+	 * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionMessage(fabric.bus.messages.IFeedMessage)
+	 */
+	@Override
+	public void handleSubscriptionMessage(IFeedMessage message) {
+		logger.log(Level.INFO, "handleSubscriptionMessage(...):\n{0}", message.toString());
+	}
+
+	/**
+	 * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription, int,
+	 *      fabric.bus.messages.IServiceMessage)
+	 */
+	@Override
+	public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
+		logger.log(Level.INFO, "handleSubscriptionEvent({0}, {1}, ...):\n{2}", new Object[] {subscription.toString(),
+				"" + event, message.toString()});
+	}
+
+	/**
+	 * @see fabric.bus.feeds.ISubscriptionCallback#cancelSubscriptionCallback()
+	 */
+	@Override
+	public void cancelSubscriptionCallback() {
+		logger.log(Level.INFO, "cancelSubscriptionCallback()");
 	}
 }
