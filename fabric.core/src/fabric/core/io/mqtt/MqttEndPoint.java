@@ -256,7 +256,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 	 */
 	@Override
 	public void connectionLost(Throwable t) {
-
+		logger.log(Level.INFO, "MQTT connection to \"{0}\" as \"{1}\" lost. Retrying {2} times", new Object[] {config.getbrokerIpAddress(),
+				config.getClient(), config.getConnectRetries()});
 		/* If a callback is registered... */
 		if (callback != null) {
 			try {
@@ -297,7 +298,7 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
 		} catch (IOException e1) {
 
-			logger.log(Level.FINE, "Cannot reconnect to the broker: ", e1);
+			logger.log(Level.FINEST, "Cannot reconnect to the broker: ", e1);
 			callback.endPointLost(this);
 
 		}
@@ -514,7 +515,9 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 					/* If we have reached the maximum number of retries... */
 					if (++retries > maxRetries) {
 
-						logger.log(Level.WARNING, "MQTT connection retries exhausted, will not reconnect");
+						logger.log(Level.INFO, "MQTT connection retries exhausted, will not reconnect to \"{0}\" as \"{1}\"", new Object[] {config.getbrokerIpAddress(),
+						config.getClient()});
+						
 						throw new IOException(e);
 
 					} else {
