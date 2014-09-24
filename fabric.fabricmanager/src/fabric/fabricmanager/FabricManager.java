@@ -235,12 +235,14 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 		initLogging("fabric.fabricmanager", name);
 		logger.log(Level.INFO, "\n{0}\n{1}\n{2}", new Object[] {signon1, signon2, signon3});
 
-		/* Establish a connection to the Fabric Registry database, and clean-up old information */
+		/* Establish a connection to the Fabric Registry database */
 		initRegistry();
-		cleanRegistry();
 
 		/* Now that we have a Registry connection we can access the full Fabric configuration for this node */
 		initNodeConfig();
+
+		/* Clean up the Registry from the last run */
+		cleanRegistry();
 
 		/*
 		 * Join the Fabric
@@ -307,22 +309,30 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 	 */
 	private void cleanRegistry() {
 
-		String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistence\"=\"static\"%%'";
+		if (config("fabric.node.cleanRegistry", "true").equals("true")) {
 
-		String[] updates = new String[] {String.format(template, "ACTORS", "ATTRIBUTES", "ATTRIBUTES"),
-				String.format(template, "BEARERS", "ATTRIBUTES", "ATTRIBUTES"),
-				String.format(template, "DATA_FEEDS", "ATTRIBUTES", "ATTRIBUTES"), "DELETE FROM NODE_IP_MAPPING",
-				String.format(template, "NODES", "ATTRIBUTES", "ATTRIBUTES"),
-				String.format(template, "PLATFORMS", "ATTRIBUTES", "ATTRIBUTES"),
-				String.format(template, "SERVICES", "ATTRIBUTES", "ATTRIBUTES"),
-				String.format(template, "TASK_NODES", "CONFIGURATION", "CONFIGURATION"),
-				String.format(template, "TASK_SERVICES", "CONFIGURATION", "CONFIGURATION"),
-				"DELETE FROM TASK_SUBSCRIPTIONS", String.format(template, "TASKS", "TASK_DETAIL", "TASK_DETAIL"),};
+			String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistence\"=\"static\"%%'";
 
-		try {
-			FabricRegistry.runUpdates(updates);
-		} catch (PersistenceException e) {
-			logger.log(Level.WARNING, "Registry clean failed: {1}", e);
+			String[] updates = new String[] {String.format(template, "ACTORS", "ATTRIBUTES", "ATTRIBUTES"),
+					String.format(template, "BEARERS", "ATTRIBUTES", "ATTRIBUTES"),
+					String.format(template, "DATA_FEEDS", "ATTRIBUTES", "ATTRIBUTES"), "DELETE FROM NODE_IP_MAPPING",
+					String.format(template, "NODES", "ATTRIBUTES", "ATTRIBUTES"),
+					String.format(template, "PLATFORMS", "ATTRIBUTES", "ATTRIBUTES"),
+					String.format(template, "SERVICES", "ATTRIBUTES", "ATTRIBUTES"),
+					String.format(template, "TASK_NODES", "CONFIGURATION", "CONFIGURATION"),
+					String.format(template, "TASK_SERVICES", "CONFIGURATION", "CONFIGURATION"),
+					"DELETE FROM TASK_SUBSCRIPTIONS", String.format(template, "TASKS", "TASK_DETAIL", "TASK_DETAIL"),};
+
+			try {
+				FabricRegistry.runUpdates(updates);
+			} catch (PersistenceException e) {
+				logger.log(Level.WARNING, "Registry clean failed: {1}", e);
+			}
+
+		} else {
+
+			logger.fine("Registry clean not requested.");
+
 		}
 
 	}
