@@ -22,7 +22,7 @@ public class SubscriptionException extends Exception {
 	 */
 
 	public enum Reason {
-		ALREADY_SUBSCRIBED, NOT_SUBSCRIBED, UNKNOWN
+		ALREADY_SUBSCRIBED, NOT_SUBSCRIBED, NO_ROUTE, UNKNOWN
 	};
 
 	/*
