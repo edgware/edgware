@@ -162,9 +162,11 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 		if (route == null) {
 
 			/* We've failed to subscribe */
-			logger.log(Level.FINE, "Subscription failed; cannot find route to feed \"{0}\"",
-					new Object[] {activeServiceDescriptor});
+			String message = String.format("Subscription failed; cannot find route to feed \"%s\"",
+					activeServiceDescriptor);
+			logger.fine(message);
 			activeServiceDescriptor = null;
+			throw new SubscriptionException(SubscriptionException.Reason.NO_ROUTE, message);
 
 		} else {
 
