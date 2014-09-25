@@ -27,7 +27,7 @@ INSERT INTO FABRIC.FEED_TYPES VALUES('$registry_updates', 'Registry update data 
 INSERT INTO FABRIC.DATA_FEEDS VALUES('$fabric', '$registry', '$registry_updates', '$registry_updates', 'output', null, 'AVAILABLE', 'The Fabric Registry update service', '{"persistence"="static"}', null);
 
 INSERT INTO FABRIC.TASKS VALUES ('$fabric', null, null, 'Built-in Fabric task', '{"persistence"="static"}', null);
-INSERT INTO FABRIC.TASK_SERVICES VALUES('$fabric', '$fabric', '$registry', '$registry_updates', 'The Fabric Registry update service', null, '{"persistence"="static"}');
+INSERT INTO FABRIC.TASK_SERVICES VALUES('DEFAULT', '$fabric', '$registry', '$registry_updates', 'The Fabric Registry update service', null, '{"persistence"="static"}');
 
 INSERT INTO FABRIC.ACTOR_TYPES VALUES ('$daemon', 'Fabric built-in system user type', '{"persistence"="static"}', null);
 INSERT INTO FABRIC.ACTORS VALUES ('$fabric', '$daemon', '$fabric', null, null, 'Fabric built-in system user', '{"persistence"="static"}', null);

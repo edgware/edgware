@@ -338,7 +338,12 @@ public class RouteFactoryImpl extends AbstractFactory implements RouteFactory {
 
 		String[] nodes = null;
 
-		if (routeDesc.toLowerCase().startsWith("nodes=")) {
+		if (endNode.equals("$virtual")) {
+
+			/* $virtual designates global feeds, always accessed via the local node */
+			nodes = new String[] {startNode};
+
+		} else if (routeDesc.toLowerCase().startsWith("nodes=")) {
 
 			String nodeList = routeDesc.substring(6);
 			nodes = nodeList.trim().split("\\s*,\\s*");
@@ -352,10 +357,6 @@ public class RouteFactoryImpl extends AbstractFactory implements RouteFactory {
 		} else if (routeDesc.toLowerCase().startsWith("<")) {
 
 			nodes = FabricBus.unpackRoute(routeDesc);
-
-		} else if (endNode.equals("$VIRTUAL")) {
-
-			nodes = new String[] {startNode};
 
 		} else {
 
