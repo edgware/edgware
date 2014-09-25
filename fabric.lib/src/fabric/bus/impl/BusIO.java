@@ -275,9 +275,9 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
 				} catch (Exception e) {
 
-					logger.log(Level.INFO, "Improperly formatted message received on topic {0}: {1}", new Object[] {
+					logger.log(Level.WARNING, "Improperly formatted message received on topic {0}: {1}", new Object[] {
 							messageTopic, messageString});
-					logger.log(Level.WARNING, "Exception:", e);
+					logger.log(Level.FINE, "Exception:", e);
 
 				}
 
@@ -308,12 +308,12 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 				 */
 				else if (messageTopic.startsWith(ioChannels.connectionComands.name())) {
 
-					logger.log(Level.FINE,
+					logger.log(Level.WARNING,
 							"Ignoring improperly formatted connection status (last-will-and-testament) message");
 
 				} else {
 
-					logger.log(Level.FINE, "Ignoring improperly formatted message");
+					logger.log(Level.WARNING, "Ignoring improperly formatted message: {0}", messageString);
 
 				}
 
