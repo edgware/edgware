@@ -470,6 +470,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
 				logger.log(Level.FINE, "Connecting to \"{0}\" as \"{1}\"", new Object[] {config.getbrokerIpAddress(),
 						config.getClient()});
+				logger.log(Level.FINER, "with ConnectionMessageTopic \"{0}\" with LWT payload \"{1}\"", new Object[] {config.getConnectionMessageTopic(),
+						config.getDisconnectMessage()});
 
 				/* If there is not last will and testament... */
 				if (config.getConnectionMessageTopic() == null) {

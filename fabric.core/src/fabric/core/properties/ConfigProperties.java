@@ -242,7 +242,7 @@ public class ConfigProperties {
 	public static final String AUTO_DISCOVERY_TIMEOUT = "autodiscovery.timeout";
 
 	/** Default value for the time(milliseconds) after which a node if not seen becomes unavailable. */
-	public static final String AUTO_DISCOVERY_TIMEOUT_DEFAULT = "600000";
+	public static final String AUTO_DISCOVERY_TIMEOUT_DEFAULT = "65000";
 
 	/**
 	 * Configuration property for interval (in milliseconds) at which the sweeper checks for node neighbours that are no

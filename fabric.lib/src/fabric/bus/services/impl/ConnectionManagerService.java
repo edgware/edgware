@@ -267,7 +267,8 @@ public class ConnectionManagerService extends BusService implements IPersistentS
 		String feed = message.getFeed();
 		String actor = message.getActor();
 
-		logger.log(Level.FINE, "ConnectionManager message: " + "event="
+		//this used to be at FINE, DCJ requested change to debug
+		logger.log(Level.INFO, "ConnectionManager message: " + "event="
 				+ message.getProperty(ConnectionMessage.PROPERTY_EVENT) + " type="
 				+ message.getProperty(ConnectionMessage.PROPERTY_RESOURCE_TYPE) + " node=" + node + " feed=" + feed);
 
