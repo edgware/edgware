@@ -682,7 +682,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 */
 	@Override
 	public void startSubscriptionCallback() {
-		logger.log(Level.INFO, "startSubscriptionCallback()");
+		java.lang.System.out.println("startSubscriptionCallback()");
 	}
 
 	/**
@@ -690,7 +690,9 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 */
 	@Override
 	public void handleSubscriptionMessage(IFeedMessage message) {
-		logger.log(Level.INFO, "handleSubscriptionMessage(...):\n{0}", message.toString());
+		byte[] payloadBytes = message.getPayload().getPayload();
+		String payload = new String(payloadBytes);
+		java.lang.System.out.println("handleSubscriptionMessage(): " + payload);
 	}
 
 	/**
@@ -699,8 +701,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 */
 	@Override
 	public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
-		logger.log(Level.INFO, "handleSubscriptionEvent({0}, {1}, ...):\n{2}", new Object[] {subscription.toString(),
-				"" + event, message.toString()});
+		java.lang.System.out.println("handleSubscriptionEvent():\n" + message.toString());
 	}
 
 	/**
@@ -708,6 +709,6 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 */
 	@Override
 	public void cancelSubscriptionCallback() {
-		logger.log(Level.INFO, "cancelSubscriptionCallback()");
+		java.lang.System.out.println("cancelSubscriptionCallback()");
 	}
 }
