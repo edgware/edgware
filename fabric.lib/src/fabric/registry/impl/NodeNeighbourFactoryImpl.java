@@ -197,12 +197,12 @@ public class NodeNeighbourFactoryImpl extends AbstractFactory implements NodeNei
 				NodeNeighbour shadow = (NodeNeighbour) neighbour.getShadow();
 				buf.append(" NODE_ID='").append(shadow.getNodeId()).append("' AND");
 				buf.append(" NODE_INTERFACE='").append(shadow.getNodeInterface()).append("' AND");
-				buf.append(" NEIGHBOUR_ID='").append(shadow.getNodeId()).append("' AND");
+				buf.append(" NEIGHBOUR_ID='").append(shadow.getNeighbourId()).append("' AND");
 				buf.append(" NEIGHBOUR_INTERFACE='").append(shadow.getNeighbourInterface()).append("'");
 			} else {
 				buf.append(" NODE_ID='").append(neighbour.getNodeId()).append("' AND");
 				buf.append(" NODE_INTERFACE='").append(neighbour.getNodeInterface()).append("' AND");
-				buf.append(" NEIGHBOUR_ID='").append(neighbour.getNodeId()).append("' AND");
+				buf.append(" NEIGHBOUR_ID='").append(neighbour.getNeighbourId()).append("' AND");
 				buf.append(" NEIGHBOUR_INTERFACE='").append(neighbour.getNeighbourInterface()).append("'");
 			}
 		}
