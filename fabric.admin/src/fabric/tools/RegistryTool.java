@@ -50,8 +50,8 @@ public class RegistryTool {
 	private static final String OPT_LIST_SERVICES = "SV";
 	private static final String OPT_LIST_TASK_SYSTEMS = "T";
 	private static final String OPT_LIST_NEIGHBOURS = "B";
-	private static final String OPT_LIST_TABLES = "T";
-	private static final String OPT_LIST_VIEWS = "V";
+	private static final String OPT_LIST_TABLES = "t";
+	private static final String OPT_LIST_VIEWS = "v";
 
 	private static final String OPT_LIST_DEFAULT_CONFIG = "d";
 	private static final String OPT_SET_DEFAULT_CONFIG = "sd";
