@@ -68,6 +68,9 @@ public class NetworkInterfaceListener implements Runnable {
 
 	/** Indicates if our configuration is valid */
 	private boolean validConfiguration = true;
+	
+	/** Frequency with which to issue the AutoDiscovery broadcast. In our case frequency we retry to establish a socket in event of Exception*/
+	private int autoDiscoveryFrequency;
 
 	private InetAddress multicastGroupAddress = null;
 	private InetAddress interfaceListenRequestAddr = null;
@@ -123,6 +126,8 @@ public class NetworkInterfaceListener implements Runnable {
 				ConfigProperties.AUTO_DISCOVERY_GROUP_DEFAULT);
 		multicastPort = new Integer(myFablet.config(ConfigProperties.AUTO_DISCOVERY_PORT,
 				ConfigProperties.AUTO_DISCOVERY_PORT_DEFAULT)).intValue();
+		autoDiscoveryFrequency = new Integer(myFablet.config(ConfigProperties.AUTO_DISCOVERY_FREQUENCY,
+				ConfigProperties.AUTO_DISCOVERY_FREQUENCY_DEFAULT)).intValue();
 
 		try {
 
@@ -182,39 +187,54 @@ public class NetworkInterfaceListener implements Runnable {
 	 */
 	private void listenOnInterface() {
 
-		try {
-
-			NetworkInterface listeningInterface = NetworkInterface.getByInetAddress(interfaceListenRequestAddr);
-			InetSocketAddress isa = new InetSocketAddress(multicastGroupAddress, multicastPort);
-			udpListenRequestSocket = new MulticastSocket(multicastPort);
-			udpListenRequestSocket.setNetworkInterface(listeningInterface);
-			udpListenRequestSocket.setInterface(interfaceListenRequestAddr);
-
-			logger.log(Level.FINE, "Listening interface \"{0}\", InetSocketAddress \"{1}\"", new Object[] {
-					listeningInterface.getDisplayName(), isa.toString()});
-
-			udpListenRequestSocket.joinGroup(isa, null);
-
-			logger.log(Level.INFO, "Multicast listen socket created for: {0} | {1} - {2} | {3}", new Object[] {
-					multicastGroupAddress.toString(),
-					NetworkInterface.getByInetAddress(interfaceListenRequestAddr).toString(),
-					udpListenRequestSocket.getInterface().toString(),
-					udpListenRequestSocket.getLocalAddress().toString()});
-
-		} catch (SocketException e) {
-			/* Couldn't connect to socket - probably in use, possibly below 1024 */
-			logger.log(
-					Level.WARNING,
-					"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
-					new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
-							e.getMessage()});
-		} catch (IOException e) {
-			/* Couldn't connect to socket - probably in use, possibly below 1024 */
-			logger.log(
-					Level.WARNING,
-					"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
-					new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
-							e.getMessage()});
+		boolean connected = false;
+		while (!connected) {
+			try {
+				NetworkInterface listeningInterface = NetworkInterface.getByInetAddress(interfaceListenRequestAddr);
+				InetSocketAddress isa = new InetSocketAddress(multicastGroupAddress, multicastPort);
+				udpListenRequestSocket = new MulticastSocket(multicastPort);
+				udpListenRequestSocket.setNetworkInterface(listeningInterface);
+				udpListenRequestSocket.setInterface(interfaceListenRequestAddr);
+	
+				logger.log(Level.FINE, "Listening interface \"{0}\", InetSocketAddress \"{1}\"", new Object[] {
+						listeningInterface.getDisplayName(), isa.toString()});
+	
+				udpListenRequestSocket.joinGroup(isa, null);
+	
+				logger.log(Level.INFO, "Multicast listen socket created for: {0} | {1} - {2} | {3}", new Object[] {
+						multicastGroupAddress.toString(),
+						NetworkInterface.getByInetAddress(interfaceListenRequestAddr).toString(),
+						udpListenRequestSocket.getInterface().toString(),
+						udpListenRequestSocket.getLocalAddress().toString()});
+				connected = true;
+	
+			} catch (SocketException e) {
+				/* Couldn't connect to socket - probably in use, possibly below 1024 */
+				logger.log(
+						Level.WARNING,
+						"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
+						new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
+								e.getMessage()});
+				/* Wait before we try again */
+				try {
+					Thread.sleep(autoDiscoveryFrequency);
+				} catch (InterruptedException ee) {
+					/* Ignore */
+				}
+			} catch (IOException e) {
+				/* Couldn't connect to socket - probably in use, possibly below 1024 */
+				logger.log(
+						Level.WARNING,
+						"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
+						new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
+								e.getMessage()});
+				/* Wait before we try again */
+				try {
+					Thread.sleep(autoDiscoveryFrequency);
+				} catch (InterruptedException ee) {
+					/* Ignore */
+				}
+			}
 		}
 	}
 
@@ -279,6 +299,8 @@ public class NetworkInterfaceListener implements Runnable {
 				 * arrived.
 				 */
 				logger.log(Level.FINEST, "Timed out waiting for autodiscovery request");
+				udpListenRequestSocket.close();
+				listenOnInterface();
 
 			} catch (IOException e) {
 
