@@ -18,6 +18,10 @@ import java.util.logging.Logger;
 import fabric.core.io.ICallback;
 import fabric.core.io.Message;
 import fabric.core.properties.ConfigProperties;
+import fabric.registry.FabricRegistry;
+import fabric.registry.NodeIpMapping;
+import fabric.registry.NodeNeighbour;
+import fabric.registry.exception.RegistryQueryException;
 import fabric.session.NodeDescriptor;
 
 /**
@@ -72,8 +76,24 @@ public class DiscoverySweeper implements Runnable, ICallback {
 
 			/* initially, wait a proportion of time before checking node cache */
 			if ((current_time - last_time_checked) > nodeTimeout / 6) {
+				//Establish currently unavailable Neighbours, these must not appear in the discovery cache
+				NodeNeighbour[] unavailableNeighbours = null;
+				try {
+					unavailableNeighbours = FabricRegistry.getNodeNeighbourFactory(true).getNeighbours( " AVAILABILITY='" + NodeNeighbour.UNAVAILABLE+ "'");
+				} catch (RegistryQueryException e) {
+					logger.warning("Failed to query Registry for unavailable neighbours :\n"
+							+ e.getMessage());
+				}
 
 				synchronized (myFablet.nodeLastSeen) {
+					if (unavailableNeighbours!= null) {
+						for (int i = 0; i < unavailableNeighbours.length; i++) {
+							NodeNeighbour nodeNeighbour = unavailableNeighbours[i];
+							NodeIpMapping ipmapping = nodeNeighbour.getIpMappingForNeighbour();
+							NodeDescriptor n = new NodeDescriptor(nodeNeighbour.getNeighbourId(), nodeNeighbour.getNeighbourInterface(), ipmapping.getIpAddress(), ipmapping.getPort());
+							myFablet.nodeLastSeen.remove(n);
+						}
+					}
 					Iterator<NodeDescriptor> cache_it = myFablet.nodeLastSeen.keySet().iterator();
 
 					/* Check each node, if we've not seen a node for more than the node_timeout, delete it */
