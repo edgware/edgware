@@ -44,12 +44,14 @@ import fabric.bus.services.impl.ConnectionManagerService;
 import fabric.bus.services.impl.FloodMessageService;
 import fabric.bus.services.impl.NotificationManagerService;
 import fabric.core.io.MessageQoS;
+import fabric.core.logging.LogUtil;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricPlugin;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Node;
 import fabric.registry.NodeIpMapping;
 import fabric.registry.Type;
+import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
 import fabric.services.messageforwarding.MessageForwardingService;
@@ -348,9 +350,14 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 				null);
 
 		try {
-			FabricRegistry.getTypeFactory(true).insert(nodeType);
+			try {
+				FabricRegistry.getTypeFactory(true).insert(nodeType);
+			} catch (DuplicateKeyException dke) {
+				FabricRegistry.getTypeFactory(true).update(nodeType);
+			}
 		} catch (Exception e) {
-			/* Ignore - may already exist in Registry */
+			logger.log(Level.WARNING, "Cannot register node type \"{0}\": {1}", new Object[] {nodeType.toString(),
+					LogUtil.stackTrace(e)});
 		}
 
 		/* Add the node itself */
@@ -363,7 +370,8 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 		try {
 			FabricRegistry.save(node);
 		} catch (Exception e) {
-			/* Ignore - existing node entry will be overwritten */
+			logger.log(Level.WARNING, "Cannot register node \"{0}\": {1}", new Object[] {node.toString(),
+					LogUtil.stackTrace(e)});
 		}
 
 		if (logger.isLoggable(Level.FINEST)) {
@@ -417,7 +425,8 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 			try {
 				FabricRegistry.save(ipMapping);
 			} catch (Exception e) {
-				/* Ignore */
+				logger.log(Level.WARNING, "Cannot register IP mapping \"{0}\": {1}", new Object[] {
+						ipMapping.toString(), LogUtil.stackTrace(e)});
 			}
 		}
 	}
@@ -780,7 +789,11 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 		}
 	}
 
+	/**
+	 * Log the intefaces available to this node.
+	 */
 	private void logPossibleInterfaces() {
+
 		try {
 			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 			while (interfaces.hasMoreElements()) {
@@ -790,7 +803,8 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 					while (addresses.hasMoreElements()) {
 						InetAddress address = addresses.nextElement();
 						if (address instanceof Inet4Address) {
-							logger.finest(myInterface.getName() + " : " + address.getHostAddress());
+							logger.finest("Available interface: " + myInterface.getName() + " : "
+									+ address.getHostAddress());
 						}
 					}
 				}
