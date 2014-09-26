@@ -70,6 +70,12 @@ public class NetworkInterfaces {
 					addressBuffer.add(addr.getHostAddress());
 				}
 
+				/* If this is a loopback interface... */
+				if (ipv4Addresses.contains("127.0.0.1")) {
+					/* Ignore */
+					continue;
+				}
+
 				byte[] macBytes = inter.getHardwareAddress();
 				StringBuilder mac = new StringBuilder(18);
 
@@ -104,7 +110,5 @@ public class NetworkInterfaces {
 			e.printStackTrace();
 
 		}
-
 	}
-
 }
