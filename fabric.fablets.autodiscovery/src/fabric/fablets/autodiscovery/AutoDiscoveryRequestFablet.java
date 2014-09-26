@@ -11,12 +11,14 @@ package fabric.fablets.autodiscovery;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -317,10 +319,38 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
 						.hasNext();) {
 					String request = (String) iter.next();
 					NodeIpMapping nodeIpMapping = requestToNodeIpMapping.get(request);
-					openRequestSocket(request, nodeIpMapping);				
+					//Re-establish our Ip address in case we have switched networks
+					String interfaceName = nodeIpMapping.getNodeInterface();
+					try {
+						NetworkInterface networkInterface = NetworkInterface.getByName(interfaceName);
+						if (networkInterface != null) {
+							Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+							while (addresses.hasMoreElements()) {
+								InetAddress address = addresses.nextElement();
+								if (address instanceof Inet4Address) {
+									if (!address.getHostAddress().equals(nodeIpMapping.getIpAddress())) {
+										nodeIpMapping.setIpAddress(address.getHostAddress());
+										//Persist our ipaddress
+										try {
+											FabricRegistry.save(nodeIpMapping);
+											requestToNodeIpMapping.put(request, nodeIpMapping);
+										} catch (Exception e) {
+											logger.log(Level.WARNING, "Cannot register IP mapping \"{0}\": {1}", new Object[] {
+													nodeIpMapping.toString(), LogUtil.stackTrace(e)});
+										}
+									}
+									break;
+								}
+							}
+						}
+						//re-establish a socket for multicast discovery messages
+						openRequestSocket(request, nodeIpMapping);				
+					} catch (SocketException e1) {
+						failedRequests.add(request);
+					}
+					
 				}
-				
-				
+							
 				/* For each interface's MulticastSocket... */
 				for (Iterator<String> iterator = requestToSocket.keySet().iterator(); iterator.hasNext();) {
 
