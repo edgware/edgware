@@ -113,7 +113,8 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
 
 		} else {
 
-			logger.log(Level.WARNING, "Service handler \"{0}\" not available", name);
+			logger.log(Level.FINE, "Service handler \"{0}\" not available to \"{1}\" for message:\n{2}", new Object[] {
+					name, this.getClass().getName(), requestIn});
 
 		}
 
