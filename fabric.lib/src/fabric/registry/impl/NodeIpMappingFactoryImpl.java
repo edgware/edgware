@@ -159,14 +159,16 @@ public class NodeIpMappingFactoryImpl extends AbstractFactory implements NodeIpM
 			buf.append("NODE_INTERFACE='").append(ipMapping.getNodeInterface()).append("',");
 			buf.append("IP='").append(ipMapping.getIpAddress()).append("',");
 			buf.append("PORT=").append(ipMapping.getPort());
-			buf.append(" WHERE ");
+			buf.append(" where ");
 
 			/* if it exists, use the shadow values for the WHERE clause */
 			if (ipMapping.getShadow() != null) {
 				NodeIpMapping shadow = (NodeIpMapping) ipMapping.getShadow();
 				buf.append("NODE_ID='").append(shadow.getNodeId()).append("'");
+				buf.append(" and NODE_INTERFACE='").append(shadow.getNodeInterface()).append("'");
 			} else {
 				buf.append("NODE_ID='").append(ipMapping.getNodeId()).append("'");
+				buf.append(" and NODE_INTERFACE='").append(ipMapping.getNodeInterface()).append("'");
 			}
 		}
 		return buf.toString();
