@@ -29,17 +29,25 @@ import fabric.core.properties.ConfigProperties;
 import fabric.registry.NodeIpMapping;
 
 public class NetworkInterfaceListener implements Runnable {
-	
+
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
-	
+
+	/*
+	 * Class constants
+	 */
+
 	private final static String CLASS_NAME = NetworkInterfaceListener.class.getName();
 	private final static String PACKAGE_NAME = NetworkInterfaceListener.class.getPackage().getName();
 	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
-	
+
+	/*
+	 * Class fields
+	 */
+
 	/** Object used to synchronize with the mapper main thread */
 	private final Object threadSync = new Object();
-	
+
 	/** The IpMapping for my Node's interface to listen on. */
 	private NodeIpMapping myIpMapping = null;
 	@SuppressWarnings("unused")
@@ -50,14 +58,20 @@ public class NetworkInterfaceListener implements Runnable {
 	/** Flag used to indicate when the main thread should terminate */
 	private boolean isRunning = false;
 
+	/* Discovery configuration settings */
+	private boolean acceptall = false;
+	private String multicastGroup = null;
+	private int multicastPort = 0;
 	private boolean perfLoggingEnabled = false;
+
 	private long perfTiming = 0;
 
-	private boolean acceptall = false;
-	
 	/** Indicates if our configuration is valid */
 	private boolean validConfiguration = true;
-	
+
+	private InetAddress multicastGroupAddress = null;
+	private InetAddress interfaceListenRequestAddr = null;
+
 	/** The MulticastSocket we are listening for a discovery on. */
 	MulticastSocket udpListenRequestSocket = null;
 
@@ -68,21 +82,33 @@ public class NetworkInterfaceListener implements Runnable {
 	/** The network address for the local node - used for comparison with discovered hosts */
 	private InetAddress networkAddress = null;
 
-	/** IP-related information */
-	/** Hosts to consider (For example they are in the same subnet (or on same machine) and therefore should be monitored */
+	/* IP-related information */
+
+	/**
+	 * Hosts to consider (For example they are in the same subnet (or on same machine) and therefore should be monitored
+	 */
 	private List<String> hostsToConsider = new ArrayList<String>();
+
 	/** Host which are not to be considered (for example they are not in the same subnet or on same machine) */
 	private List<String> hostsNotToConsider = new ArrayList<String>();
-	
+
 	private int maxDatagramPacketBufferSize = 256;
-	
-	/**
-	 * 
-	 * 
-	 * @param nodeIpMapping nodeIpMapping to listen for autodiscovery messages on 
-	 * @param myFablet provides configuration information and access to Queue for processing discovery messages
+
+	/*
+	 * Class methods
 	 */
-	public NetworkInterfaceListener(NodeIpMapping nodeIpMapping, AutoDiscoveryListenerFablet myFablet, MulticastRequestQueue queue) {
+
+	/**
+	 * Constructor to set up to listen on an address.
+	 * 
+	 * @param nodeIpMapping
+	 *            nodeIpMapping to listen for autodiscovery messages on
+	 * @param myFablet
+	 *            provides configuration information and access to Queue for processing discovery messages
+	 */
+	public NetworkInterfaceListener(NodeIpMapping nodeIpMapping, AutoDiscoveryListenerFablet myFablet,
+			MulticastRequestQueue queue) {
+
 		String METHOD_NAME = "constructor";
 		logger.entering(CLASS_NAME, METHOD_NAME);
 
@@ -91,14 +117,17 @@ public class NetworkInterfaceListener implements Runnable {
 		this.queue = queue;
 		perfLoggingEnabled = new Boolean(myFablet.config(ConfigProperties.REGISTRY_DISTRIBUTED_PERF_LOGGING));
 
-		acceptall = new Boolean(myFablet.config(ConfigProperties.AUTO_DISCOVERY_ACCEPT_ALL, ConfigProperties.AUTO_DISCOVERY_ACCEPT_ALL_DEFAULT));
-		String multicastGroup = myFablet.config(ConfigProperties.AUTO_DISCOVERY_GROUP, ConfigProperties.AUTO_DISCOVERY_GROUP_DEFAULT);
-		int multicastPort = new Integer(myFablet.config(ConfigProperties.AUTO_DISCOVERY_PORT, ConfigProperties.AUTO_DISCOVERY_PORT_DEFAULT)).intValue();
+		acceptall = new Boolean(myFablet.config(ConfigProperties.AUTO_DISCOVERY_ACCEPT_ALL,
+				ConfigProperties.AUTO_DISCOVERY_ACCEPT_ALL_DEFAULT));
+		multicastGroup = myFablet.config(ConfigProperties.AUTO_DISCOVERY_GROUP,
+				ConfigProperties.AUTO_DISCOVERY_GROUP_DEFAULT);
+		multicastPort = new Integer(myFablet.config(ConfigProperties.AUTO_DISCOVERY_PORT,
+				ConfigProperties.AUTO_DISCOVERY_PORT_DEFAULT)).intValue();
 
-		try {	
+		try {
 
-			InetAddress multicastGroupAddress = InetAddress.getByName(multicastGroup);
-			InetAddress interfaceListenRequestAddr = InetAddress.getByName(myIpMapping.getIpAddress());
+			multicastGroupAddress = InetAddress.getByName(multicastGroup);
+			interfaceListenRequestAddr = InetAddress.getByName(myIpMapping.getIpAddress());
 
 			// Cache the subnet mask and network address for this interface */
 			subnetPrefix = NetworkUtils.getNetworkPrefixLength(interfaceListenRequestAddr);
@@ -113,58 +142,80 @@ public class NetworkInterfaceListener implements Runnable {
 			String[] myLocalAddresses = NetworkUtils.getLocalAddressStrings();
 			// Add local addresses to the monitor list */
 			hostsToConsider.addAll(Arrays.asList(myLocalAddresses));
-			
-			logger.log(Level.FINE, "Node \"{0}\" Setting up to Listen for autodiscovery requests on interface {1} : {2} using multicast Address {3}", new Object[] {
-					myFablet.myNodeName, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(), multicastGroup});
+
+			logger.log(
+					Level.FINE,
+					"Node \"{0}\" Setting up to Listen for autodiscovery requests on interface {1} : {2} using multicast Address {3}",
+					new Object[] {myFablet.myNodeName, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
+							multicastGroup});
 
 			if (multicastGroupAddress.isMulticastAddress()) {
-
-				// Listen on a specific interface using joinGroup
-				NetworkInterface listeningInterface = NetworkInterface.getByInetAddress(interfaceListenRequestAddr);
-				InetSocketAddress isa = new InetSocketAddress(multicastGroupAddress, multicastPort);
-				udpListenRequestSocket = new MulticastSocket(multicastPort);
-				udpListenRequestSocket.setNetworkInterface(listeningInterface);
-				udpListenRequestSocket.setInterface(interfaceListenRequestAddr);
-				logger.log(Level.FINE, "Listening interface \"{0}\", InetSocketAddress \"{1}\"", new Object[] {
-						listeningInterface.getDisplayName(), isa.toString()});
-
-				udpListenRequestSocket.joinGroup(isa, null);
-				logger.log(Level.INFO, "Multicast listen socket created for: {0} | {1} - {2} | {3}", new Object[] {
-						multicastGroupAddress.toString(),
-						NetworkInterface.getByInetAddress(interfaceListenRequestAddr).toString(),
-						udpListenRequestSocket.getInterface().toString(),
-						udpListenRequestSocket.getLocalAddress().toString()});
+				listenOnInterface();
 			} else {
-
 				logger.log(
 						Level.WARNING,
 						"Discovery attempted on invalid multicast address: {0}. Check the Fabric Registry for misconfiguration.",
 						new Object[] {multicastGroupAddress.toString()});
 			}
+
 		} catch (UnknownHostException e) {
-			// Couldn't connect to socket - probably in use, possibly below 1024 
+			// Couldn't connect to socket - probably in use, possibly below 1024
 			logger.log(
 					Level.WARNING,
 					"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
 					new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
 							e.getMessage()});
 		} catch (SocketException e) {
-			// Couldn't connect to socket - probably in use, possibly below 1024 
-			logger.log(
-					Level.WARNING,
-					"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
-					new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
-							e.getMessage()});
-		} catch (IOException e) {
-			// Couldn't connect to socket - probably in use, possibly below 1024 
+			// Couldn't connect to socket - probably in use, possibly below 1024
 			logger.log(
 					Level.WARNING,
 					"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
 					new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
 							e.getMessage()});
 		}
-	
+
 		logger.exiting(CLASS_NAME, METHOD_NAME);
+	}
+
+	/**
+	 * Listen on a specific interface using joinGroup.
+	 */
+	private void listenOnInterface() {
+
+		try {
+
+			NetworkInterface listeningInterface = NetworkInterface.getByInetAddress(interfaceListenRequestAddr);
+			InetSocketAddress isa = new InetSocketAddress(multicastGroupAddress, multicastPort);
+			udpListenRequestSocket = new MulticastSocket(multicastPort);
+			udpListenRequestSocket.setNetworkInterface(listeningInterface);
+			udpListenRequestSocket.setInterface(interfaceListenRequestAddr);
+
+			logger.log(Level.FINE, "Listening interface \"{0}\", InetSocketAddress \"{1}\"", new Object[] {
+					listeningInterface.getDisplayName(), isa.toString()});
+
+			udpListenRequestSocket.joinGroup(isa, null);
+
+			logger.log(Level.INFO, "Multicast listen socket created for: {0} | {1} - {2} | {3}", new Object[] {
+					multicastGroupAddress.toString(),
+					NetworkInterface.getByInetAddress(interfaceListenRequestAddr).toString(),
+					udpListenRequestSocket.getInterface().toString(),
+					udpListenRequestSocket.getLocalAddress().toString()});
+
+		} catch (SocketException e) {
+			/* Couldn't connect to socket - probably in use, possibly below 1024 */
+			logger.log(
+					Level.WARNING,
+					"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
+					new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
+							e.getMessage()});
+		} catch (IOException e) {
+			/* Couldn't connect to socket - probably in use, possibly below 1024 */
+			logger.log(
+					Level.WARNING,
+					"Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}:{2}\": {3}",
+					new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
+							e.getMessage()});
+		}
 	}
 
 	/*
@@ -181,6 +232,7 @@ public class NetworkInterfaceListener implements Runnable {
 			isRunning = false;
 		}
 		while (isRunning) {
+
 			// int max_length = 8096;
 			byte[] buf = new byte[maxDatagramPacketBufferSize];
 			DatagramPacket p = new DatagramPacket(buf, buf.length);
@@ -190,7 +242,7 @@ public class NetworkInterfaceListener implements Runnable {
 				if (perfLoggingEnabled) {
 					perfTiming = System.currentTimeMillis();
 				}
-				// Have we seen this host before? - if not, check it  */
+				// Have we seen this host before? - if not, check it */
 				if ((!hostsToConsider.contains(p.getAddress().getHostAddress()))
 						&& (!hostsNotToConsider.contains(p.getAddress().getHostAddress()))) {
 					logger.log(Level.FINER, "Discovered address which needs to be checked: {0}", p.getAddress()
@@ -198,9 +250,8 @@ public class NetworkInterfaceListener implements Runnable {
 
 					if (!acceptall) {
 						checkSubnet(p);
-					}
-					else {
-						// add it to list of known acceptable hosts 
+					} else {
+						// add it to list of known acceptable hosts
 						hostsToConsider.add(p.getAddress().getHostAddress());
 					}
 				}
@@ -212,31 +263,35 @@ public class NetworkInterfaceListener implements Runnable {
 
 					if (logger.isLoggable(Level.FINER)) {
 						String listenPayload = new String(p.getData(), 0, p.getLength());
-						logger.log(Level.FINER, "DataGram Message from {0} added to Queue : {1}", new Object[]{myIpMapping.getNodeInterface(), listenPayload} );
+						logger.log(Level.FINER, "DataGram Message from {0} added to Queue : {1}", new Object[] {
+								myIpMapping.getNodeInterface(), listenPayload});
 					}
 					queue.addMsg(new MulticastNodeMessage(p, myIpMapping.getNodeInterface()));
 
 				} else { /* not in the same subnet - ignore it */
-					logger.log(Level.FINER,
-							"Discovered address is NOT in our subnet and is being ignored: {0}", p.getAddress()
-							.getHostAddress());
+					logger.log(Level.FINER, "Discovered address is NOT in our subnet and is being ignored: {0}", p
+							.getAddress().getHostAddress());
 				}
 
 			} catch (SocketTimeoutException e) {
 				/**
-				 * Socket timed out waiting for a packet to arrive. This is expected, simple means a request has
-				 * not arrived.
+				 * Socket timed out waiting for a packet to arrive. This is expected, simple means a request has not
+				 * arrived.
 				 */
 				logger.log(Level.FINEST, "Timed out waiting for autodiscovery request");
 
 			} catch (IOException e) {
 
 				logger.log(Level.WARNING, "Exception receiving UDP packet from socket: ", e);
+				udpListenRequestSocket.close();
+				listenOnInterface();
+
 			}
 			if (perfLoggingEnabled) {
 				perfTiming = System.currentTimeMillis() - perfTiming;
 				String listenPayload = new String(p.getData(), 0, p.getLength());
-				logger.log(Level.FINER, "PERF : Processed message {0} in {1} milliseconds.", new Object[]{listenPayload, perfTiming} );
+				logger.log(Level.FINER, "PERF : Processed message {0} in {1} milliseconds.", new Object[] {
+						listenPayload, perfTiming});
 			}
 		}
 		udpListenRequestSocket.close();
@@ -259,11 +314,11 @@ public class NetworkInterfaceListener implements Runnable {
 			InetAddress foreignNetworkAddress = NetworkUtils.computeNetworkAddress(p.getAddress(), subnetMask);
 			logger.log(Level.FINER, "Computed network address: {0}", foreignNetworkAddress.getHostAddress());
 
-			// are the network addresses the same? 
+			// are the network addresses the same?
 			if (foreignNetworkAddress.getHostAddress().equals(networkAddress.getHostAddress())) {
 				logger.log(Level.FINER, "Host is in the same subnet.");
 
-				// add it to list of known acceptable hosts 
+				// add it to list of known acceptable hosts
 				hostsToConsider.add(p.getAddress().getHostAddress());
 
 			} else {
@@ -276,17 +331,22 @@ public class NetworkInterfaceListener implements Runnable {
 		}
 	}
 
-	
 	public void close() {
+
 		String METHOD_NAME = "close";
 		logger.entering(CLASS_NAME, METHOD_NAME);
+
+		udpListenRequestSocket.close();
+
 		/* Tell the main thread to stop... */
 		isRunning = false;
+
 		/* ...and wake it up */
 		synchronized (threadSync) {
 			threadSync.notify();
 		}
+
 		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
-		
+
 }
