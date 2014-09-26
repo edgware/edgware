@@ -48,7 +48,7 @@ public class DiscoverySweeper implements Runnable, ICallback {
 	private int nodeTimeout = 0;
 
 	/** Interval (in millis) at which the sweeper checks for node neighbours that are no longer visible */
-	private int listenTimeout = 0;
+	private int listenTimeout = 5000;
 
 	protected DiscoverySweeper(AutoDiscoveryListenerFablet myFablet) {
 		this.myFablet = myFablet;
