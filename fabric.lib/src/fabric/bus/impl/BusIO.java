@@ -40,6 +40,8 @@ import fabric.core.io.InputTopic;
 import fabric.core.io.Message;
 import fabric.core.io.MessageQoS;
 import fabric.core.io.OutputTopic;
+import fabric.core.io.mqtt.MqttConfig;
+import fabric.core.io.mqtt.MqttEndPoint;
 import fabric.core.logging.LogUtil;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricRegistry;
@@ -780,9 +782,27 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 	@Override
 	public void endPointLost(EndPoint ep) {
 		try {
+			NodeDescriptor nodeDescriptor = null;
 			/* Clean up the end point */
-			SharedEndPoint sep = (SharedEndPoint) ep;
-			disconnectNeighbour(sep.node());
+			if (ep instanceof SharedEndPoint) {
+				SharedEndPoint sep = (SharedEndPoint) ep;
+				disconnectNeighbour(nodeDescriptor, false);
+				nodeDescriptor = new NodeDescriptor(sep.node(), sep.nodeInterface(), sep.ipAddress(), sep.ipPort()) ;
+				//Mark this Neighbour Node Descriptor as Unavailable.
+				FabricRegistry.getNodeNeighbourFactory(true).markUnavailable(homeNode(), nodeDescriptor );
+			}
+			else if (ep instanceof MqttEndPoint) {
+				MqttEndPoint mep = (MqttEndPoint) ep;
+				MqttConfig mqttConfig = (MqttConfig)mep.getConfig();
+				//Retrive nodeId and nodeInterface for this mqtt endpoint
+				NodeIpMapping[] nodeIpMappings = FabricRegistry.getNodeIpMappingFactory(true).getMappings("ip='" + mqttConfig.getIPHost() + "' and port =" + mqttConfig.getIPPort() );
+				for (int i = 0; i < nodeIpMappings.length; i++) {
+					nodeDescriptor = new NodeDescriptor(nodeIpMappings[i].getNodeId(), nodeIpMappings[i].getNodeInterface(), nodeIpMappings[i].getIpAddress(), nodeIpMappings[i].getPort()) ;
+					disconnectNeighbour(nodeDescriptor, false);								
+					//Mark this Neighbour Node Descriptor as Unavailable.
+					FabricRegistry.getNodeNeighbourFactory(true).markUnavailable(homeNode(), nodeDescriptor );					
+				}
+			}
 		} catch (UnsupportedOperationException | IOException e) {
 			e.printStackTrace();
 		}
