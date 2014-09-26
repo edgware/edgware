@@ -7,4 +7,4 @@ REM LICENSE: Eclipse Public License v1.0
 REM http://www.eclipse.org/legal/epl-v10.html
 REM **************************************************************************
 
-%FABRIC_HOME%\server\windows\prunsrv //DS//FabricBroker
+%FABRIC_HOME%\server\windows\prunmgr //ES//EdgwareWebServer

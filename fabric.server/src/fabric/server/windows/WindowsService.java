@@ -11,15 +11,11 @@ package fabric.server.windows;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import fabric.tools.launchers.Broker;
+import java.util.Iterator;
 
 /**
  * <p>
@@ -28,8 +24,7 @@ import fabric.tools.launchers.Broker;
  * </p>
  * <p>
  * The start and stop methods are called statically by procrun when a Windows Service is started or stopped in the
- * normal way. The start method must be called with at least one argument to state which service is to be started and
- * optionally with a second argument to state which node the command applies to.
+ * normal way. The fabadmin command is run using the parameters passed in.
  * </p>
  */
 public class WindowsService {
@@ -45,7 +40,6 @@ public class WindowsService {
 	
 	private static ProcessBuilder stopservice = null;
 
-
 	/**
 	 * May be used to start/stop the service for testing purposes outside of the Apache Commons Daemon framework
 	 * 
@@ -55,7 +49,7 @@ public class WindowsService {
 	 */
 	public static void main(String[] args) {
 
-		if ((args.length == 0) || (!args[0].equals("start")) || (!args[0].equals("stop"))) {
+		if ((args.length == 0) || (!args[0].equals("start") && !args[0].equals("stop"))) {
 			System.out
 					.println("You must pass the string \"start\" or \"stop\" as the first argument if starting via the main method");
 		}
@@ -86,72 +80,35 @@ public class WindowsService {
 			System.out.println("The FABRIC_HOME environment variable has not been set");
 		}
 
-		String cmd = "";
-		String node = "";
-
 		if (args.length == 0) {
 			System.out.println("The first argument when starting a service should be one of registry, web or node");
 			return;
-		} else {
-			
-//			
-//			if (args.length == 1) {
-//		}
-			cmd = args[0];
-//			node = "default";
-//		} else if (args.length > 1) {
-//			cmd = args[0];
-//			node = args[1];
 		}
+		String cmd = args[0];
 
-//		WindowsServiceExec service = null;
 		ProcessBuilder service = null;
-
 		// work out what to start based on the first argument
 		if (cmd.equalsIgnoreCase("registry")) {
 			service = getRegistryCmd(args);
 			stopservice = getRegistryStop(args);
-//		} else if (cmd.equalsIgnoreCase("broker")) {
-//			service = getBrokerCmd("default");
-//		} else if (cmd.equalsIgnoreCase("node")) {
-//			service = getNodeCmd(node);
+		}
+		if (cmd.equalsIgnoreCase("node")) {
+			service = getNodeCmd(args);
+			stopservice = getNodeStop(args);
+		}
+		if (cmd.equalsIgnoreCase("webserver")) {
+			service = getWebServerCmd(args);
+			stopservice = getWebServerStop(args);
 		}
 
-//		String[] env = getEnv(service.getEnv());
-//		Process p = null;
-//		InputStream is = process.getInputStream();
-//		InputStreamReader isr = new InputStreamReader(is);
-//		BufferedReader br = new BufferedReader(isr);
-//		StringBuffer buffer = new StringBuffer();
-//		String line; 
-//		while ((line = br.readLine()) != null) {
-//			
-//				System.out.println(line);
-//				buffer.append(line);
-//		}
-		
-//		InputStream iserror = process.getErrorStream();
-//		InputStreamReader iserrorr = new InputStreamReader(iserror);
-//		BufferedReader brerror = new BufferedReader(iserrorr);
+		Process p = null;
+		String commandString = "";
+		for (Iterator<String> iterator = service.command().iterator(); iterator.hasNext();) {
+			commandString = commandString + iterator.next();
+		}
+		System.out.println(commandString);
 
-//		String lineerror; 
-//		while ((lineerror = brerror.readLine()) != null) {
-//			
-//				System.out.println("ERROR : " + lineerror);
-//				buffer.append(lineerror);
-//		}
-//		return buffer.toString();
-		
-		//
-//		System.out.println("Working directory: " + service.getWorkingDir().toString());
-//		System.out.println("Executing command: " + service.getCommand());
-        Process p = null;
-        System.out.println(service.command().get(0));
-        System.out.println(service.command().get(1));
-        System.out.println(service.command().get(2));
-        System.out.println(service.command().get(3));
 		try {
-//			p = Runtime.getRuntime().exec(service.getCommand(), env, service.getWorkingDir());
 			p = service.start();
 		} catch (IOException e) {
 			System.out.println("Exception raised executing the command, see standard error output for stack trace.");
@@ -166,11 +123,11 @@ public class WindowsService {
 		InputStreamReader is = new InputStreamReader(p.getInputStream());
 		BufferedReader in = new BufferedReader(is);
 
-//		InputStream iserror = p.getErrorStream();
-//		InputStreamReader iserrorr = new InputStreamReader(iserror);
-//		BufferedReader brerror = new BufferedReader(iserrorr);
+		//		InputStream iserror = p.getErrorStream();
+		//		InputStreamReader iserrorr = new InputStreamReader(iserror);
+		//		BufferedReader brerror = new BufferedReader(iserrorr);
 
-		
+
 		try {
 			// provide a way to stop the command running via a static call to the stop() function
 			while (run) {
@@ -187,15 +144,15 @@ public class WindowsService {
 						break;
 					}
 				}
-//				while (brerror.ready()) {
-//					line = brerror.readLine();
-//					if (line != null) {
-//						System.out.println("Error : " + line);
-//					} else {
-//						System.out.println("Finished reading error from command");
-//						break;
-//					}
-//				}
+				//				while (brerror.ready()) {
+				//					line = brerror.readLine();
+				//					if (line != null) {
+				//						System.out.println("Error : " + line);
+				//					} else {
+				//						System.out.println("Finished reading error from command");
+				//						break;
+				//					}
+				//				}
 				try {
 					// put something in here so it's not a completely tight loop
 					Thread.sleep(100);
@@ -203,13 +160,43 @@ public class WindowsService {
 					// no need to handle, we'll exit if there's no more output
 				}
 			}
-			
 
-			
-			
+			System.out.println("Run stop command now...");
+
+
+			Process endp = null;
+			try {
+				//p = Runtime.getRuntime().exec(service.getCommand(), env, service.getWorkingDir());
+				endp = stopservice.start();
+
+				String result = getStreamsFromProcess(endp);
+
+
+
+
+				//InputStream iserror = endp.getErrorStream();
+				//InputStreamReader iserrorr = new InputStreamReader(iserror);
+				//BufferedReader brerror = new BufferedReader(iserrorr);
+				//StringBuffer buffer = new StringBuffer();
+				//
+				//String lineerror; 
+				//while ((lineerror = brerror.readLine()) != null) {
+				//
+				System.out.println(result);
+				//	buffer.append(lineerror);
+				//}
+				//System.out.println(buffer.toString());
+				//return buffer.toString();
+			} catch (IOException e) {
+				System.out.println("Exception raised executing the command, see standard error output for stack trace.");
+				e.printStackTrace();
+				return;
+			}
+
+
 		} catch (IOException e) {
 			System.out
-					.println("Exception raised reading output from command, see standard error output for stack trace.");
+			.println("Exception raised reading output from command, see standard error output for stack trace.");
 			e.printStackTrace();
 		}
 
@@ -234,71 +221,10 @@ public class WindowsService {
 	 *            no arguments are required
 	 */
 	public static void stop(String[] args) {
-
 		run = false;
-        Process endp = null;
-        System.out.println(stopservice.command().get(0));
-        System.out.println(stopservice.command().get(1));
-        System.out.println(stopservice.command().get(2));
-        System.out.println(stopservice.command().get(3));
-		try {
-//			p = Runtime.getRuntime().exec(service.getCommand(), env, service.getWorkingDir());
-			endp = stopservice.start();
-			InputStream iserror = endp.getErrorStream();
-			InputStreamReader iserrorr = new InputStreamReader(iserror);
-			BufferedReader brerror = new BufferedReader(iserrorr);
-			StringBuffer buffer = new StringBuffer();
-
-			String lineerror; 
-			while ((lineerror = brerror.readLine()) != null) {
-				
-					System.out.println("ERROR : " + lineerror);
-					buffer.append(lineerror);
-			}
-			System.out.println(buffer.toString());
-//			return buffer.toString();
-		} catch (IOException e) {
-			System.out.println("Exception raised executing the command, see standard error output for stack trace.");
-			e.printStackTrace();
-			return;
-		}
-
 	}
-
-	/**
-	 * Wraps the System.getenv() call to provide a list of environment variables as a String Array instead of a Map as
-	 * required by Runtime.getRuntime().exec()
-	 * 
-	 * @param newEnvs
-	 *            environment variables to override. If specified, these will take the place of any environment
-	 *            variables of the same name or otherwise be added to the environment.
-	 * 
-	 * @return an array of Strings of the form key=value for the System environment variables
-	 */
-	private static String[] getEnv(HashMap<String, String> newEnvs) {
-
-		Map<String, String> envMap = System.getenv();
-		ArrayList<String> env = new ArrayList<String>();
-
-		for (String envName : envMap.keySet()) {
-			if (newEnvs.containsKey(envName)) {
-				// overwrite existing value if one is specified
-				env.add(envName + "=" + newEnvs.get(envName));
-				newEnvs.remove(envName);
-			} else {
-				// add new env var
-				env.add(envName + "=" + envMap.get(envName));
-			}
-		}
-
-		// add any remaining new env vars
-		for (Map.Entry<String, String> newEnv : newEnvs.entrySet()) {
-			env.add(newEnv.getKey() + "=" + newEnv.getValue());
-		}
-
-		return env.toArray(new String[env.size()]);
-	}
-
+	
+	
 	/**
 	 * Returns the command and environmental information required to start the Edgware Registry
 	 * 
@@ -315,196 +241,143 @@ public class WindowsService {
 		String registryHome = FABRIC_HOME + "/db/REGISTRY";
 		
 		if (args.length != 3) {
-			System.out.println("Insufficient parameters, need to specify registry type and node name for triggers to be sent to");
+			System.out.println("Invalid parameters, need to specify registry type and node name for triggers to be sent to");
 			System.exit(1);
 		}
 		
 		String registryType = args[1];
-		String registryNode = args[0];		
+		String registryNode = args[2];		
 
 		File registryHomeFile = new File(registryHome);
 		if (!registryHomeFile.exists()) {
 			System.out.println("Registry does not exists at " + registryHome + ", make sure you have run fabinstall");
 			System.exit(1);
 		}
-//
-//		String classpath = "";
-//
-//		String[] libdirs = {"gaiandb/lib", "derby", "plugins", "fabric", "wmqtt"};
-//
-//		for (String libdir : libdirs) {
-//
-//			File libdirFile = new File(FABRIC_HOME + "/lib/" + libdir);
-//
-//			File[] jars = libdirFile.listFiles(new FilenameFilter() {
-//
-//				@Override
-//				public boolean accept(File dir, String name) {
-//
-//					return name.endsWith(".jar");
-//				}
-//			});
-//
-//			if (jars != null) {
-//				for (File jar : jars) {
-//					classpath += ";" + libdirFile.toString() + "/" + jar.getName();
-//				}
-//			}
-//		}
-//
-//		HashMap<String, String> envMap = new HashMap<String, String>();
-////		if (!classpath.isEmpty()) {
-////			// get rid of first semicolon
-////			classpath = classpath.substring(1);
-////
-////			System.out.println("CLASSPATH: " + classpath);
-////			envMap.put("CLASSPATH", classpath);
-////		}
-//
-//		String command = "java -Djava.util.logging.config.file=" + registryHome + "/logging.properties -Dfabric.node="
-//				+ registryNode + " -Xmx128m com.ibm.gaiandb.GaianNode -c ./gaiandb_config_fabric.properties";
-//
-//		return new WindowsServiceExec(command, registryHomeFile, envMap);
-//		
-//		
+
 		ArrayList<String> command = new ArrayList<String>();
 			command.add("fabadmin.bat");
-//			command.add(Constants.FABRIC_HOME_DIR+ "/bin/win32/fabadmin.bat");
-//		command.add("-d");
 		command.add("-s");
-		command.add("-r");
 		command.add("-" + registryType);
+		command.add("-r");
 		command.add(registryNode);
 
-//		Properties testProperties = loadProperties(Constants.TEST_CONFIG_DIR + "/test.properties");
-//		String javaHome = Utilities.isWindows() ? testProperties.getProperty("java.home.windows") : (Utilities.isMac() ? testProperties.getProperty("java.home.mac") : testProperties.getProperty("java.home.linux"));
-//		String os = Utilities.isWindows() ? "win32" : "linux";
 		ProcessBuilder pb = new ProcessBuilder(command);
-//		File wDF = new File(Constants.FABRIC_HOME_DIR);
-//		wDF.mkdir();
-//		pb.directory(wDF);
-		
-
-		// set the paths needed to install and start the registry (GaianDB)
-//		pb.environment().put("FABRIC_HOME", Constants.FABRIC_HOME_DIR);
-//		pb.environment().put("JAVA_HOME", javaHome);		
-//		pb.environment().put("PATH", System.getenv("PATH") + File.pathSeparator + pb.environment().get("JAVA_HOME") + File.pathSeparator + Constants.FABRIC_HOME_DIR + "/bin/" + os);
-//		return pb;
-//		ProcessBuilder pb = Utilities.issueNativeCommand(command);
 		return pb;
 	}
 
 	private static ProcessBuilder getRegistryStop(String[] args) {
-//		
 		if (args.length != 3) {
-			System.out.println("Insufficient parameters, need to specify registry type and node name for triggers to be sent to");
+			System.out.println("Invalid parameters, need to specify registry type and node name for triggers to be sent to");
 			System.exit(1);
 		}
 		
 		String registryType = args[1];
 		ArrayList<String> command = new ArrayList<String>();
 			command.add("fabadmin.bat");
-//			command.add(Constants.FABRIC_HOME_DIR+ "/bin/win32/fabadmin.bat");
-//		command.add("-d");
 		command.add("-st");
-		command.add("-r");
 		command.add("-" + registryType);
-//		command.add(registryNode);
+		command.add("-r");
 
-//		Properties testProperties = loadProperties(Constants.TEST_CONFIG_DIR + "/test.properties");
-//		String javaHome = Utilities.isWindows() ? testProperties.getProperty("java.home.windows") : (Utilities.isMac() ? testProperties.getProperty("java.home.mac") : testProperties.getProperty("java.home.linux"));
-//		String os = Utilities.isWindows() ? "win32" : "linux";
 		ProcessBuilder pb = new ProcessBuilder(command);
-//		File wDF = new File(Constants.FABRIC_HOME_DIR);
-//		wDF.mkdir();
-//		pb.directory(wDF);
-		
-
-		// set the paths needed to install and start the registry (GaianDB)
-//		pb.environment().put("FABRIC_HOME", Constants.FABRIC_HOME_DIR);
-//		pb.environment().put("JAVA_HOME", javaHome);		
-//		pb.environment().put("PATH", System.getenv("PATH") + File.pathSeparator + pb.environment().get("JAVA_HOME") + File.pathSeparator + Constants.FABRIC_HOME_DIR + "/bin/" + os);
-//		return pb;
-//		ProcessBuilder pb = Utilities.issueNativeCommand(command);
 		return pb;
 	}
 
+	private static ProcessBuilder getNodeCmd(String[] args) {
+
+		if (args.length != 2) {
+			System.out.println("Insufficient parameters, need to specify registry type and node name for triggers to be sent to");
+			System.exit(1);
+		}
+
+		String nodeName = args[1];		
+
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("fabadmin.bat");
+		command.add("-s");
+		command.add("-n");
+		command.add(nodeName);
+
+		ProcessBuilder pb = new ProcessBuilder(command);
+		return pb;
+	}
+
+	private static ProcessBuilder getNodeStop(String[] args) {
+		if (args.length != 2) {
+			System.out.println("Insufficient parameters, need to specify registry type and node name for triggers to be sent to");
+			System.exit(1);
+		}
+
+		String nodeName = args[1];		
+
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("fabadmin.bat");
+		command.add("-st");
+		command.add("-n");
+		command.add(nodeName);
+
+		ProcessBuilder pb = new ProcessBuilder(command);
+		return pb;
+	}
 	
-	/**
-	 * Returns the command and environmental information required to start the Fabric Broker
-	 * 
-	 * @param brokerNode
-	 *            the node name (currently always set to "default")
-	 * @return a {@link WindowsServiceExec} object populated with the Java command to start the broker and the working
-	 *         directory from which that command should be run
-	 */
-	private static WindowsServiceExec getBrokerCmd(String brokerNode) {
-
-		String brokerHome = FABRIC_HOME + "/brokers/" + brokerNode;
-		String nodeConfigDir = FABRIC_HOME + "/osgi/configuration";
-		File brokerConfigFile = new File(brokerHome + "/broker_" + brokerNode + ".cfg");
-
-		if (!brokerConfigFile.exists()) {
-			try {
-				Broker.createBrokerConfig(brokerNode, brokerHome, nodeConfigDir);
-			} catch (Exception e) {
-				System.out
-						.println("Exception raised creating the broker config, see standard error output for stack trace.");
-				e.printStackTrace();
-				System.exit(1);
-			}
+	private static ProcessBuilder getWebServerCmd(String[] args) {
+		if (args.length != 2) {
+			System.out.println("Insufficient parameters, need to specify registry type and node name for triggers to be sent to");
+			System.exit(1);
 		}
 
-		File amqtdd_upd = new File(brokerHome + "/amqtdd.upd");
-		if (amqtdd_upd.exists()) {
-			amqtdd_upd.delete();
-		}
+		String nodeName = args[1];		
 
-		File workingDir = new File(FABRIC_HOME + "/bin/amqtdd");
-		String command = workingDir.toString() + "/amqtdd " + brokerConfigFile.toString();
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("fabadmin.bat");
+		command.add("-s");
+		command.add("-w");
+		command.add(nodeName);
 
-		return new WindowsServiceExec(command, workingDir);
+		ProcessBuilder pb = new ProcessBuilder(command);
+		return pb;
 	}
 
-	/**
-	 * Returns the command and environmental information required to start a Fabric Node
-	 * 
-	 * @param node
-	 *            the node name
-	 * @return a {@link WindowsServiceExec} object populated with the Java command to start the node and the working
-	 *         directory from which that command should be run
-	 */
-	private static WindowsServiceExec getNodeCmd(String node) {
-
-		String nodeHome = FABRIC_HOME + "/osgi";
-		String nodeConfigDir = nodeHome + "/configuration";
-		File nodeLoggingFile = new File(nodeConfigDir + "/logging_" + node + ".properties");
-		File nodeConfigFile = new File(nodeConfigDir + "/fabricConfig_" + node + ".properties");
-
-		if (!nodeLoggingFile.exists()) {
-			nodeLoggingFile = new File(nodeConfigDir + "/logging.properties");
+	private static ProcessBuilder getWebServerStop(String[] args) {
+		if (args.length != 2) {
+			System.out.println("Insufficient parameters, need to specify registry type and node name for triggers to be sent to");
+			System.exit(1);
 		}
 
-		if (!nodeConfigFile.exists()) {
-			System.out.println("Cannot find node configuration file: " + nodeConfigFile.toString());
-		}
+		String nodeName = args[1];		
 
-		File workingDir = new File(nodeHome);
+		ArrayList<String> command = new ArrayList<String>();
+		command.add("fabadmin.bat");
+		command.add("-st");
+		command.add("-w");
 
-		File[] jars = workingDir.listFiles(new FilenameFilter() {
-
-			@Override
-			public boolean accept(File dir, String name) {
-
-				return ((name.startsWith("org.eclipse.osgi_") && name.endsWith(".jar")));
-			}
-		});
-
-		File osgiJar = jars[jars.length - 1];
-
-		String command = "java -Dfabric.config=" + nodeConfigFile.toString() + " -Djava.util.logging.config.file="
-				+ nodeLoggingFile.toString() + " -jar " + osgiJar;
-
-		return new WindowsServiceExec(command, workingDir);
+		ProcessBuilder pb = new ProcessBuilder(command);
+		return pb;
 	}
+
+	public static String getStreamsFromProcess(Process process) throws IOException {
+		InputStream is = process.getInputStream();
+		InputStreamReader isr = new InputStreamReader(is);
+		BufferedReader br = new BufferedReader(isr);
+		StringBuffer buffer = new StringBuffer();
+		String line; 
+		while ((line = br.readLine()) != null) {
+			
+				System.out.println(line);
+				buffer.append(line);
+		}
+		
+		InputStream iserror = process.getErrorStream();
+		InputStreamReader iserrorr = new InputStreamReader(iserror);
+		BufferedReader brerror = new BufferedReader(iserrorr);
+
+		String lineerror; 
+		while ((lineerror = brerror.readLine()) != null) {
+			
+				System.out.println("ERROR : " + lineerror);
+				buffer.append(lineerror);
+		}
+		return buffer.toString();
+		
+	}
+
 }
