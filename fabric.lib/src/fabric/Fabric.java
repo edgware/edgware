@@ -30,6 +30,7 @@ import fabric.core.properties.ConfigProperties;
 import fabric.core.properties.Properties;
 import fabric.core.util.Formatter;
 import fabric.registry.RegistryFactory;
+import fabric.registry.persistence.PersistenceManager;
 
 /**
  * Base Fabric class containing common utility methods.
@@ -173,6 +174,11 @@ public class Fabric {
 	public synchronized void initNodeConfig() throws Exception {
 
 		Fabric.config = new NodeConfig(Fabric.config);
+		
+		/* Setup any Node specific configuration for Persistence */
+		PersistenceManager.getPersistence().initNodeConfig(Fabric.config);
+
+
 
 	}
 
