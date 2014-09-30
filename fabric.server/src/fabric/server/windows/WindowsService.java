@@ -170,23 +170,7 @@ public class WindowsService {
 				endp = stopservice.start();
 
 				String result = getStreamsFromProcess(endp);
-
-
-
-
-				//InputStream iserror = endp.getErrorStream();
-				//InputStreamReader iserrorr = new InputStreamReader(iserror);
-				//BufferedReader brerror = new BufferedReader(iserrorr);
-				//StringBuffer buffer = new StringBuffer();
-				//
-				//String lineerror; 
-				//while ((lineerror = brerror.readLine()) != null) {
-				//
 				System.out.println(result);
-				//	buffer.append(lineerror);
-				//}
-				//System.out.println(buffer.toString());
-				//return buffer.toString();
 			} catch (IOException e) {
 				System.out.println("Exception raised executing the command, see standard error output for stack trace.");
 				e.printStackTrace();
