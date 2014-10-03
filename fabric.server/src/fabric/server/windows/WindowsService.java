@@ -104,7 +104,7 @@ public class WindowsService {
 		Process p = null;
 		String commandString = "";
 		for (Iterator<String> iterator = service.command().iterator(); iterator.hasNext();) {
-			commandString = commandString + iterator.next();
+			commandString = commandString + " " + iterator.next();
 		}
 		System.out.println(commandString);
 
@@ -123,9 +123,9 @@ public class WindowsService {
 		InputStreamReader is = new InputStreamReader(p.getInputStream());
 		BufferedReader in = new BufferedReader(is);
 
-		//		InputStream iserror = p.getErrorStream();
-		//		InputStreamReader iserrorr = new InputStreamReader(iserror);
-		//		BufferedReader brerror = new BufferedReader(iserrorr);
+		InputStream iserror = p.getErrorStream();
+		InputStreamReader iserrorr = new InputStreamReader(iserror);
+		BufferedReader brerror = new BufferedReader(iserrorr);
 
 
 		try {
@@ -135,24 +135,26 @@ public class WindowsService {
 				 * we can't just do in.readLine() here since the call from Apache Commons Daemon is static and hence
 				 * would be blocked by the readline() call i.e. we wouldn't be able to terminate the process exec.
 				 */
-				while (in.ready()) {
-					line = in.readLine();
-					if (line != null) {
-						System.out.println(line);
-					} else {
-						System.out.println("Finished reading output from command");
-						break;
+				while (in.ready() || brerror.ready()) {
+					if (in.ready()) {
+						line = in.readLine();
+						if (line != null) {
+							System.out.println(line);
+						} else {
+							System.out.println("Finished reading output from command");
+							break;
+						}						
+					}
+					if (brerror.ready()) {
+						line = brerror.readLine();
+						if (line != null) {
+							System.err.println(line);
+						} else {
+							System.err.println("Finished reading error from command");
+							break;
+						}						
 					}
 				}
-				//				while (brerror.ready()) {
-				//					line = brerror.readLine();
-				//					if (line != null) {
-				//						System.out.println("Error : " + line);
-				//					} else {
-				//						System.out.println("Finished reading error from command");
-				//						break;
-				//					}
-				//				}
 				try {
 					// put something in here so it's not a completely tight loop
 					Thread.sleep(100);
@@ -166,11 +168,8 @@ public class WindowsService {
 
 			Process endp = null;
 			try {
-				//p = Runtime.getRuntime().exec(service.getCommand(), env, service.getWorkingDir());
 				endp = stopservice.start();
-
-				String result = getStreamsFromProcess(endp);
-				System.out.println(result);
+				logStreamsFromProcess(endp);
 			} catch (IOException e) {
 				System.out.println("Exception raised executing the command, see standard error output for stack trace.");
 				e.printStackTrace();
@@ -327,8 +326,6 @@ public class WindowsService {
 			System.exit(1);
 		}
 
-		String nodeName = args[1];		
-
 		ArrayList<String> command = new ArrayList<String>();
 		command.add("fabadmin.bat");
 		command.add("-st");
@@ -338,16 +335,13 @@ public class WindowsService {
 		return pb;
 	}
 
-	public static String getStreamsFromProcess(Process process) throws IOException {
+	public static void logStreamsFromProcess(Process process) throws IOException {
 		InputStream is = process.getInputStream();
 		InputStreamReader isr = new InputStreamReader(is);
 		BufferedReader br = new BufferedReader(isr);
-		StringBuffer buffer = new StringBuffer();
 		String line; 
-		while ((line = br.readLine()) != null) {
-			
+		while ((line = br.readLine()) != null) {			
 				System.out.println(line);
-				buffer.append(line);
 		}
 		
 		InputStream iserror = process.getErrorStream();
@@ -357,11 +351,9 @@ public class WindowsService {
 		String lineerror; 
 		while ((lineerror = brerror.readLine()) != null) {
 			
-				System.out.println("ERROR : " + lineerror);
-				buffer.append(lineerror);
+				System.err.println("ERROR : " + lineerror);
 		}
-		return buffer.toString();
-		
+		return;
 	}
 
 }
