@@ -103,10 +103,9 @@ public class ResourceManager {
 			/* Determine what level of reporting is configured */
 			Fabric fabric = new Fabric();
 			fabric.initFabricConfig();
-			String feedLevel = fabric.config("registry.notifications.level");
-			feedLevel = (feedLevel != null) ? feedLevel.toUpperCase() : "ALL";
+			String triggerLevel = fabric.config("registry.notifications.level", "ALL").toUpperCase();
 
-			switch (feedLevel) {
+			switch (triggerLevel) {
 
 			case "ALL":
 
@@ -123,18 +122,10 @@ public class ResourceManager {
 			default:
 
 				/* Specific tables encoded into the level */
-				String[] reportableTables = feedLevel.split(",");
+				String[] reportableTables = triggerLevel.split(",");
 				reportableTableList = Arrays.asList(reportableTables);
-
-				StringBuilder message = new StringBuilder();
-				for (int r = 0; r < reportableTables.length; r++) {
-					message.append(reportableTables[r]);
-					if (r < reportableTables.length - 1) {
-						message.append(", ");
-					}
-				}
 				System.out.println("Fabric triggers will be sent for " + reportableTables.length + " tables: "
-						+ message.toString());
+						+ triggerLevel);
 				reportLevel = REPORT_LIST;
 			}
 		}
@@ -169,7 +160,7 @@ public class ResourceManager {
 
 				table = table.toUpperCase();
 
-				if (reportableTableList.contains(table)) {
+				if (reportableTableList != null && reportableTableList.contains(table)) {
 					isReportable = true;
 				}
 
