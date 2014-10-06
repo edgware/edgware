@@ -9,9 +9,10 @@
 
 package fabric.services.systems;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +31,8 @@ import fabric.core.logging.LogUtil;
 import fabric.registry.FabricRegistry;
 import fabric.registry.System;
 import fabric.registry.SystemFactory;
+import fabric.services.json.JSON;
+import fabric.services.json.JSONArray;
 
 /**
  * Manages a set of active systems.
@@ -324,13 +327,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 			} catch (Exception e) {
 
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				PrintStream ps = new PrintStream(baos);
-				e.printStackTrace(ps);
-
-				String message = format("Error sending request message to request/response service '%s': %s",
-						requestResponseService, baos.toString());
-
+				String message = format("Error sending request message to request/response service \"%s\":\n%s",
+						requestResponseService, LogUtil.stackTrace(e));
 				logger.log(Level.WARNING, message);
 				status = new RuntimeStatus(RuntimeStatus.Status.SEND_REQUEST_FAILED, message);
 
@@ -390,12 +388,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 			} catch (Exception e) {
 
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				PrintStream ps = new PrintStream(baos);
-				e.printStackTrace(ps);
-
-				String message = format("Error sending response message to requesting service '%s': %s", sendTo, baos
-						.toString());
+				String message = format("Error sending response message to requesting service \"%s\":\n%s", sendTo,
+						LogUtil.stackTrace(e));
 				logger.log(Level.WARNING, message);
 				status = new RuntimeStatus(RuntimeStatus.Status.SEND_REQUEST_FAILED, message);
 
@@ -467,7 +461,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 			} catch (Exception e) {
 
-				String message = format("Error sending notification message to listener service %s: %s",
+				String message = format("Error sending notification message to listener service \"%s\":\n%s",
 						listenerService, LogUtil.stackTrace(e));
 				logger.log(Level.WARNING, message);
 				status = new RuntimeStatus(RuntimeStatus.Status.SEND_NOTIFICATION_FAILED, message);
@@ -522,7 +516,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 			} catch (Exception e) {
 
-				String message = format("Error publishing message to output-feed service %s:\n%s", outputFeedService, e);
+				String message = format("Error publishing message to output-feed service \"%s\":\n%s",
+						outputFeedService, LogUtil.stackTrace(e));
 				logger.log(Level.WARNING, message);
 				status = new RuntimeStatus(RuntimeStatus.Status.PUBLISH_FAILED, message);
 
@@ -572,8 +567,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 			} catch (Exception e) {
 
-				String message = format("Error subscribing to output-feed service %s (input-feed %s):\n%s",
-						outputFeedService, inputFeedService, e);
+				String message = format("Error subscribing to output-feed service \"%s\" (input-feed \"%s\"):\n%s",
+						outputFeedService, inputFeedService, LogUtil.stackTrace(e));
 				logger.log(Level.WARNING, message);
 				status = new RuntimeStatus(RuntimeStatus.Status.SUBSCRIBE_FAILED, message);
 
@@ -624,8 +619,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 			} catch (Exception e) {
 
-				String message = format("Error unsubscribing from output-feed services (input-feed %s):\n%s",
-						inputFeedService, e);
+				String message = format("Error unsubscribing from output-feed services (input-feed \"%s\"):\n%s",
+						inputFeedService, LogUtil.stackTrace(e));
 				logger.log(Level.WARNING, message);
 				status = new RuntimeStatus(RuntimeStatus.Status.UNSUBSCRIBE_FAILED, message);
 
@@ -645,6 +640,34 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 		}
 
 		return status;
+	}
+
+	/**
+	 * Actions a notification of a new system on the bus to fulfill any outstanding subscriptions that might now be
+	 * satisfied.
+	 * 
+	 * @param systemNotification
+	 *            a JSON message containing details of the new system.
+	 */
+	private void updateSubscriptions(JSON systemNotification) {
+
+		/* Get the details of the system */
+		String systemID = systemNotification.getString("id");
+		SystemDescriptor systemDescriptor = new SystemDescriptor(systemID);
+
+		/* Build the list of the new services that have become available */
+
+		JSONArray servicesJSON = systemNotification.getJSONArray("services");
+		List<ServiceDescriptor> serviceList = new ArrayList<ServiceDescriptor>();
+
+		for (Iterator<JSON> serviceIterator = servicesJSON.iterator(); serviceIterator.hasNext();) {
+
+			/* Build a descriptor for the next service */
+			JSON serviceJSON = serviceIterator.next();
+			ServiceDescriptor nextService = new ServiceDescriptor(serviceJSON.getString("id"));
+			serviceList.add(nextService);
+
+		}
 	}
 
 	/**
@@ -690,9 +713,48 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 */
 	@Override
 	public void handleSubscriptionMessage(IFeedMessage message) {
-		byte[] payloadBytes = message.getPayload().getPayload();
-		String payload = new String(payloadBytes);
-		java.lang.System.out.println("handleSubscriptionMessage(): " + payload);
+
+		/* Get the target service of this message */
+		String serviceDescriptor = message.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED);
+
+		if (serviceDescriptor != null) {
+
+			String payload = null;
+
+			try {
+
+				/* Get the message payload */
+				byte[] payloadBytes = message.getPayload().getPayload();
+				payload = (payloadBytes != null) ? new String(payloadBytes) : null;
+
+				if (serviceDescriptor.equals("$fabric/$registry/$registry_updates")) {
+
+					/* The payload is a JSON structure containing details of a Registry update */
+					JSON triggerJSON = new JSON(payload);
+					String table = triggerJSON.getString("table");
+
+					/* If this is a system table notification... */
+					if (table != null && table.equalsIgnoreCase("SYSTEMS")) {
+
+						String action = triggerJSON.getString("action");
+
+						/* if a new system has been added... */
+						if (action != null && action.equalsIgnoreCase("INSERT")) {
+
+							/* Check all active subscriptions for a new match */
+							updateSubscriptions(triggerJSON);
+
+						}
+					}
+				}
+
+			} catch (Exception e) {
+
+				logger.log(Level.WARNING, "Error handling Registry update notification: \n{0}\n{1}", new Object[] {
+						payload, LogUtil.stackTrace(e)});
+
+			}
+		}
 	}
 
 	/**
