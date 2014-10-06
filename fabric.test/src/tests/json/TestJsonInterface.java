@@ -39,8 +39,8 @@ public class TestJsonInterface {
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
 	
-	private final static String PACKAGE_NAME = TestJsonInterface.class.getSimpleName();
-	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
+	private final static String CLASS_NAME = TestJsonInterface.class.getSimpleName();
+	private final static Logger logger = Logger.getLogger(CLASS_NAME);
 
 
 	private static final String payloadsFileName = "./config/testJsonInterface.payloads";
@@ -49,7 +49,6 @@ public class TestJsonInterface {
 	private static Properties testProperties = new Properties();
 	private static Properties messages = new Properties();
 	
-
 	private static FabricTestJsonClient jsonClient = null;
 
 	// Client to allow Testing of Registry Contents
@@ -68,7 +67,7 @@ public class TestJsonInterface {
 	    //New FabricClient to check Registry Entries 
 	    //i.e. Checking the outcome of the JSON command	   
 	    try {
-			client = new FabricClient(testProperties.getProperty(ConfigProperties.NODE_NAME), PACKAGE_NAME, "PLAT_" + PACKAGE_NAME);
+			client = new FabricClient(testProperties.getProperty(ConfigProperties.NODE_NAME), CLASS_NAME, "PLAT_" + CLASS_NAME);
 			client.connect();
 		} catch (Exception e1) {
 			Assert.fail();
@@ -89,7 +88,7 @@ public class TestJsonInterface {
 	public void T001_connectClient() {
 
 		try {
-			jsonClient = new FabricTestJsonClient(testProperties, PACKAGE_NAME);
+			jsonClient = new FabricTestJsonClient(testProperties, CLASS_NAME);
 			Assert.assertNotNull(jsonClient);
 			Assert.assertTrue(jsonClient.isConnected());
 		} catch (IOException e) {
