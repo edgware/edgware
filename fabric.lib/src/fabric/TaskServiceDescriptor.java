@@ -97,13 +97,13 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 	 */
 	public TaskServiceDescriptor(String descriptor) {
 
-		final String usage = "Task service descriptor must be of the form \"<task-id>:<platform-id>/<system-id>/<service-id>\")";
+		final String usage = "Task service descriptor must be of the form \"<task-id>#<platform-id>/<system-id>/<service-id>\")";
 
 		if (descriptor == null) {
 			throw new IllegalArgumentException(usage);
 		}
 
-		task = descriptor.substring(0, descriptor.indexOf(':') - 1);
+		task = descriptor.substring(0, descriptor.indexOf('#') - 1);
 		String serviceDescriptor = descriptor.substring(task.length(), descriptor.length() - 1);
 
 		if (serviceDescriptor == null || serviceDescriptor.equals("")) {
@@ -134,9 +134,21 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 
 		/* If we need to generate the string form of this instance... */
 		if (toString == null) {
-			toString = task + ':' + super.toString();
+			toString = task + '#' + super.toString();
 		}
 
 		return toString;
+	}
+
+	/**
+	 * Generates the name of this instance.
+	 * 
+	 * @return the name of the task service descriptor.
+	 */
+	@Override
+	public String toName() {
+
+		return super.toName() + '/' + task;
+
 	}
 }
