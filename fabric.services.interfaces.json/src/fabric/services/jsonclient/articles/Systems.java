@@ -83,52 +83,53 @@ public class Systems extends FabricBus {
 
 				SystemDescriptor systemDescriptor = new SystemDescriptor(systemName);
 
-				/* Insert the system into the Registry */
-				SystemFactory systemFactory = FabricRegistry.getSystemFactory();
-				System system = systemFactory.createSystem( //
-						systemDescriptor.platform(), // platform ID
-						systemDescriptor.system(), // service ID
-						systemType, // system type
-						null, // credentials
-						"DEPLOYED", // readiness
-						AdapterConstants.STATE_AVAILABLE, // availability,
-						0, // latitude,
-						0, // longitude,
-						0, // altitude,
-						0, // bearing,
-						0, // velocity,
-						op.getString(AdapterConstants.FIELD_DESCRIPTION), // system description
-						op.getString(AdapterConstants.FIELD_ATTRIBUTES), null); // attributes URI;
-				boolean success = systemFactory.save(system);
+				if (!(user == null)) {
+					// TODO User logic
+				}
 
-				if (!success) {
+				/* Lookup the list of service types associated with the system type */
+				String[] serviceTypes = getServiceTypes(systemType);
 
-					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
-							AdapterConstants.ARTICLE_SYSTEM, "Insert/update of system into the Registry failed",
+				/* If there are any... */
+				if (serviceTypes != null) {
+
+					/* Create the corresponding service instances in the Registry */
+					status = createServices(serviceTypes, systemDescriptor.platform(), systemDescriptor.system(),
 							correlId);
+
+					if (status != null && status.isOK()) {
+
+						/* Insert the system into the Registry */
+						SystemFactory systemFactory = FabricRegistry.getSystemFactory();
+						System system = systemFactory.createSystem(systemDescriptor.platform(), // platform ID
+								systemDescriptor.system(), // service ID
+								systemType, // system type
+								null, // credentials
+								"DEPLOYED", // readiness
+								AdapterConstants.STATE_AVAILABLE, // availability,
+								0, // latitude,
+								0, // longitude,
+								0, // altitude,
+								0, // bearing,
+								0, // velocity,
+								op.getString(AdapterConstants.FIELD_DESCRIPTION), // system description
+								op.getString(AdapterConstants.FIELD_ATTRIBUTES), null); // attributes URI;
+						boolean success = systemFactory.save(system);
+
+						if (!success) {
+
+							status = new AdapterStatus(AdapterConstants.ERROR_ACTION,
+									AdapterConstants.OP_CODE_REGISTER, AdapterConstants.ARTICLE_SYSTEM,
+									"Insert/update of system into the Registry failed", correlId);
+
+						}
+					}
 
 				} else {
 
-					if (!(user == null)) {
-						// TODO User logic
-					}
-					/* Lookup the list of service types associated with the system type */
-					String[] serviceTypes = getServiceTypes(systemType);
+					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
+							AdapterConstants.ARTICLE_SYSTEM, AdapterConstants.STATUS_MSG_UNRECOGNIZED_TYPE, correlId);
 
-					/* If there are any... */
-					if (serviceTypes != null) {
-
-						/* Create the corresponding service instances in the Registry */
-						status = createServices(serviceTypes, systemDescriptor.platform(), systemDescriptor.system(),
-								correlId);
-
-					} else {
-
-						status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
-								AdapterConstants.ARTICLE_SYSTEM, AdapterConstants.STATUS_MSG_UNRECOGNIZED_TYPE,
-								correlId);
-
-					}
 				}
 			}
 
