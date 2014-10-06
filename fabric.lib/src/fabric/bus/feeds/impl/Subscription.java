@@ -12,6 +12,7 @@ package fabric.bus.feeds.impl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fabric.ReasonCode;
 import fabric.TaskServiceDescriptor;
 import fabric.bus.BusIOChannels;
 import fabric.bus.SharedChannel;
@@ -132,8 +133,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 		}
 
 		if (activeServiceDescriptor != null) {
-			throw new SubscriptionException(SubscriptionException.Reason.ALREADY_SUBSCRIBED,
-					"Subscription already active");
+			throw new SubscriptionException(ReasonCode.ALREADY_SUBSCRIBED, "Subscription already active");
 		}
 
 		activeServiceDescriptor = serviceDescriptor;
@@ -166,7 +166,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 					activeServiceDescriptor);
 			logger.fine(message);
 			activeServiceDescriptor = null;
-			throw new SubscriptionException(SubscriptionException.Reason.NO_ROUTE, message);
+			throw new SubscriptionException(ReasonCode.NO_ROUTE, message);
 
 		} else {
 
@@ -236,7 +236,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 	public void unsubscribe() throws Exception {
 
 		if (activeServiceDescriptor == null) {
-			throw new SubscriptionException(SubscriptionException.Reason.NOT_SUBSCRIBED, "No active subscription");
+			throw new SubscriptionException(ReasonCode.NOT_SUBSCRIBED, "No active subscription");
 		}
 
 		logger.log(Level.FINER, "Unsubscribing from feed {0}", activeServiceDescriptor);
