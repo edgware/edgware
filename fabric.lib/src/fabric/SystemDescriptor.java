@@ -30,11 +30,11 @@ public class SystemDescriptor extends PlatformDescriptor {
 	/** The type of the system. */
 	private String systemType = null;
 
-	/** The string representation of this instance. */
+	/** The string representation of the name of this instance */
 	private String toString = null;
 
-	/** The string representation of the name of this instance. */
-	private String toName = null;
+	/** The string representation of this instance. */
+	private String toStringDescriptor = null;
 
 	/*
 	 * Class methods
@@ -153,9 +153,8 @@ public class SystemDescriptor extends PlatformDescriptor {
 	@Override
 	public String toString() {
 
-		/* If we need to generate the string form of this instance... */
 		if (toString == null) {
-			toString = super.toString() + '/' + system + ((systemType != null) ? ':' + systemType : "");
+			toString = super.toString() + '/' + system;
 		}
 
 		return toString;
@@ -163,14 +162,19 @@ public class SystemDescriptor extends PlatformDescriptor {
 	}
 
 	/**
-	 * Generates the name of this instance.
+	 * Generates the string representation of this descriptor.
 	 * 
-	 * @return the name of the system.
+	 * @return the system descriptor.
 	 */
 	@Override
-	public String toName() {
+	public String toStringDescriptor() {
 
-		return super.toName() + '/' + system;
+		if (toStringDescriptor == null) {
+			toStringDescriptor = super.toStringDescriptor() + '/' + system
+					+ ((systemType != null) ? ':' + systemType : "");
+		}
+
+		return toStringDescriptor;
 
 	}
 

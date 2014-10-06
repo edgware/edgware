@@ -31,7 +31,7 @@ public class PlatformDescriptor {
 	private String platformType = null;
 
 	/** The string representation of this instance. */
-	private String toString = null;
+	private String toStringDescriptor = null;
 
 	/*
 	 * Class methods
@@ -128,23 +128,23 @@ public class PlatformDescriptor {
 	@Override
 	public String toString() {
 
-		/* If we need to generate the string form of this instance... */
-		if (toString == null) {
-			toString = platform + ((platformType != null) ? ':' + platformType : "");
-		}
-
-		return toString;
+		return platform;
 
 	}
 
 	/**
-	 * Generates the name of this instance.
+	 * Generates the string representation of this descriptor.
 	 * 
-	 * @return the name of the platform.
+	 * @return the platform descriptor
 	 */
-	public String toName() {
+	public String toStringDescriptor() {
 
-		return platform;
+		/* If we need to generate the string form of this instance... */
+		if (toStringDescriptor == null) {
+			toStringDescriptor = platform + ((platformType != null) ? ':' + platformType : "");
+		}
+
+		return toStringDescriptor;
 
 	}
 
@@ -158,9 +158,7 @@ public class PlatformDescriptor {
 		boolean isEqual = false;
 
 		if (obj != null) {
-
 			isEqual = toString().equals(obj.toString());
-
 		}
 
 		return isEqual;
@@ -172,15 +170,13 @@ public class PlatformDescriptor {
 	 * @param obj
 	 *            the object to test.
 	 */
-	public boolean equalsName(PlatformDescriptor obj) {
+	public boolean equalsDescriptor(PlatformDescriptor obj) {
 
 		/* To hold the result */
 		boolean isEqual = false;
 
 		if (obj != null) {
-
-			isEqual = toName().equals(obj.toName());
-
+			isEqual = toStringDescriptor().equals(obj.toStringDescriptor());
 		}
 
 		return isEqual;

@@ -33,8 +33,11 @@ public class ServiceDescriptor extends SystemDescriptor {
 	/** The operation mode of the service. */
 	private String mode = null;
 
-	/** The string representation of this instance. */
+	/** The string representation of the name of this instance */
 	private String toString = null;
+
+	/** The string representation of this instance. */
+	private String toStringDescriptor = null;
 
 	/*
 	 * Class methods
@@ -225,10 +228,8 @@ public class ServiceDescriptor extends SystemDescriptor {
 	@Override
 	public String toString() {
 
-		/* If we need to generate the string form of this instance... */
 		if (toString == null) {
-			toString = super.toString() + '/' + service + ((serviceType != null) ? ':' + serviceType : "")
-					+ ((mode != null) ? ':' + mode : "");
+			toString = super.toString() + '/' + service;
 		}
 
 		return toString;
@@ -236,14 +237,19 @@ public class ServiceDescriptor extends SystemDescriptor {
 	}
 
 	/**
-	 * Generates the name of this instance.
+	 * Generates the string representation of this descriptor.
 	 * 
-	 * @return the name of the service.
+	 * @return the service descriptor.
 	 */
 	@Override
-	public String toName() {
+	public String toStringDescriptor() {
 
-		return super.toName() + '/' + service;
+		if (toStringDescriptor == null) {
+			toStringDescriptor = super.toStringDescriptor() + '/' + service
+					+ ((serviceType != null) ? ':' + serviceType : "") + ((mode != null) ? ':' + mode : "");
+		}
+
+		return toStringDescriptor;
 
 	}
 }

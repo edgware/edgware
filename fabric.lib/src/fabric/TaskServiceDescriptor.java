@@ -30,8 +30,11 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 	/** The ID of the task */
 	private String task = null;
 
-	/** The string representation of this instance */
+	/** The string representation of the name of this instance */
 	private String toString = null;
+
+	/** The string representation of this instance. */
+	private String toStringDescriptor = null;
 
 	/*
 	 * Class methods
@@ -132,23 +135,26 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 	@Override
 	public String toString() {
 
-		/* If we need to generate the string form of this instance... */
 		if (toString == null) {
 			toString = task + '#' + super.toString();
 		}
 
 		return toString;
+
 	}
 
 	/**
-	 * Generates the name of this instance.
+	 * Generates the string representation of this descriptor.
 	 * 
-	 * @return the name of the task service descriptor.
+	 * @return the task service descriptor.
 	 */
 	@Override
-	public String toName() {
+	public String toStringDescriptor() {
 
-		return super.toName() + '/' + task;
+		if (toStringDescriptor == null) {
+			toStringDescriptor = task + '#' + super.toStringDescriptor();
+		}
 
+		return toStringDescriptor;
 	}
 }
