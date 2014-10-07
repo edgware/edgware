@@ -365,7 +365,7 @@ public class Systems extends FabricBus {
 		String[] serviceTypes = null;
 
 		/* Lookup the system type in the Registry */
-		TypeFactory typeFactory = FabricRegistry.getTypeFactory();
+		TypeFactory typeFactory = FabricRegistry.getTypeFactory(true);
 		Type type = typeFactory.getSystemType(systemType);
 
 		/* If we found it... */
