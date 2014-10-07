@@ -441,27 +441,26 @@ public class SystemServices extends FabricBus {
 
 		try {
 
-			/* If we are not already subscribed to this feed... */
-			if (!wiredInputFeeds.containsKey(remoteOutputDescriptor)) {
+			/* If we are already subscribed to this feed... */
+			if (wiredInputFeeds.containsKey(remoteOutputDescriptor)) {
 
-				/* Subscribe to the remote feed */
-				ISubscription inputSubscription = new Subscription(systemRuntime.fabricClient());
-				inputSubscription.subscribe(remoteOutputTaskDescriptor, systemRuntime);
-
-				/* Record the subscription */
-				wiredInputFeeds.put(remoteOutputDescriptor, inputSubscription);
-
-				/* Record the mapping given by the wiring */
-				wiredInputFeedMappings.put(remoteOutputDescriptor, localInputDescriptor);
-
-			} else {
-
-				logger.log(Level.FINE,
-						"Already subscribed to remote feed '%s' (wired to local feed %s) for service instance '%s':",
+				logger.log(
+						Level.FINE,
+						"Repeat subscription to remote feed \"%s\" (wired to local feed \"%s\") for service instance \"%s\":",
 						new Object[] {remoteOutputTaskDescriptor, localInputDescriptor,
 								systemRuntime.systemDescriptor()});
 
 			}
+
+			/* Subscribe to the remote feed */
+			ISubscription inputSubscription = new Subscription(systemRuntime.fabricClient());
+			inputSubscription.subscribe(remoteOutputTaskDescriptor, systemRuntime);
+
+			/* Record the subscription */
+			wiredInputFeeds.put(remoteOutputDescriptor, inputSubscription);
+
+			/* Record the mapping given by the wiring */
+			wiredInputFeedMappings.put(remoteOutputDescriptor, localInputDescriptor);
 
 		} catch (Exception e) {
 

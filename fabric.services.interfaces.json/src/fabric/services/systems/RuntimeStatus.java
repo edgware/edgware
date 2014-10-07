@@ -25,6 +25,8 @@ public class RuntimeStatus extends FabricBus {
 
 	public static final String MESSAGE_OK = "OK";
 
+	public static final RuntimeStatus STATUS_OK = new RuntimeStatus(Status.OK, MESSAGE_OK);
+
 	/*
 	 * Class enumerated types
 	 */

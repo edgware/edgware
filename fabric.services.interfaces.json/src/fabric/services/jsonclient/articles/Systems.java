@@ -27,7 +27,6 @@ import fabric.registry.TaskService;
 import fabric.registry.TaskServiceFactory;
 import fabric.registry.Type;
 import fabric.registry.TypeFactory;
-import fabric.registry.exception.RegistryQueryException;
 import fabric.services.json.JSON;
 import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.utilities.AdapterConstants;
@@ -887,7 +886,7 @@ public class Systems extends FabricBus {
 	}
 
 	/**
-	 * Subscribes to an output feed.
+	 * Subscribes to a list of output feeds.
 	 * 
 	 * @param op
 	 *            the full JSON operation object.
@@ -904,7 +903,7 @@ public class Systems extends FabricBus {
 
 		JSON response = null;
 		AdapterStatus status = new AdapterStatus(correlId);
-		ArrayList<String> actualOutputFeedList = new ArrayList<String>();
+		List<ServiceDescriptor> subscribedList = new ArrayList<ServiceDescriptor>();
 		String inputFeed = null;
 
 		try {
@@ -920,33 +919,32 @@ public class Systems extends FabricBus {
 
 			} else {
 
-				/* For each source feed... */
+				List<ServiceDescriptor> patternList = new ArrayList<ServiceDescriptor>();
+
+				/* Extract the list of output feed patterns from the message */
+
 				for (int sf = 0; sf < outputFeedPatterns.size(); sf++) {
 
-					String nextOutputFeedPattern = outputFeedPatterns.getString(sf);
-					ServiceDescriptor outputFeedPatternDescriptor = new ServiceDescriptor(nextOutputFeedPattern);
+					String nextPattern = outputFeedPatterns.getString(sf);
+					ServiceDescriptor nextDescriptor = new ServiceDescriptor(nextPattern);
+					patternList.add(nextDescriptor);
 
-					/* Get the list of feeds that match the requested feed pattern (it may contain wildcards) */
-					ServiceDescriptor[] feedsMatchingPattern = queryMatchingFeeds(outputFeedPatternDescriptor);
-
-					/* For each matching feed... */
-					for (ServiceDescriptor nextOutputFeedDescriptor : feedsMatchingPattern) {
-
-						/* Subscribe to the feed */
-						RuntimeStatus subscribeStatus = runtimeManager.subscribe(nextOutputFeedDescriptor,
-								inputFeedDescriptor);
-
-						if (subscribeStatus.getStatus() != RuntimeStatus.Status.OK) {
-							status = new AdapterStatus(AdapterConstants.ERROR_ACTION,
-									AdapterConstants.OP_CODE_SUBSCRIBE, AdapterConstants.ARTICLE_SYSTEM,
-									subscribeStatus.getStatus() + ": " + subscribeStatus.getMessage(), correlId);
-						} else {
-							actualOutputFeedList.add(nextOutputFeedDescriptor.toString());
-						}
-					}
 				}
 
-				response = buildSubscriptionResponse(actualOutputFeedList, inputFeed, correlId);
+				ServiceDescriptor[] patternDescriptors = patternList.toArray(new ServiceDescriptor[patternList.size()]);
+
+				/* Subscribe */
+
+				RuntimeStatus subscribeStatus = runtimeManager.subscribe(patternDescriptors, inputFeedDescriptor,
+						subscribedList);
+
+				if (subscribeStatus.getStatus() != RuntimeStatus.Status.OK) {
+					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_SUBSCRIBE,
+							AdapterConstants.ARTICLE_SYSTEM, subscribeStatus.getStatus() + ": "
+									+ subscribeStatus.getMessage(), correlId);
+				}
+
+				response = buildSubscriptionResponse(subscribedList, inputFeed, correlId);
 			}
 
 		} catch (Exception e) {
@@ -963,81 +961,6 @@ public class Systems extends FabricBus {
 	}
 
 	/**
-	 * Find the list of feeds in the Registry matching the specified pattern.
-	 * 
-	 * @param feedPattern
-	 *            the pattern to match.
-	 * 
-	 * @return the list of matching feeds.
-	 * 
-	 * @throws RegistryQueryException
-	 */
-	private static ServiceDescriptor[] queryMatchingFeeds(ServiceDescriptor feedPattern) throws RegistryQueryException {
-
-		/* To hold the results */
-		ServiceDescriptor[] matchingFeeds = null;
-
-		/* To hold the predicate required to find matching feeds in the Registry */
-		String queryPredicate = null;
-
-		/* If the feed descriptor does not contain any wildcards... */
-		if (!feedPattern.toString().contains("*")) {
-
-			matchingFeeds = new ServiceDescriptor[] {feedPattern};
-
-		} else {
-
-			/* Generate the SQL predicate required to identify the matching feeds */
-
-			String platform = feedPattern.platform();
-			String platformPredicate = null;
-
-			if (platform.contains("*")) {
-				platformPredicate = String.format("platform_id like '%s'", platform.replace('*', '%'));
-			} else {
-				platformPredicate = String.format("platform_id = '%s'", platform);
-			}
-
-			String service = feedPattern.system();
-			String servicePredicate = null;
-
-			if (service.contains("*")) {
-				servicePredicate = String.format("service_id like '%s'", service.replace('*', '%'));
-			} else {
-				servicePredicate = String.format("service_id = '%s'", service);
-			}
-
-			String feed = feedPattern.service();
-			String feedPredicate = null;
-
-			if (feed.contains("*")) {
-				feedPredicate = String.format("id like '%s'", feed.replace('*', '%'));
-			} else {
-				feedPredicate = String.format("id = '%s'", feed);
-			}
-
-			queryPredicate = String.format("direction = 'output' and %s and %s and %s", platformPredicate,
-					servicePredicate, feedPredicate);
-
-			/* Generate the list of matching feeds */
-			ServiceFactory sf = FabricRegistry.getServiceFactory();
-			Service[] registryFeedList = sf.getServices(queryPredicate);
-			matchingFeeds = new ServiceDescriptor[registryFeedList.length];
-
-			/* For each matching feed... */
-			for (int f = 0; f < matchingFeeds.length; f++) {
-
-				/* Create a feed descriptor */
-				matchingFeeds[f] = new ServiceDescriptor(registryFeedList[f].getPlatformId(), registryFeedList[f]
-						.getSystemId(), registryFeedList[f].getId());
-
-			}
-		}
-
-		return matchingFeeds;
-	}
-
-	/**
 	 * Builds a subscription response message.
 	 * 
 	 * @param outputFeedList
@@ -1051,13 +974,18 @@ public class Systems extends FabricBus {
 	 * 
 	 * @return the JSON object containing the response message.
 	 */
-	private static JSON buildSubscriptionResponse(ArrayList<String> outputFeedList, String inputFeed, String correlId) {
+	private static JSON buildSubscriptionResponse(List<ServiceDescriptor> outputFeedList, String inputFeed,
+			String correlId) {
 
 		JSON subscriptionResponse = new JSON();
 
 		/* Build the list of output feeds */
+		List<String> outputFeeds = new ArrayList<String>();
+		for (ServiceDescriptor nextFeed : outputFeedList) {
+			outputFeeds.add(nextFeed.toString());
+		}
 		JSONArray outputFeedJSON = new JSONArray();
-		outputFeedJSON.putStringList(outputFeedList);
+		outputFeedJSON.putStringList(outputFeeds);
 
 		/* Build the full message */
 		subscriptionResponse.putString(AdapterConstants.FIELD_OPERATION, AdapterConstants.OP_SUBSCRIPTIONS);

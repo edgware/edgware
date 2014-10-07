@@ -29,8 +29,11 @@ import fabric.bus.messages.IServiceMessage;
 import fabric.client.FabricPlatform;
 import fabric.core.logging.LogUtil;
 import fabric.registry.FabricRegistry;
+import fabric.registry.Service;
+import fabric.registry.ServiceFactory;
 import fabric.registry.System;
 import fabric.registry.SystemFactory;
+import fabric.registry.exception.RegistryQueryException;
 import fabric.services.json.JSON;
 import fabric.services.json.JSONArray;
 
@@ -43,12 +46,15 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
 
 	/*
-	 * Class constants
+	 * Class static fields
 	 */
 
 	/** The descriptor for the Registry update notification service. */
 	private static final TaskServiceDescriptor registryUpdatesDescriptor = new TaskServiceDescriptor("DEFAULT",
 			"$fabric", "$registry", "$registry_updates");
+
+	/** Fabric class instance used to access utility methods only. */
+	private static final Fabric fabric = new Fabric();
 
 	/*
 	 * Class fields
@@ -56,6 +62,9 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 	/** To hold the list of active systems, including both those in the running and stopped states. */
 	private final HashMap<SystemDescriptor, SystemRuntime> activeSystems = new HashMap<SystemDescriptor, SystemRuntime>();
+
+	/** To hold the list of subscription requests for active systems. */
+	private final HashMap<ServiceDescriptor, List<ServiceDescriptor>> systemSubscriptions = new HashMap<ServiceDescriptor, List<ServiceDescriptor>>();
 
 	/** Flag indicating if Registry queries should be local or distributed. */
 	private boolean doQueryLocal = false;
@@ -540,6 +549,128 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	}
 
 	/**
+	 * Subscribes to a list of output feeds.
+	 * 
+	 * @param outputFeedPatterns
+	 *            the list of output feeds (which may include wildcards) to which subscriptions are to be made.
+	 * 
+	 * @param inputFeed
+	 *            the local service to which feed messages will be delivered.
+	 * 
+	 * @param subscribedList
+	 *            to hold the list of actual subscriptions made.
+	 */
+	public RuntimeStatus subscribe(ServiceDescriptor[] outputFeedPatterns, ServiceDescriptor inputFeed,
+			List<ServiceDescriptor> subscribedList) throws Exception {
+
+		RuntimeStatus subscribeStatus = RuntimeStatus.STATUS_OK;
+
+		/* For each output feed pattern... */
+		for (int sf = 0; sf < outputFeedPatterns.length; sf++) {
+
+			/* Record this subscription request */
+			@SuppressWarnings("unchecked")
+			List<ServiceDescriptor> subscriptionList = fabric.lookupSublist(inputFeed, systemSubscriptions);
+			if (!subscriptionList.contains(outputFeedPatterns[sf])) {
+				subscriptionList.add(outputFeedPatterns[sf]);
+			}
+
+			/* Get the list of feeds that match the requested feed pattern (it may contain wildcards) */
+			ServiceDescriptor[] feedsMatchingPattern = queryMatchingFeeds(outputFeedPatterns[sf]);
+
+			ServiceDescriptor nextFeed = null;
+
+			/* While there are more feeds and no errors... */
+			for (int f = 0; f < feedsMatchingPattern.length && (subscribeStatus.getStatus() == RuntimeStatus.Status.OK);) {
+
+				/* Subscribe to the feed */
+				subscribeStatus = subscribe(feedsMatchingPattern[f], inputFeed);
+
+				if (subscribeStatus.getStatus() == RuntimeStatus.Status.OK) {
+					subscribedList.add(nextFeed);
+				}
+			}
+		}
+
+		return subscribeStatus;
+	}
+
+	/**
+	 * Find the list of feeds in the Registry matching the specified pattern.
+	 * 
+	 * @param feedPattern
+	 *            the pattern to match.
+	 * 
+	 * @return the list of matching feeds.
+	 * 
+	 * @throws RegistryQueryException
+	 */
+	private static ServiceDescriptor[] queryMatchingFeeds(ServiceDescriptor feedPattern) throws RegistryQueryException {
+
+		/* To hold the results */
+		ServiceDescriptor[] matchingFeeds = null;
+
+		/* To hold the predicate required to find matching feeds in the Registry */
+		String queryPredicate = null;
+
+		/* If the feed descriptor does not contain any wildcards... */
+		if (!feedPattern.toString().contains("*")) {
+
+			matchingFeeds = new ServiceDescriptor[] {feedPattern};
+
+		} else {
+
+			/* Generate the SQL predicate required to identify the matching feeds */
+
+			String platform = feedPattern.platform();
+			String platformPredicate = null;
+
+			if (platform.contains("*")) {
+				platformPredicate = String.format("platform_id like '%s'", platform.replace('*', '%'));
+			} else {
+				platformPredicate = String.format("platform_id = '%s'", platform);
+			}
+
+			String service = feedPattern.system();
+			String servicePredicate = null;
+
+			if (service.contains("*")) {
+				servicePredicate = String.format("service_id like '%s'", service.replace('*', '%'));
+			} else {
+				servicePredicate = String.format("service_id = '%s'", service);
+			}
+
+			String feed = feedPattern.service();
+			String feedPredicate = null;
+
+			if (feed.contains("*")) {
+				feedPredicate = String.format("id like '%s'", feed.replace('*', '%'));
+			} else {
+				feedPredicate = String.format("id = '%s'", feed);
+			}
+
+			queryPredicate = String.format("direction = 'output' and %s and %s and %s", platformPredicate,
+					servicePredicate, feedPredicate);
+
+			/* Generate the list of matching feeds */
+			ServiceFactory sf = FabricRegistry.getServiceFactory();
+			Service[] registryFeedList = sf.getServices(queryPredicate);
+			matchingFeeds = new ServiceDescriptor[registryFeedList.length];
+
+			/* For each matching feed... */
+			for (int f = 0; f < matchingFeeds.length; f++) {
+
+				/* Create a feed descriptor */
+				matchingFeeds[f] = new ServiceDescriptor(registryFeedList[f].getPlatformId(), registryFeedList[f]
+						.getSystemId(), registryFeedList[f].getId());
+
+			}
+		}
+
+		return matchingFeeds;
+	}
+
+	/**
 	 * Subscribes to an output feed.
 	 * 
 	 * @param outputFeedService
@@ -614,6 +745,13 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
 			try {
 
+				/* Forget this subscription request */
+				@SuppressWarnings("unchecked")
+				List<ServiceDescriptor> subscriptionList = fabric.lookupSublist(inputFeedService, systemSubscriptions);
+				for (ServiceDescriptor descriptor : outputFeedServices) {
+					subscriptionList.remove(descriptor);
+				}
+
 				/* Unsubscribe */
 				systemRuntime.unsubscribe(outputFeedServices, inputFeedService);
 
@@ -648,26 +786,81 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 * 
 	 * @param systemNotification
 	 *            a JSON message containing details of the new system.
+	 * 
+	 * @throws Exception
 	 */
-	private void updateSubscriptions(JSON systemNotification) {
-
-		/* Get the details of the system */
-		String systemID = systemNotification.getString("id");
-		SystemDescriptor systemDescriptor = new SystemDescriptor(systemID);
+	private void updateSubscriptions(JSON systemNotification) throws Exception {
 
 		/* Build the list of the new services that have become available */
 
 		JSONArray servicesJSON = systemNotification.getJSONArray("services");
-		List<ServiceDescriptor> serviceList = new ArrayList<ServiceDescriptor>();
+		List<ServiceDescriptor> newServiceList = new ArrayList<ServiceDescriptor>();
 
 		for (Iterator<JSON> serviceIterator = servicesJSON.iterator(); serviceIterator.hasNext();) {
 
 			/* Build a descriptor for the next service */
 			JSON serviceJSON = serviceIterator.next();
 			ServiceDescriptor nextService = new ServiceDescriptor(serviceJSON.getString("id"));
-			serviceList.add(nextService);
+			newServiceList.add(nextService);
 
 		}
+
+		/* For each current subscription request... */
+		for (ServiceDescriptor nextInputFeed : systemSubscriptions.keySet()) {
+
+			/* Get the list of subscriptions for the input feed */
+			List<ServiceDescriptor> subscriptions = fabric.lookupSublist(nextInputFeed, systemSubscriptions);
+
+			/* Get the record for the corresponding runtime */
+			SystemDescriptor systemDescriptor = new SystemDescriptor(nextInputFeed.platform(), nextInputFeed.system());
+			SystemRuntime nextRuntime = activeSystems.get(systemDescriptor);
+
+			/* For each subscription request... */
+			for (ServiceDescriptor nextDescriptor : subscriptions) {
+
+				/* Get the subset (if any) of new services matching the subscription */
+				List<ServiceDescriptor> matchingServices = matchDescriptors(nextDescriptor, newServiceList);
+
+				/* For each matching service... */
+				for (ServiceDescriptor matchingService : matchingServices) {
+
+					/* Subscribe */
+					nextRuntime.subscribe(matchingService, nextInputFeed);
+
+				}
+			}
+		}
+	}
+
+	/**
+	 * Searches a list of service descriptors for those matching the specified pattern and returns the matching subset.
+	 * 
+	 * @param descriptorPattern
+	 *            the pattern to match.
+	 * 
+	 * @param descriptorList
+	 *            the list of descriptors to check.
+	 * 
+	 * @return the list of matching descriptors.
+	 * 
+	 * @throws RegistryQueryException
+	 */
+	private List<ServiceDescriptor> matchDescriptors(ServiceDescriptor descriptorPattern,
+			List<ServiceDescriptor> descriptorList) {
+
+		/* To hold the results */
+		List<ServiceDescriptor> matchingDescriptors = new ArrayList<ServiceDescriptor>();
+
+		/* For each descriptor... */
+		for (ServiceDescriptor nextDescriptor : descriptorList) {
+
+			/* If we have a match... */
+			if (nextDescriptor.toString().matches(descriptorPattern.toString())) {
+				matchingDescriptors.add(nextDescriptor);
+			}
+		}
+
+		return matchingDescriptors;
 	}
 
 	/**
