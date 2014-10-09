@@ -291,7 +291,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 					}
 
 					String querySQL = payload.getPayloadText();
-					logger.fine("Query: " + querySQL);
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: " + querySQL );
 					// If this is the originating node then indicate such
 					if (nodeName.equalsIgnoreCase(prevNode)) {
 						logger.finest("Add to list of correlationIds I am responsible for");
@@ -346,13 +346,13 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						logger.exiting(CLASS_NAME, METHOD_NAME);
 						return;
 					}
-					logger.fine("Result Action for correlation Id = " + correlationId);
 					ByteArrayInputStream bytein = new ByteArrayInputStream(serviceMessage.getPayload()
 							.getPayloadBytes());
 					ObjectInputStream in = new ObjectInputStream(bytein);
 					DistributedQueryResult partialResult = (DistributedQueryResult) in.readObject();
 					in.close();
 					bytein.close();
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Result: " + partialResult.toString());
 					logger.finer("Pending Node : " + prevNode + " results returned");
 					logger.finest("Appending to results");
 
