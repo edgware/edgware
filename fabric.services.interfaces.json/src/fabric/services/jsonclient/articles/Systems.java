@@ -164,7 +164,7 @@ public class Systems extends FabricBus {
 			String correlId) {
 
 		AdapterStatus status = new AdapterStatus(correlId);
-		TypeFactory typeFactory = FabricRegistry.getTypeFactory();
+		TypeFactory typeFactory = FabricRegistry.getTypeFactory(true);
 		Type serviceTypeRecord = null;
 
 		/* For each service... */
