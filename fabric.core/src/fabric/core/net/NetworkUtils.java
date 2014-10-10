@@ -182,7 +182,7 @@ public class NetworkUtils {
 
 		if (ipAddress != null) {
 			java.net.NetworkInterface myInterface = java.net.NetworkInterface.getByInetAddress(ipAddress);
-			for (int x = 0; x < myInterface.getInterfaceAddresses().size(); x++) {
+			for (int x = 0; myInterface != null && x < myInterface.getInterfaceAddresses().size(); x++) {
 				/* matching address will start /<ip of localhost> */
 				if (myInterface.getInterfaceAddresses().get(x).getAddress().equals(ipAddress)) {
 					prefix = myInterface.getInterfaceAddresses().get(x).getNetworkPrefixLength();
