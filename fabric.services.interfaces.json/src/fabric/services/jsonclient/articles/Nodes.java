@@ -10,15 +10,20 @@
 package fabric.services.jsonclient.articles;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import fabric.Fabric;
 import fabric.FabricBus;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Node;
 import fabric.registry.NodeFactory;
 import fabric.registry.NodeIpMapping;
 import fabric.registry.NodeIpMappingFactory;
+import fabric.registry.NodeNeighbour;
+import fabric.registry.NodeNeighbourFactory;
 import fabric.services.json.JSON;
+import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 import fabric.services.jsonclient.utilities.JsonUtils;
@@ -208,7 +213,7 @@ public class Nodes extends FabricBus {
 
 			} else {
 
-				/* Lookup the system list in the Registry */
+				/* Lookup the node list in the Registry */
 				Node[] resultArray = null;
 
 				if ("".equals(querySQL)) {
@@ -216,40 +221,50 @@ public class Nodes extends FabricBus {
 				} else {
 					resultArray = nodeFactory.getNodes(querySQL);
 				}
-				// TODO IP search
-				// Query by IP address
 
 				/* Generate the response object */
 
 				nodesQueryResult.putString(AdapterConstants.FIELD_OPERATION, AdapterConstants.OP_QUERY_RESPONSE_NODES);
 				nodesQueryResult.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
 
-				NodeIpMapping[] ipMap = null;
+				NodeIpMapping[] nodeIPMappings = null;
 
 				/* For each Node... */
 				for (int i = 0; i < resultArray.length; i++) {
 
-					JSON system = new JSON();
+					JSON node = new JSON();
+					node.putString(AdapterConstants.FIELD_ID, resultArray[i].getId());
 
-					system.putString(AdapterConstants.FIELD_ID, resultArray[i].getId());
-					ipMap = resultArray[i].getAllIpMappings();
-					List<JSON> ipArray = new ArrayList<JSON>();
-					for (int j = 0; j < ipMap.length; j++) {
-						NodeIpMapping nodeIpMapping = ipMap[j];
-						JSON ip = new JSON("ip://" + nodeIpMapping.getIpAddress() + ":" + nodeIpMapping.getPort());
-						ipArray.add(ip);
+					/* Add the node's IP addresse(s) */
+
+					nodeIPMappings = resultArray[i].getAllIpMappings();
+					JSONArray nodeAddresses = new JSONArray();
+
+					for (int j = 0; j < nodeIPMappings.length; j++) {
+
+						/* Generate a URI of the form "ip://<adapter>/<address>:<port>" */
+						String ipMapping = String.format("ip://%s/%s:%s", nodeIPMappings[j].getNodeInterface(),
+								nodeIPMappings[j].getIpAddress(), nodeIPMappings[j].getPort());
+						nodeAddresses.add(ipMapping);
+
 					}
-					system.putArray(AdapterConstants.FIELD_ADDRESS, ipArray);
 
-					system.putString(AdapterConstants.FIELD_DESCRIPTION, resultArray[i].getDescription());
+					node.putJSONArray(AdapterConstants.FIELD_ADDRESS, nodeAddresses);
 
+					/* Add the node description (if any) */
+					String description = resultArray[i].getDescription();
+					if (description != null && !description.equals("null")) {
+						node.putString(AdapterConstants.FIELD_DESCRIPTION, description);
+					}
+
+					/* Add attributes (if any) */
 					String attributes = resultArray[i].getAttributes();
 					if (attributes != null && !attributes.equals("null")) {
 						JSON attributesJson = new JSON(attributes);
-						system.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
+						node.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
 					}
 
-					jsonList.add(system);
+					jsonList.add(node);
 				}
 				nodesQueryResult = nodesQueryResult.putArray(AdapterConstants.FIELD_NODES, jsonList);
 			}
@@ -267,7 +282,7 @@ public class Nodes extends FabricBus {
 	}
 
 	/**
-	 * Returns the SQL corresponding to the Systems query.
+	 * Returns the SQL corresponding to the nodes query.
 	 * 
 	 * @param jsonOpObject
 	 *            The JSON object that needs converting to SQL.
@@ -275,6 +290,137 @@ public class Nodes extends FabricBus {
 	 * @return The SQL for the query.
 	 */
 	private static String queryNodesSQL(JSON jsonOpObject) {
+
+		String querySQL = null;
+		StringBuilder s = new StringBuilder();
+
+		try {
+
+			if (jsonOpObject.getString(AdapterConstants.FIELD_ID) != null) {
+
+				s.append("NODE_ID='");
+				s.append(jsonOpObject.getString(AdapterConstants.FIELD_ID));
+				s.append("' AND ");
+
+			}
+
+			s.append(JsonUtils.generalSQLLogic(jsonOpObject));
+
+			querySQL = s.toString();
+
+			/* Removes trailing AND in SQL query */
+			if (querySQL.endsWith(" AND ")) {
+				querySQL = querySQL.substring(0, querySQL.length() - 5);
+			}
+
+		} catch (Exception e) {
+
+			querySQL = null;
+
+		}
+
+		return querySQL;
+	}
+
+	/**
+	 * Queries the database for node neighbours.
+	 * 
+	 * @param jsonOpObject
+	 * @param correlId
+	 * @return the JSON message with the query result.
+	 */
+	public static JSON queryNeighbours(final JSON jsonOpObject, final String correlId) {
+
+		JSON neighbourQueryResult = new JSON();
+		AdapterStatus status = new AdapterStatus(correlId);
+
+		try {
+
+			NodeNeighbourFactory neighbourFactory = FabricRegistry.getNodeNeighbourFactory();
+			String querySQL = queryNeighboursSQL(jsonOpObject);
+
+			if (querySQL == null) {
+
+				status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_QUERY,
+						AdapterConstants.ARTICLE_NEIGHBOURS, AdapterConstants.STATUS_MSG_BAD_SQL, correlId);
+				neighbourQueryResult = status.toJsonObject();
+
+			} else {
+
+				/* Lookup the neighbour list in the Registry */
+				NodeNeighbour[] resultArray = null;
+
+				if ("".equals(querySQL)) {
+					resultArray = neighbourFactory.getAllNeighbours();
+				} else {
+					resultArray = neighbourFactory.getNeighbours(querySQL);
+				}
+
+				/* Generate the response object */
+
+				neighbourQueryResult.putString(AdapterConstants.FIELD_OPERATION,
+						AdapterConstants.OP_QUERY_RESPONSE_NEIGHBOURS);
+				neighbourQueryResult.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
+
+				HashMap<String, JSONArray> neighbourRecordsMap = new HashMap<String, JSONArray>();
+				Fabric fabric = new Fabric();
+
+				/* For each neighbour record... */
+				for (int i = 0; i < resultArray.length; i++) {
+
+					/* Get the list of neighbour records for the node */
+					String nodeID = resultArray[i].getNodeId();
+					JSONArray neighbourRecordsList = neighbourRecordsMap.get(nodeID);
+					if (neighbourRecordsList == null) {
+						neighbourRecordsList = new JSONArray();
+						neighbourRecordsMap.put(nodeID, neighbourRecordsList);
+					}
+
+					/* Create a new neighbour record */
+					JSON neighbour = new JSON();
+					neighbour.putString(AdapterConstants.FIELD_NEIGHBOUR, resultArray[i].getNeighbourId());
+					neighbour.putString(AdapterConstants.FIELD_NEIGHBOUR_INTERFACE, resultArray[i]
+							.getNeighbourInterface());
+					neighbour.putString(AdapterConstants.FIELD_NODE_INTERFACE, resultArray[i].getNodeInterface());
+
+					neighbourRecordsList.add(neighbour);
+				}
+
+				JSONArray allNeighbourRecords = new JSONArray();
+
+				/* For each node... */
+				for (String nodeID : neighbourRecordsMap.keySet()) {
+
+					JSON nodeRecord = new JSON();
+					nodeRecord.putString(AdapterConstants.FIELD_ID, nodeID);
+					nodeRecord.putJSONArray(AdapterConstants.FIELD_NEIGHBOURS, neighbourRecordsMap.get(nodeID));
+					allNeighbourRecords.add(nodeRecord);
+
+				}
+				neighbourQueryResult.putJSONArray(AdapterConstants.FIELD_NODES, allNeighbourRecords);
+			}
+
+		} catch (Exception e) {
+
+			String message = e.getClass().getName() + ": " + e.getMessage();
+			status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_QUERY,
+					AdapterConstants.ARTICLE_NODE, message, correlId);
+			neighbourQueryResult = status.toJsonObject();
+
+		}
+
+		return neighbourQueryResult;
+	}
+
+	/**
+	 * Returns the SQL corresponding to the node neighbours query.
+	 * 
+	 * @param jsonOpObject
+	 *            The JSON object that needs converting to SQL.
+	 * 
+	 * @return The SQL for the query.
+	 */
+	private static String queryNeighboursSQL(JSON jsonOpObject) {
 
 		String querySQL = null;
 		StringBuilder s = new StringBuilder();

@@ -9,14 +9,12 @@
 
 package fabric.services.jsonclient.articles;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fabric.FabricBus;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Platform;
 import fabric.registry.PlatformFactory;
 import fabric.services.json.JSON;
+import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 import fabric.services.jsonclient.utilities.JsonUtils;
@@ -152,9 +150,10 @@ public class Platforms extends FabricBus {
 
 		JSON platformsQueryResult = new JSON();
 		AdapterStatus status = new AdapterStatus(correlId);
-		List<JSON> jsonList = new ArrayList<JSON>();
+		JSONArray platformList = new JSONArray();
 
 		try {
+
 			PlatformFactory platformFactory = FabricRegistry.getPlatformFactory();
 			String querySQL = queryPlatformsSQL(jsonOpObject);
 
@@ -178,22 +177,27 @@ public class Platforms extends FabricBus {
 
 				for (int i = 0; i < resultArray.length; i++) {
 
-					JSON platform = new JSON();
+					JSON nextPlatform = new JSON();
 
-					platform.putString(AdapterConstants.FIELD_ID, resultArray[i].getId());
-					platform.putString(AdapterConstants.FIELD_TYPE, resultArray[i].getTypeId());
-					platform.putJSON(AdapterConstants.FIELD_LOCATION, JsonUtils.buildLocationObject(resultArray[i]));
-					platform.putString(AdapterConstants.FIELD_DESCRIPTION, resultArray[i].getDescription());
+					nextPlatform.putString(AdapterConstants.FIELD_ID, resultArray[i].getId());
+					nextPlatform.putString(AdapterConstants.FIELD_TYPE, resultArray[i].getTypeId());
+					nextPlatform
+							.putJSON(AdapterConstants.FIELD_LOCATION, JsonUtils.buildLocationObject(resultArray[i]));
+
+					String description = resultArray[i].getDescription();
+					if (description != null && !description.equals("null")) {
+						nextPlatform.putString(AdapterConstants.FIELD_DESCRIPTION, description);
+					}
 
 					String attributes = resultArray[i].getAttributes();
 					if (attributes != null && !attributes.equals("null")) {
 						JSON attributesJson = new JSON(attributes);
-						platform.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
+						nextPlatform.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
 					}
 
-					jsonList.add(platform);
+					platformList.add(nextPlatform);
 				}
-				platformsQueryResult.putArray(AdapterConstants.FIELD_PLATFORMS, jsonList);
+				platformsQueryResult.putJSONArray(AdapterConstants.FIELD_PLATFORMS, platformList);
 			}
 		} catch (Exception e) {
 			String message = e.getClass().getName() + ": " + e.getMessage();
