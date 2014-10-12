@@ -30,7 +30,7 @@ CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=false;user=fabric;password=fa
 insert into fabric.routes values ('*', '*', 999, 'factory=fabric.bus.routing.DynamicRoutingFactory');
 
 -- Default Fabric task
-insert into fabric.tasks values ('DEFAULT', null, null, 'Default task. All auto-discovered sensors are assigned to this task.', '{"persistence"="static"}', null);
+insert into fabric.tasks values ('DEFAULT', null, null, 'Default task. All auto-discovered sensors are assigned to this task.', '{"persistence":"static"}', null);
 
 -- Default node settings
 insert into fabric.default_config values ('node.port','1883');
