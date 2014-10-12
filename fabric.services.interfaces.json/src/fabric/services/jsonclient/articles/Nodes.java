@@ -260,7 +260,8 @@ public class Nodes extends FabricBus {
 					/* Add attributes (if any) */
 					String attributes = resultArray[i].getAttributes();
 					if (attributes != null && !attributes.equals("null")) {
-						JSON attributesJson = new JSON(attributes);
+						JSON attributesJson = JsonUtils.stringTOJSON(attributes,
+								"Attribute value is not a valid JSON object");
 						node.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
 					}
 
@@ -304,7 +305,7 @@ public class Nodes extends FabricBus {
 
 			}
 
-			s.append(JsonUtils.generalSQLLogic(jsonOpObject));
+			s.append(JsonUtils.generateSQLLogic(jsonOpObject));
 
 			querySQL = s.toString();
 
@@ -435,7 +436,7 @@ public class Nodes extends FabricBus {
 
 			}
 
-			s.append(JsonUtils.generalSQLLogic(jsonOpObject));
+			s.append(JsonUtils.generateSQLLogic(jsonOpObject));
 
 			querySQL = s.toString();
 
