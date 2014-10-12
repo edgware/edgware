@@ -313,7 +313,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
 		if (config("fabric.node.cleanRegistry", "true").equals("true")) {
 
-			String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistence\"=\"static\"%%'";
+			String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistence\":\"static\"%%'";
 
 			String[] updates = new String[] {String.format(template, "ACTORS", "ATTRIBUTES", "ATTRIBUTES"),
 					String.format(template, "BEARERS", "ATTRIBUTES", "ATTRIBUTES"),
