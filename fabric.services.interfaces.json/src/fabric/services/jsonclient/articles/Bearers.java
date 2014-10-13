@@ -174,7 +174,8 @@ public class Bearers extends FabricBus {
 
 					String attributes = resultArray[i].getAttributes();
 					if (attributes != null && !attributes.equals("null")) {
-						JSON attributesJson = new JSON(attributes);
+						JSON attributesJson = JsonUtils.stringTOJSON(attributes,
+								"Attribute value is not a valid JSON object");
 						bearer.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
 					}
 
@@ -218,7 +219,7 @@ public class Bearers extends FabricBus {
 
 			}
 
-			s.append(JsonUtils.generalSQLLogic(op));
+			s.append(JsonUtils.generateSQLLogic(op));
 
 			querySQL = s.toString();
 

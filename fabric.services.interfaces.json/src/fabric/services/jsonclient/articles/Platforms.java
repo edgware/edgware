@@ -175,7 +175,7 @@ public class Platforms extends FabricBus {
 						AdapterConstants.OP_QUERY_RESPONSE_PLATFORMS);
 				platformsQueryResult.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
 
-				for (int i = 0; i < resultArray.length; i++) {
+				for (int i = 0; status.isOK() && i < resultArray.length; i++) {
 
 					JSON nextPlatform = new JSON();
 
@@ -191,12 +191,14 @@ public class Platforms extends FabricBus {
 
 					String attributes = resultArray[i].getAttributes();
 					if (attributes != null && !attributes.equals("null")) {
-						JSON attributesJson = new JSON(attributes);
+						JSON attributesJson = JsonUtils.stringTOJSON(attributes,
+								"Attribute value is not a valid JSON object");
 						nextPlatform.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
 					}
 
 					platformList.add(nextPlatform);
 				}
+
 				platformsQueryResult.putJSONArray(AdapterConstants.FIELD_PLATFORMS, platformList);
 			}
 		} catch (Exception e) {
@@ -205,6 +207,7 @@ public class Platforms extends FabricBus {
 					AdapterConstants.ARTICLE_PLATFORM, message, correlId);
 			platformsQueryResult = status.toJsonObject();
 		}
+
 		return platformsQueryResult;
 	}
 
@@ -225,7 +228,7 @@ public class Platforms extends FabricBus {
 				s.append(jsonOperationObject.getString(AdapterConstants.FIELD_ID));
 				s.append("' AND ");
 			}
-			s.append(JsonUtils.generalSQLLogic(jsonOperationObject));
+			s.append(JsonUtils.generateSQLLogic(jsonOperationObject));
 			querySQL = s.toString();
 			/* Removes trailing AND in SQL query */
 			if (querySQL.endsWith(" AND ")) {
