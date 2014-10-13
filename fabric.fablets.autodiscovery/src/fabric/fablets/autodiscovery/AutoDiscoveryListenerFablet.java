@@ -34,7 +34,6 @@ import fabric.session.NodeDescriptor;
  * 
  * Bridge connections to external platform brokers requiring help or send config messages to the AutoDiscovery Fablet
  * for Node requests.
- * 
  */
 
 public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlugin {
@@ -42,10 +41,18 @@ public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlu
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
 
+	/*
+	 * Class constants
+	 */
+
 	private final static String CLASS_NAME = AutoDiscoveryListenerFablet.class.getName();
 	private final static String PACKAGE_NAME = AutoDiscoveryListenerFablet.class.getPackage().getName();
 
 	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
+
+	/*
+	 * Class fields
+	 */
 
 	/** The configuration object for this instance */
 	@SuppressWarnings("unused")
@@ -89,20 +96,23 @@ public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlu
 
 	private StringBuffer seenBuffer = null;
 
+	/*
+	 * Class methods
+	 */
+
 	public AutoDiscoveryListenerFablet() {
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see fabric.services.fabricmanager.plugins.FabricPlugin#startPlugin(fabric
-	 * .services.fabricmanager.plugins.PluginConfig)
+	/**
+	 * @see fabric.services.fabricmanager.plugins.FabricPlugin#startPlugin(fabric.services.fabricmanager.plugins.PluginConfig)
 	 */
 	@Override
 	public void startPlugin(IPluginConfig pluginConfig) {
+
 		String METHOD_NAME = "startPlugin";
 		logger.entering(CLASS_NAME, METHOD_NAME);
-		fabletConfig = (IFabletConfig) pluginConfig;
 
+		fabletConfig = (IFabletConfig) pluginConfig;
 		myNodeName = homeNode();
 		perfLoggingEnabled = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_PERF_LOGGING));
 		queueDepth = Integer.parseInt(this.config(ConfigProperties.AUTO_DISCOVERY_QUEUE_DEPTH,
@@ -114,21 +124,31 @@ public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlu
 		}
 
 		if (autoDiscoveryListenerEnabled) {
+
 			/* Create the request queue */
 			msgQueue = new MulticastRequestQueue(AutoDiscoveryListenerFablet.queueDepth);
-			// Get all the IPMappings for my node, listen on each one
+
+			/* Get all the IP mappings for my node */
 			NodeIpMapping[] nodeIpMappings = FabricRegistry.getNodeIpMappingFactory(true).getAllMappingsForNode(
 					myNodeName);
+
+			/* For each mapping... */
 			for (int i = 0; i < nodeIpMappings.length; i++) {
+				/* Listen */
 				NodeIpMapping nodeIpMapping = nodeIpMappings[i];
 				NetworkInterfaceListener interfaceListener = new NetworkInterfaceListener(nodeIpMapping, this, msgQueue);
 				interfaceListeners.add(interfaceListener);
 			}
+
 			autodiscoveryTopic = new OutputTopic(config(ConfigProperties.AUTO_DISCOVERY_TOPIC,
 					ConfigProperties.AUTO_DISCOVERY_TOPIC_DEFAULT, myNodeName));
+
 		} else {
+
 			logger.log(Level.INFO, "Auto discovery listener disabled");
+
 		}
+
 		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
 

@@ -1,0 +1,16 @@
+RegisterPlatformTypes1={"op":"register:platform-type", "type" : "Person", "desc" : "A Person", "correl" : "RegisterPlatformTypes1" }
+RegisterPlatformTypes1_response={"op":"status","correl":"RegisterPlatformTypes1","status":"00000","msg":"OK"}
+RegisterPlatformTypes2={"op":"register:platform-type", "type":"Building", "desc":"A Building", "correl" : "RegisterPlatformTypes2" }
+RegisterPlatformTypes2_response={"op":"status","correl":"RegisterPlatformTypes2","status":"00000","msg":"OK"}
+RegisterPlatformTypes3={"op":"register:platform-type", "type" : "Vehicle", "desc" : "A Vehicle", "correl" : "RegisterPlatformTypes3" }
+RegisterPlatformTypes3_response={"op":"status","correl":"RegisterPlatformTypes3","status":"00000","msg":"OK"}
+
+
+
+DeRegisterPlatformTypes1={"op":"deregister:platform-type", "type" : "Person", "correl" : "DeRegisterPlatformTypes1" }
+DeRegisterPlatformTypes1_response={"op":"status","correl":"DeRegisterPlatformTypes1","status":"00000","msg":"OK"}
+DeRegisterPlatformTypes2={"op":"deregister:platform-type", "type":"Building", "correl" : "DeRegisterPlatformTypes2" }
+DeRegisterPlatformTypes2_response={"op":"status","correl":"DeRegisterPlatformTypes2","status":"00000","msg":"OK"}
+DeRegisterPlatformTypes3={"op":"deregister:platform-type", "type" : "Vehicle","correl" : "DeRegisterPlatformTypes3" }
+DeRegisterPlatformTypes3_response={"op":"status","correl":"DeRegisterPlatformTypes3","status":"00000","msg":"OK"}
+

@@ -47,6 +47,15 @@ public interface Persistence {
 	 * @throws PersistenceException
 	 */
 	public void disconnect() throws PersistenceException;
+	
+	/**
+	 * 
+	 * Config for the Persistence which cannot be read from the Registry until connection has completed.
+	 * 
+	 * This method is called after connection and node setup to establish any config which can be defined within the registry
+	 * 
+	 */
+	public void initNodeConfig(Properties nodeConfig) throws PersistenceException;
 
 	/**
 	 * Run a query for Registry objects using the specified SQL SELECT statements.

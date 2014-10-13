@@ -62,6 +62,7 @@ public class AdapterConstants {
 	public static final int ARTICLE_SERVICE_TYPE = 0x0C;
 	public static final int ARTICLE_USER = 0x0D;
 	public static final int ARTICLE_USER_TYPE = 0x0E;
+	public static final int ARTICLE_NEIGHBOURS = 0x0F;
 
 	/* Supported operations */
 
@@ -73,11 +74,13 @@ public class AdapterConstants {
 	public static final String OP_DEREGISTER_NODE = "deregister:node";
 	public static final String OP_QUERY_LOCAL_NODE = "query:local-node";
 	public static final String OP_QUERY_NODES = "query:nodes";
+	public static final String OP_QUERY_NEIGHBOURS = "query:neighbours";
 	public static final String OP_REGISTER_NODE_TYPE = "register:node-type";
 	public static final String OP_DEREGISTER_NODE_TYPE = "deregister:node-type";
 	public static final String OP_QUERY_NODE_TYPES = "query:node-types";
 	public static final String OP_QUERY_RESPONSE_LOCAL_NODE = "query-result:local-node";
 	public static final String OP_QUERY_RESPONSE_NODES = "query-result:nodes";
+	public static final String OP_QUERY_RESPONSE_NEIGHBOURS = "query-result:neighbours";
 	public static final String OP_QUERY_RESPONSE_NODE_TYPES = "query-result:node-types";
 	public static final String OP_QUERY_RESPONSE_BEARERS = "query-result:bearers";
 
@@ -144,6 +147,7 @@ public class AdapterConstants {
 	public static final String FIELD_CLIENT_ID = "client-id";
 	public static final String FIELD_ID = "id";
 	public static final String FIELD_NODE_INTERFACE = "nodeInterface";
+	public static final String FIELD_NEIGHBOUR_INTERFACE = "neighbourInterface";
 	public static final String FIELD_TYPE = "type";
 	public static final String FIELD_SERVICES = "services";
 	public static final String FIELD_AVAILABILITY = "available";
@@ -163,6 +167,8 @@ public class AdapterConstants {
 	public static final String FIELD_NODE_TYPE = "node-type";
 	public static final String FIELD_NODE_TYPES = "node-types";
 	public static final String FIELD_NODES = "nodes";
+	public static final String FIELD_NEIGHBOUR = "neighbour";
+	public static final String FIELD_NEIGHBOURS = "neighbours";
 	public static final String FIELD_LOCATION = "loc";
 	public static final String FIELD_AFFIL = "affil";
 	public static final String FIELD_STATUS = "status";

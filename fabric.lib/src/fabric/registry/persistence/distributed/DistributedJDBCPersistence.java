@@ -50,8 +50,6 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 	SharedChannel commandChannel;
 	SharedChannel resultChannel;
 
-	private Properties myConfig;
-
 	// The service
 	public static String SERVICE_NAME = DistributedPersistenceFablet.class.getName();
 	public static String PLUGIN_FAMILY = Fabric.FABRIC_PLUGIN_FAMILY;
@@ -112,21 +110,26 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 		String METHOD_NAME = "init";
 		logger.entering(CLASS_NAME, METHOD_NAME, new Object[] {Url, config});
 		localJDBCPersistence.init(Url, config);
-		myConfig = config;
+		logger.exiting(CLASS_NAME, METHOD_NAME);
+	}
+
+	@Override
+	public void initNodeConfig(Properties config) throws PersistenceException {
+
 		nodeName = config.getProperty(ConfigProperties.NODE_NAME);
 		commandChannelTopic = new OutputTopic(config.lookupProperty(ConfigProperties.REGISTRY_COMMAND_TOPIC,
 				ConfigProperties.REGISTRY_COMMAND_TOPIC_DEFAULT, nodeName));
 		resultChannelTopic = new InputTopic(config.lookupProperty(ConfigProperties.REGISTRY_RESULT_TOPIC,
 				ConfigProperties.REGISTRY_RESULT_TOPIC_DEFAULT, nodeName));
 		logger.finest("RequestTopic = " + commandChannelTopic + " , ResponseTopicName = " + resultChannelTopic);
-		queryTimeOut = new Integer(config.getProperty(ConfigProperties.REGISTRY_DISTRIBUTED_TIMEOUT,
+		queryTimeOut = Integer.parseInt(config.getProperty(ConfigProperties.REGISTRY_DISTRIBUTED_TIMEOUT,
 				DEFAULT_RESPONSE_TIMEOUT));
 		queryTimeOutDecrement = new Integer(config.getProperty(ConfigProperties.REGISTRY_DISTRIBUTED_TIMEOUT_DECREMENT,
 				DEFAULT_RESPONSE_TIMEOUT_DECREMENT));
 		logger.finest("Query Response timeout set to = " + queryTimeOut);
-		logger.exiting(CLASS_NAME, METHOD_NAME);
+		
 	}
-
+	
 	@Override
 	public void connect() throws PersistenceException {
 
@@ -423,4 +426,5 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 
 		return localJDBCPersistence.getDistributedQueryResult(sqlString, nodeName);
 	}
+
 }

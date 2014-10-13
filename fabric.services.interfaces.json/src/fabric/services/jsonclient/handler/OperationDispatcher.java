@@ -70,6 +70,11 @@ public class OperationDispatcher extends FabricBus {
 			response = Nodes.query(op, correlId);
 			break;
 
+		case AdapterConstants.OP_QUERY_NEIGHBOURS:
+
+			response = Nodes.queryNeighbours(op, correlId);
+			break;
+
 		case AdapterConstants.OP_QUERY_NODE_TYPES:
 			response = NodeTypes.query(op, correlId);
 			break;

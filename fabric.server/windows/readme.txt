@@ -16,7 +16,6 @@ Windows Services for Edgware Introduction
 This readme describes using Edgware with the Windows Services framework.  It allows for the three Edgware components of the Edgware Registry, the Edgware Node and the Edgware Web Server to be run as Windows Services.
 
 
-
 Installation and Configuration
 ==============================
 
@@ -28,6 +27,7 @@ Batch files ending in:
  -edit.bat   : provide more detailed editing capabilities than is available via the Windows Services properties context menu
  
 The following four sub-sections describe how to install and configure Edgware for use as Windows Services.
+NOTE: There is a final section for troubleshooting.
 
 
 1. Pre-requisites
@@ -42,53 +42,33 @@ Extract the procrun.exe and procmgr.exe programs from the zip file and place the
 2. Edgware Registry
 ------------------
 
-Run the edgwareregistry-add.bat file to install the Edgware Registry as a Windows Service.
+Run the EdgwareRegistry-add.bat file to install the Edgware Registry as a Windows Service.
 
 Go to the Windows Services GUI (press F5 to refresh if you already have it open) and a new Edgware Registry option will now be available.  Start and stop the service in the normal way as for other Windows Services.
 
 The Edgware Registry is configured by default to start automatically when the machine boots.  You can modify this behaviour in the Windows Services GUI if you wish.
 
-The Edgware Registry type is configured by default to be gaian. If you have setup a distributed registry you would need to edit the edgwareregistry-add.bat file.
-You would change a line from "	--StartParams registry ++StartParams gaian;default ^" to "--StartParams registry ++StartParams distributed;default ^" as this is the parameter that controls which type of registry is started.
+The Edgware Registry type is configured by default to be distributed. If you have setup a gaian registry you would need to edit the EdgwareRegistry-add.bat file.
+You would change a line from "	--StartParams registry ++StartParams distributed;default ^" to "	--StartParams registry ++StartParams gaian;default ^" as this is the parameter that controls which type of registry is started.
 
-The Edgware Registry is configured by default to send trigger messages to the default Node. If you wish to send these triggers to a different node you would need to edit the edgwareregistry-add.bat file.
-You would change a line from "	--StartParams registry ++StartParams gaian;default ^" to "	--StartParams registry ++StartParams gaian;ExampleNode" as this is the parameter that controls which Edgware Node the triggers are sent to.
-
-
+The Edgware Registry is configured by default to send trigger messages to the default Node. If you wish to send these triggers to a different node you would need to edit the EdgwareRegistry-add.bat file.
+You would change a line from "	--StartParams registry ++StartParams distributed;default ^" to "	--StartParams registry ++StartParams distributed;ExampleNode ^" as this is the parameter that controls which Edgware Node the triggers are sent to.
 
 
-
-
-
-
-
-
-3. Broker
----------
-
-Run the broker-add.bat file to install the Broker as a Windows Service.
-
-Go to the Windows Services GUI (press F5 to refresh if you already have it open) and a new Fabric Broker option will now be available.  Start and stop the service in the normal way as for other Windows Services.
-
-The Broker is configured by default to start automatically when the machine boots.  You can modify this behaviour in the Windows Services GUI if you wish.
-
-
-4. Fabric Node(s)
+3. Edgware Node(s)
 -----------------
 
-By default the defaultnode-add.bat file will install the default Fabric node as a Windows Service.
-
-Go to the Windows Services GUI (press F5 to refresh if you already have it open) and a new Fabric Default Node option will now be available.  Start and stop the service in the normal way as for other Windows Services.
+Go to the Windows Services GUI (press F5 to refresh if you already have it open) and a new Edgware Node Default option will now be available.  Start and stop the service in the normal way as for other Windows Services.
 
 The Default Node is configured by default to start automatically when the machine boots.  You can modify this behaviour in the Windows Services GUI if you wish.
 
-If you wish to run additional nodes or nodes other than the default node then these can each be installed separately as a Windows Service.  You must first set up and configure the additional Fabric nodes.  The following example explains how to add a node you have already set up called "ExampleNode" as a Windows Service.
+If you wish to run additional nodes or nodes other than the default node then these can each be installed separately as a Windows Service.  You must first set up and configure the additional Edgware nodes.  The following example explains how to add a node you have already set up called "ExampleNode" as a Windows Service.
 
-Copy the defaultnode-add.bat file to examplenode-add.bat and edit the new examplenode-add.bat file.  It will contain an entry similar to the following:
+Copy the EdgwareNodeDefault-add.bat file to EdgwareExampleNode-add.bat and edit the new EdgwareExampleNode-add.bat file.  It will contain an entry similar to the following:
 
-%FABRIC_HOME%\server\windows\prunsrv //IS//FabricDefaultNode ^
-	--Description="Fabric Default Node" ^
-	--DisplayName="Fabric Default Node" ^
+%FABRIC_HOME%\server\windows\prunsrv //IS//EdgwareNodeDefault ^
+	--Description="Edgware Node Default" ^
+	--DisplayName="Edgware Node Default" ^
 	--Install="%FABRIC_HOME%\server\windows\prunsrv" ^
 	--Jvm auto ^
 	--Startup auto ^
@@ -101,17 +81,17 @@ Copy the defaultnode-add.bat file to examplenode-add.bat and edit the new exampl
 	--StopMethod stop ^
 	--Classpath %FABRIC_HOME%\server\windows\WindowsService.jar ^
 	--LogPath %FABRIC_HOME%\log\server ^
-	--LogPrefix fabricdefaultnode-procrun ^
+	--LogPrefix EdgwareNodeDefault-procrun ^
 	--LogLevel Info ^
 	--StdOutput auto ^
 	--StdError auto ^
-	--DependsOn FabricBroker
+	--DependsOn EdgwareRegistry
 	
 Change this to:
 
-%FABRIC_HOME%\server\windows\prunsrv //IS//FabricExampleNode ^
-	--Description="Fabric Example Node" ^
-	--DisplayName="Fabric Example Node" ^
+%FABRIC_HOME%\server\windows\prunsrv //IS//EdgwareExampleNode ^
+	--Description="Edgware Example Node" ^
+	--DisplayName="Edgware Example Node" ^
 	--Install="%FABRIC_HOME%\server\windows\prunsrv" ^
 	--Jvm auto ^
 	--Startup auto ^
@@ -124,21 +104,34 @@ Change this to:
 	--StopMethod stop ^
 	--Classpath %FABRIC_HOME%\server\windows\WindowsService.jar ^
 	--LogPath %FABRIC_HOME%\log\server ^
-	--LogPrefix fabricdefaultnode-procrun ^
+	--LogPrefix EdgwareExampleNode-procrun ^
 	--LogLevel Info ^
 	--StdOutput auto ^
 	--StdError auto ^
-	--DependsOn FabricBroker
-
-The important change in the above configuration is the change from "++StartParams default" to "++StartParams ExampleNode" as this is the parameter that controls which Fabric Node will be started by the associated Windows Service.  The other configuration entries are for human readability only.  The change to //IS//FabricExampleNode is also necessary since the short names of services inside Windows must be unique on each machine.  Note also that we specifically add a dependency on the Fabric Broker since this service is required by all Fabric Nodes.
+	--DependsOn EdgwareRegistry
+	
+The important change in the above configuration is the change from "++StartParams default" to "++StartParams ExampleNode" as this is the parameter that controls which Edgware Node will be started by the associated Windows Service.  The other configuration entries are for human readability only.  The change to //IS//EdgwareExampleNode is also necessary since the short names of services inside Windows must be unique on each machine.  Note also that we specifically add a dependency on the Edgware Registry since this service is required by all Edgware Nodes.
 
 For more information on these configuration options please refer to the procrun documentation [2].
+
+
+4. Web Server
+---------
+
+Run the EdgwareWebServer-add.bat file to install the Edgware Web Server as a Windows Service.
+
+Go to the Windows Services GUI (press F5 to refresh if you already have it open) and a new Edgware Web Server option will now be available.  Start and stop the service in the normal way as for other Windows Services.
+
+The Web Server is configured by default to start automatically when the machine boots.  You can modify this behaviour in the Windows Services GUI if you wish.
+
+The Edgware Web Server is configured by default to connect to the default Node. If you wish to connect to a different node you would need to edit the EdgwareWebServer-add.bat file.
+You would change the line from "	--StartParams webserver ++StartParams default ^" to "	--StartParams webserver ++StartParams ExampleNode ^" as this is the parameter that controls which Edgware Node the WebServer connects to.
 
 
 Logging
 =======
 
-Logs for all Fabric components running as Windows Services will appear in the directory %FABRIC_HOME%\log\server
+Logs for all Edgware components running as Windows Services will appear in the directory %FABRIC_HOME%\log\server
 
 Each service will have three separate log files:
   1) A log from Apache Commons Daemon itself

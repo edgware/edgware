@@ -164,7 +164,7 @@ public class Systems extends FabricBus {
 			String correlId) {
 
 		AdapterStatus status = new AdapterStatus(correlId);
-		TypeFactory typeFactory = FabricRegistry.getTypeFactory();
+		TypeFactory typeFactory = FabricRegistry.getTypeFactory(true);
 		Type serviceTypeRecord = null;
 
 		/* For each service... */
@@ -365,7 +365,7 @@ public class Systems extends FabricBus {
 		String[] serviceTypes = null;
 
 		/* Lookup the system type in the Registry */
-		TypeFactory typeFactory = FabricRegistry.getTypeFactory();
+		TypeFactory typeFactory = FabricRegistry.getTypeFactory(true);
 		Type type = typeFactory.getSystemType(systemType);
 
 		/* If we found it... */
@@ -477,7 +477,8 @@ public class Systems extends FabricBus {
 
 					String attributes = resultArray[i].getAttributes();
 					if (attributes != null && !attributes.equals("null")) {
-						JSON attributesJson = new JSON(attributes);
+						JSON attributesJson = JsonUtils.stringTOJSON(attributes,
+								"Attribute value is not a valid JSON object");
 						system.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
 					}
 
@@ -529,7 +530,7 @@ public class Systems extends FabricBus {
 
 			}
 
-			s.append(JsonUtils.generalSQLLogic(jsonOpObject));
+			s.append(JsonUtils.generateSQLLogic(jsonOpObject));
 
 			querySQL = s.toString();
 

@@ -655,4 +655,10 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
 		return queryResult;
 	}
 
+	@Override
+	public void initNodeConfig(Properties config) throws PersistenceException {
+		//No node specific config to establish
+		return;		
+	}
+
 }

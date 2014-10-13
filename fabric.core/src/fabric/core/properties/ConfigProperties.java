@@ -63,6 +63,15 @@ public class ConfigProperties {
 	 * the flood, to avoid requests timing-out before partial results are returned.
 	 **/
 	public static final String REGISTRY_DISTRIBUTED_TIMEOUT_DECREMENT = "registry.distributed.timeout.decrement";
+	
+	/** Configuration property indicating whether remote distributed queries received should be forwarded to our neighbours.
+	 *  Setting this to true will increase network traffic but would allow distributed queries to reach nodes not visible to the original querying node.
+	 */
+	public static final String REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY = "registry.distributed.flood.remote.query";
+
+	/**  Default value for indicating whether remote distributed queries should be forwarded to our neighbours */
+	public static final String REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY_DEFAULT = "false";
+
 
 	/** Distributed query topic configuration property. */
 	public static final String REGISTRY_COMMAND_TOPIC = "registry.distributed.command.topic";
@@ -242,7 +251,7 @@ public class ConfigProperties {
 	public static final String AUTO_DISCOVERY_TIMEOUT = "autodiscovery.timeout";
 
 	/** Default value for the time(milliseconds) after which a node if not seen becomes unavailable. */
-	public static final String AUTO_DISCOVERY_TIMEOUT_DEFAULT = "600000";
+	public static final String AUTO_DISCOVERY_TIMEOUT_DEFAULT = "65000";
 
 	/**
 	 * Configuration property for interval (in milliseconds) at which the sweeper checks for node neighbours that are no
@@ -255,6 +264,7 @@ public class ConfigProperties {
 	 */
 	public static final String AUTO_DISCOVERY_SWEEPER_INTERVAL_DEFAULT = "5510";
 
+	
 	/*
 	 * Class methods
 	 */

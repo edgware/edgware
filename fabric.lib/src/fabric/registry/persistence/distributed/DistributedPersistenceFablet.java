@@ -69,6 +69,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 	/** Flag used to indicate when the main thread should terminate */
 	private boolean isRunning = false;
+	
+	/** Indicates if we should forward a remote query onwards to all our known neighbours. **/
+	private boolean floodRemoteQuery = false;
 
 	// Allow concurrentAccess to parts of these Maps
 	/**
@@ -127,6 +130,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 		defaultQueryTimeoutDecrement = new Integer(DistributedJDBCPersistence.DEFAULT_RESPONSE_TIMEOUT_DECREMENT);
 		defaultQueryTimeOut = new Integer(DistributedJDBCPersistence.DEFAULT_RESPONSE_TIMEOUT);
 		perfLoggingEnabled = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_PERF_LOGGING));
+		floodRemoteQuery = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY, ConfigProperties.REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY_DEFAULT));
+
 		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
 
@@ -286,7 +291,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 					}
 
 					String querySQL = payload.getPayloadText();
-					logger.fine("Query: " + querySQL);
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: " + querySQL );
 					// If this is the originating node then indicate such
 					if (nodeName.equalsIgnoreCase(prevNode)) {
 						logger.finest("Add to list of correlationIds I am responsible for");
@@ -302,7 +307,13 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						returnResult(correlationId);
 					}
 
-					String[] nodes = serviceMessage.getRouting().nextNodes();
+					String[] nodes = null;
+					//Trim the nodes for flooding no point the query arriving twice in the same place
+					if (nodeName.equalsIgnoreCase(prevNode) || floodRemoteQuery) {
+					   //We are the initial node (we are local to query) or flooding is enabled so flood widely
+					    nodes = serviceMessage.getRouting().nextNodes();
+					}
+					
 					if (nodes == null || nodes.length == 0) {
 						// We have no onward route so no point waiting just respond
 						returnResult(correlationId);
@@ -335,13 +346,13 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						logger.exiting(CLASS_NAME, METHOD_NAME);
 						return;
 					}
-					logger.fine("Result Action for correlation Id = " + correlationId);
 					ByteArrayInputStream bytein = new ByteArrayInputStream(serviceMessage.getPayload()
 							.getPayloadBytes());
 					ObjectInputStream in = new ObjectInputStream(bytein);
 					DistributedQueryResult partialResult = (DistributedQueryResult) in.readObject();
 					in.close();
 					bytein.close();
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Result: " + partialResult.toString());
 					logger.finer("Pending Node : " + prevNode + " results returned");
 					logger.finest("Appending to results");
 

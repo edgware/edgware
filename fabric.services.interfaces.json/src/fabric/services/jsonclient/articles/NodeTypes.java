@@ -141,7 +141,8 @@ public class NodeTypes {
 
 					String attributes = resultArray[i].getAttributes();
 					if (attributes != null && !attributes.equals("null")) {
-						JSON attributesJson = new JSON(attributes);
+						JSON attributesJson = JsonUtils.stringTOJSON(attributes,
+								"Attribute value is not a valid JSON object");
 						type.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
 					}
 
@@ -175,7 +176,7 @@ public class NodeTypes {
 				s.append(jsonOpObject.getString(AdapterConstants.FIELD_TYPE));
 				s.append("' AND ");
 			}
-			s.append(JsonUtils.generalSQLLogic(jsonOpObject));
+			s.append(JsonUtils.generateSQLLogic(jsonOpObject));
 			querySQL = s.toString();
 
 			/* Removes trailing AND in SQL query */

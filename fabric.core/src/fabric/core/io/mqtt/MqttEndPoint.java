@@ -298,7 +298,7 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
 		} catch (IOException e1) {
 
-			logger.log(Level.FINEST, "Cannot reconnect to the broker: ", e1);
+			logger.log(Level.FINEST, "Cannot reconnect to the broker: ");
 			callback.endPointLost(this);
 
 		}
@@ -470,6 +470,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
 				logger.log(Level.FINE, "Connecting to \"{0}\" as \"{1}\"", new Object[] {config.getbrokerIpAddress(),
 						config.getClient()});
+				logger.log(Level.FINER, "with ConnectionMessageTopic \"{0}\" with LWT payload \"{1}\"", new Object[] {config.getConnectionMessageTopic(),
+						config.getDisconnectMessage()});
 
 				/* If there is not last will and testament... */
 				if (config.getConnectionMessageTopic() == null) {
@@ -501,7 +503,7 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
 				connected = true;
 
-				logger.log(Level.FINE, "Connected to \"{0}\" as \"{1}\"", new Object[] {config.getbrokerIpAddress(),
+				logger.log(Level.INFO, "Connected to \"{0}\" as \"{1}\"", new Object[] {config.getbrokerIpAddress(),
 						config.getClient()});
 
 			} catch (Exception e) {
