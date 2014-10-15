@@ -398,7 +398,7 @@ public class RegistryTool {
 		script[0] = distributedDBConnect;
 
 		fromSQL = isGaian ? ", gdb_node from NODE_NEIGHBOURS_P" : " from NODE_NEIGHBOURS";
-		script[1] = String.format("select node_id, neighbour_id%s order by node_id, neighbour_id", fromSQL);
+		script[1] = String.format("select node_id, neighbour_id, availability%s order by node_id, neighbour_id", fromSQL);
 	}
 
 	private static void listTaskSystemsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
