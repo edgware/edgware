@@ -322,7 +322,26 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 	@Override
 	public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
 
-		logger.log(Level.FINEST, "handleDisconnectMessage() callback invoked with message:\n{0}", message);
+		logger.log(Level.FINEST, "Handling subscription event {0} from message: {1}", new Object[] {event, message});
+
+		if (event == IServiceMessage.EVENT_SUBSCRIPTION_LOST) {
+
+			/* Get the mappings between input-feeds and output-feeds for this system */
+			HashMap<ServiceDescriptor, ServiceDescriptor> feedMappings = systemServices.wiredInputFeedMappings();
+			ServiceDescriptor outputFeed = subscription.feed().toServiceDescriptor();
+			ServiceDescriptor inputFeed = feedMappings.get(outputFeed);
+
+			try {
+				/* Clean up */
+				unsubscribe(new ServiceDescriptor[] {outputFeed}, inputFeed);
+			} catch (Exception e) {
+				logger.log(Level.FINE, "Failed to unsubscribe from feed \"{0}\" (input feed \"{1}\": {2}",
+						new Object[] {outputFeed, LogUtil.stackTrace(e)});
+			}
+
+		}
+
+		/* Give the system a chance to handle the message */
 		systemInstance.handleSubscriptionEvent(subscription, event, message);
 
 	}
@@ -451,16 +470,19 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 	 * @param inputFeedService
 	 *            the local service to which feed messages will be delivered.
 	 * 
+	 * @return <code>true</code> if this is a new subscription, <code>false</code> otherwise.
+	 * 
 	 * @throws Exception
-	 *             thrown if the message cannot be forwarded.
 	 */
-	public void subscribe(ServiceDescriptor outputFeedService, ServiceDescriptor inputFeedService) throws Exception {
+	public boolean subscribe(ServiceDescriptor outputFeedService, ServiceDescriptor inputFeedService) throws Exception {
+
+		boolean isNewSubscription = true;
 
 		/* If this is a valid input feed... */
 		if (systemServices.inputFeedIDs().contains(inputFeedService.service())) {
 
 			/* Subscribe */
-			systemServices.wireInputFeed(outputFeedService, inputFeedService.service());
+			isNewSubscription = systemServices.wireInputFeed(outputFeedService, inputFeedService.service());
 
 		} else {
 
@@ -469,6 +491,8 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 			throw new IllegalArgumentException(error);
 
 		}
+
+		return isNewSubscription;
 	}
 
 	/**
@@ -491,7 +515,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 		if (systemServices.inputFeedIDs().contains(inputFeedService.service())) {
 
 			/* If no output feed services have been specified... */
-			if (outputFeedServices == null) {
+			if (outputFeedServices == null || outputFeedServices.length == 0) {
 
 				/* To hold the list of feeds to unsubscribe from */
 				ArrayList<ServiceDescriptor> outputFeedList = new ArrayList<ServiceDescriptor>();
@@ -808,6 +832,17 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 		sendServiceMessage(responseMessage);
 
 		return responseMessage.getCorrelationID();
+
+	}
+
+	/**
+	 * Answers the <code>ISystem</code> associated with this instance.
+	 * 
+	 * @return the <code>ISystem</code>, or <code>null</code> if it has not been instantiated.
+	 */
+	public ISystem system() {
+
+		return systemInstance;
 
 	}
 
