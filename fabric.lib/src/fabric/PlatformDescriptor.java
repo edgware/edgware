@@ -137,7 +137,7 @@ public class PlatformDescriptor {
 	 * 
 	 * @return the platform descriptor
 	 */
-	public String toStringDescriptor() {
+	public String toFullDescriptor() {
 
 		/* If we need to generate the string form of this instance... */
 		if (toStringDescriptor == null) {
@@ -176,7 +176,7 @@ public class PlatformDescriptor {
 		boolean isEqual = false;
 
 		if (obj != null) {
-			isEqual = toStringDescriptor().equals(obj.toStringDescriptor());
+			isEqual = toFullDescriptor().equals(obj.toFullDescriptor());
 		}
 
 		return isEqual;
