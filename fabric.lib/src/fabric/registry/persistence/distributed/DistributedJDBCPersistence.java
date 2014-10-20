@@ -426,5 +426,29 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 
 		return localJDBCPersistence.getDistributedQueryResult(sqlString, nodeName);
 	}
+	
+	/**
+	 * Allow access to the greater information within a DistributedQueryResult
+	 * 
+	 * @param queryString
+	 * @param localOnly
+	 * @return
+	 * @throws PersistenceException
+	 */
+	public DistributedQueryResult distributedQuery(String queryString, boolean localOnly) throws PersistenceException {
+
+		String METHOD_NAME = "query";
+		logger.entering(CLASS_NAME, METHOD_NAME, new Object[] {queryString, localOnly});
+		DistributedQueryResult result;
+		if (localOnly) {
+			result = localJDBCPersistence.getDistributedQueryResult(queryString, nodeName);
+		} else {
+			ServiceMessage serviceMessage = constructMessage(queryString);
+			result = distributeQuery(serviceMessage);
+		}
+		logger.exiting(CLASS_NAME, METHOD_NAME, result);
+		return result;
+	}
+
 
 }
