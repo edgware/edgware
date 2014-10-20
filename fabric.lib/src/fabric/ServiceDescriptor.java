@@ -242,14 +242,24 @@ public class ServiceDescriptor extends SystemDescriptor {
 	 * @return the service descriptor.
 	 */
 	@Override
-	public String toStringDescriptor() {
+	public String toFullDescriptor() {
 
 		if (toStringDescriptor == null) {
-			toStringDescriptor = super.toStringDescriptor() + '/' + service
+			toStringDescriptor = super.toFullDescriptor() + '/' + service
 					+ ((serviceType != null) ? ':' + serviceType : "") + ((mode != null) ? ':' + mode : "");
 		}
 
 		return toStringDescriptor;
 
+	}
+
+	/**
+	 * Answers a new system descriptor instance for this service descriptor.
+	 * 
+	 * @return a new system descriptor corresponding to this service descriptor.
+	 */
+	public SystemDescriptor toSystemDescriptor() {
+
+		return new SystemDescriptor(this);
 	}
 }
