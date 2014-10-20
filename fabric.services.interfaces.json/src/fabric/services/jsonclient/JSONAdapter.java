@@ -9,10 +9,13 @@
 
 package fabric.services.jsonclient;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import fabric.FabricBus;
+import fabric.ServiceDescriptor;
 import fabric.bus.messages.IClientNotificationMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.client.FabricPlatform;
@@ -23,6 +26,7 @@ import fabric.core.io.IEndPointCallback;
 import fabric.core.io.mqtt.MqttConfig;
 import fabric.core.logging.LogUtil;
 import fabric.services.json.JSON;
+import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.articles.Nodes;
 import fabric.services.jsonclient.articles.Platforms;
 import fabric.services.jsonclient.handler.OperationDispatcher;
@@ -118,6 +122,42 @@ public abstract class JSONAdapter extends FabricBus implements IHomeNodeConnecti
 		runtimeManager.stop();
 		fabricPlatform.deregisterActor(adapterUserID);
 		fabricPlatform.deregisterPlatform(adapterPlatformID);
+	}
+
+	/**
+	 * Builds a subscription response message.
+	 * 
+	 * @param outputFeedList
+	 *            the list of feeds to which subscriptions have been made.
+	 * 
+	 * @param inputFeed
+	 *            the input feed to which the subscriptions are mapped.
+	 * 
+	 * @param correlId
+	 *            The correlation ID of the request.
+	 * 
+	 * @return the JSON object containing the response message.
+	 */
+	public static JSON buildSubscriptionResponse(List<ServiceDescriptor> outputFeedList, ServiceDescriptor inputFeed,
+			String correlId) {
+
+		JSON subscriptionResponse = new JSON();
+
+		/* Build the list of output feeds */
+		List<String> outputFeeds = new ArrayList<String>();
+		for (ServiceDescriptor nextFeed : outputFeedList) {
+			outputFeeds.add(nextFeed.toString());
+		}
+		JSONArray outputFeedJSON = new JSONArray();
+		outputFeedJSON.putStringList(outputFeeds);
+
+		/* Build the full message */
+		subscriptionResponse.putString(AdapterConstants.FIELD_OPERATION, AdapterConstants.OP_SUBSCRIPTIONS);
+		subscriptionResponse.putJSONArray(AdapterConstants.FIELD_OUTPUT_FEEDS, outputFeedJSON);
+		subscriptionResponse.putString(AdapterConstants.FIELD_INPUT_FEED, inputFeed.toString());
+		subscriptionResponse.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
+
+		return subscriptionResponse;
 	}
 
 	/**
