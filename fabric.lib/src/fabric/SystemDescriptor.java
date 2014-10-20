@@ -167,15 +167,25 @@ public class SystemDescriptor extends PlatformDescriptor {
 	 * @return the system descriptor.
 	 */
 	@Override
-	public String toStringDescriptor() {
+	public String toFullDescriptor() {
 
 		if (toStringDescriptor == null) {
-			toStringDescriptor = super.toStringDescriptor() + '/' + system
+			toStringDescriptor = super.toFullDescriptor() + '/' + system
 					+ ((systemType != null) ? ':' + systemType : "");
 		}
 
 		return toStringDescriptor;
 
+	}
+
+	/**
+	 * Answers a new platform descriptor instance for this service descriptor.
+	 * 
+	 * @return a new system descriptor corresponding to this service descriptor.
+	 */
+	public PlatformDescriptor toPlatformDescriptor() {
+
+		return new PlatformDescriptor(this);
 	}
 
 	/**
