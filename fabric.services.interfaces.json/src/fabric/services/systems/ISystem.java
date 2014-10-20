@@ -126,4 +126,11 @@ public interface ISystem extends ISubscriptionCallback {
 	 */
 	public void handleOneWay(String requestResponseFeedID, IFeedMessage message);
 
+	/**
+	 * Sends a JSON message to the system client.
+	 * 
+	 * @param jsonMessage
+	 *            the message to send.
+	 */
+	public abstract void sendToClient(String jsonMessage);
 }
