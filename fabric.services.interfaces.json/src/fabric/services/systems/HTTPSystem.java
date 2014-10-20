@@ -10,6 +10,7 @@
 package fabric.services.systems;
 
 import java.io.IOException;
+import java.util.logging.Level;
 
 import org.eclipse.jetty.websocket.api.Session;
 
@@ -18,6 +19,8 @@ import fabric.SystemDescriptor;
 import fabric.bus.feeds.ISubscription;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
+import fabric.core.logging.LogUtil;
+import fabric.services.json.JSON;
 
 /**
  * Class implementing the adapter proxy for an HTTP JSON Fabric client.
@@ -28,8 +31,21 @@ public class HTTPSystem extends JSONSystem {
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
 
 	/*
+	 * Class fields
+	 */
+
+	/* To hold the session via which to communicate with the client */
+	private Session session = null;
+
+	/*
 	 * Class methods
 	 */
+
+	/**
+	 * Constructs a new instance.
+	 */
+	public HTTPSystem() {
+	}
 
 	/**
 	 * @see fabric.bus.feeds.ISubscriptionCallback#startSubscriptionCallback()
@@ -102,11 +118,9 @@ public class HTTPSystem extends JSONSystem {
 	@Override
 	public void handleInput(String inputFeedID, IFeedMessage message) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = inputToJSON(message);
-
-		/* Send the message to the client */
-		sendResponse((Session) container.getClient(), jsonMessage);
+		sendToClient(jsonMessage);
 	}
 
 	/**
@@ -116,11 +130,9 @@ public class HTTPSystem extends JSONSystem {
 	@Override
 	public void handleSolicitedResponse(String correlationID, String responseFeedID, IFeedMessage message) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = solicitedResponseToJSON(correlationID, message);
-
-		/* Send the message to the client */
-		sendResponse((Session) container.getClient(), jsonMessage);
+		sendToClient(jsonMessage);
 	}
 
 	/**
@@ -131,11 +143,9 @@ public class HTTPSystem extends JSONSystem {
 	public void handleRequestResponse(String correlationID, ServiceDescriptor sendTo, IFeedMessage message,
 			ServiceDescriptor replyTo) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = requestResponsetoJSON(correlationID, message, replyTo);
-
-		/* Send the message to the client */
-		sendResponse((Session) container.getClient(), jsonMessage);
+		sendToClient(jsonMessage);
 	}
 
 	/**
@@ -144,19 +154,41 @@ public class HTTPSystem extends JSONSystem {
 	@Override
 	public void handleOneWay(String requestResponseFeedID, IFeedMessage message) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = oneWayToJSON(message);
-
-		/* Send the message to the client */
-		sendResponse((Session) container.getClient(), jsonMessage);
+		sendToClient(jsonMessage);
 	}
 
-	private void sendResponse(Session session, String message) {
+	/**
+	 * @see fabric.services.systems.JSONSystem#sendToClient(java.lang.String)
+	 */
+	@Override
+	public void sendToClient(String jsonMessage) {
 
 		try {
-			session.getRemote().sendString(message);
+
+			if (session == null) {
+				/* Get the session via which to communicate with the client */
+				session = (Session) container.getClient();
+			}
+
+			session.getRemote().sendString(jsonMessage);
+
 		} catch (IOException e) {
-			e.printStackTrace();
+
+			JSON json = null;
+			String type = jsonMessage;
+
+			try {
+				json = new JSON(jsonMessage);
+				type = json.getString("op");
+			} catch (Exception e1) {
+				/* Nothing to do here */
+			}
+
+			logger.log(Level.SEVERE, "Failed to deliver \"{0}\" message to client via session \"{1}\": {2}",
+					new Object[] {type, session, LogUtil.stackTrace(e)});
+
 		}
 	}
 }

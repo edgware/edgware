@@ -18,6 +18,7 @@ import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.core.io.OutputTopic;
 import fabric.core.logging.LogUtil;
+import fabric.services.json.JSON;
 
 /**
  * Class implementing the adapter proxy for an MQTT JSON Fabric client.
@@ -28,8 +29,21 @@ public class MQTTSystem extends JSONSystem {
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
 
 	/*
+	 * Class fields
+	 */
+
+	/* To hold the topic via which to communicate with the client */
+	private OutputTopic topic = null;
+
+	/*
 	 * Class methods
 	 */
+
+	/**
+	 * Constructs a new instance.
+	 */
+	public MQTTSystem() {
+	}
 
 	/**
 	 * @see fabric.bus.feeds.ISubscriptionCallback#startSubscriptionCallback()
@@ -102,19 +116,9 @@ public class MQTTSystem extends JSONSystem {
 	@Override
 	public void handleInput(String inputFeedID, IFeedMessage message) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = inputToJSON(message);
-
-		/* Generate the correct client topic */
-		OutputTopic topic = new OutputTopic(config("fabric.adapters.mqtt.outtopic", null, homeNode()) + '/'
-				+ container.getClient());
-		try {
-			/* Send the message to the client */
-			container.fabricClient().getIOChannels().sendCommandsChannel.write(jsonMessage.getBytes(), topic);
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Failed to deliver feed message to client on topic \"{0}\": {1}", new Object[] {
-					topic, LogUtil.stackTrace(e)});
-		}
+		sendToClient(jsonMessage);
 	}
 
 	/**
@@ -124,19 +128,9 @@ public class MQTTSystem extends JSONSystem {
 	@Override
 	public void handleSolicitedResponse(String correlationID, String responseFeedID, IFeedMessage message) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = solicitedResponseToJSON(correlationID, message);
-
-		/* Generate the correct client topic */
-		OutputTopic topic = new OutputTopic(config("fabric.adapters.mqtt.outtopic", null, homeNode()) + '/'
-				+ container.getClient());
-		try {
-			/* Send the message to the client */
-			container.fabricClient().getIOChannels().sendCommandsChannel.write(jsonMessage.getBytes(), topic);
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Failed to deliver response message to client on topic \"{0}\": {1}",
-					new Object[] {topic, LogUtil.stackTrace(e)});
-		}
+		sendToClient(jsonMessage);
 	}
 
 	/**
@@ -147,20 +141,9 @@ public class MQTTSystem extends JSONSystem {
 	public void handleRequestResponse(String correlationID, ServiceDescriptor sendTo, IFeedMessage message,
 			ServiceDescriptor replyTo) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = requestResponsetoJSON(correlationID, message, replyTo);
-
-		/* Generate the correct client topic */
-		OutputTopic topic = new OutputTopic(config("fabric.adapters.mqtt.outtopic", null, homeNode()) + '/'
-				+ container.getClient());
-
-		try {
-			/* Send the message to the client */
-			container.fabricClient().getIOChannels().sendCommandsChannel.write(jsonMessage.getBytes(), topic);
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Failed to deliver request message to client on topic \"{0}\": {1}", new Object[] {
-					topic, LogUtil.stackTrace(e)});
-		}
+		sendToClient(jsonMessage);
 	}
 
 	/**
@@ -169,19 +152,43 @@ public class MQTTSystem extends JSONSystem {
 	@Override
 	public void handleOneWay(String requestResponseFeedID, IFeedMessage message) {
 
-		/* Build the JSON message to deliver to the client */
+		/* Build and send the JSON message to the client */
 		String jsonMessage = oneWayToJSON(message);
+		sendToClient(jsonMessage);
+	}
 
-		/* Generate the correct client topic */
-		OutputTopic topic = new OutputTopic(config("fabric.adapters.mqtt.outtopic", null, homeNode()) + '/'
-				+ container.getClient());
+	/**
+	 * @see fabric.services.systems.JSONSystem#sendToClient(java.lang.String)
+	 */
+	@Override
+	public void sendToClient(String jsonMessage) {
 
 		try {
+
+			if (topic == null) {
+				/* Set the topic via which to communicate with the client */
+				topic = new OutputTopic(config("fabric.adapters.mqtt.outtopic", null, homeNode()) + '/'
+						+ container.getClient());
+			}
+
 			/* Send the message to the client */
 			container.fabricClient().getIOChannels().sendCommandsChannel.write(jsonMessage.getBytes(), topic);
+
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Failed to deliver notification message to client on topic \"{0}\": {1}",
-					new Object[] {topic, LogUtil.stackTrace(e)});
+
+			JSON json = null;
+			String type = jsonMessage;
+
+			try {
+				json = new JSON(jsonMessage);
+				type = json.getString("op");
+			} catch (Exception e1) {
+				/* Nothing to do here */
+			}
+
+			logger.log(Level.SEVERE, "Failed to deliver \"{0}\" message to client on topic \"{1}\": {2}", new Object[] {
+					type, topic, LogUtil.stackTrace(e)});
+
 		}
 	}
 }
