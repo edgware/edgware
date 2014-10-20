@@ -149,12 +149,22 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 	 * @return the task service descriptor.
 	 */
 	@Override
-	public String toStringDescriptor() {
+	public String toFullDescriptor() {
 
 		if (toStringDescriptor == null) {
-			toStringDescriptor = task + '#' + super.toStringDescriptor();
+			toStringDescriptor = task + '#' + super.toFullDescriptor();
 		}
 
 		return toStringDescriptor;
+	}
+
+	/**
+	 * Answers a new service descriptor instance for this task service descriptor.
+	 * 
+	 * @return a new service descriptor corresponding to this task service descriptor.
+	 */
+	public ServiceDescriptor toServiceDescriptor() {
+
+		return new ServiceDescriptor(this);
 	}
 }
