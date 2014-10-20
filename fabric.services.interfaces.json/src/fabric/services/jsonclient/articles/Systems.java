@@ -29,6 +29,7 @@ import fabric.registry.Type;
 import fabric.registry.TypeFactory;
 import fabric.services.json.JSON;
 import fabric.services.json.JSONArray;
+import fabric.services.jsonclient.JSONAdapter;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 import fabric.services.jsonclient.utilities.JsonUtils;
@@ -939,13 +940,13 @@ public class Systems extends FabricBus {
 				RuntimeStatus subscribeStatus = runtimeManager.subscribe(patternDescriptors, inputFeedDescriptor,
 						subscribedList);
 
-				if (subscribeStatus.getStatus() != RuntimeStatus.Status.OK) {
+				if (!subscribeStatus.isOK()) {
 					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_SUBSCRIBE,
 							AdapterConstants.ARTICLE_SYSTEM, subscribeStatus.getStatus() + ": "
 									+ subscribeStatus.getMessage(), correlId);
 				}
 
-				response = buildSubscriptionResponse(subscribedList, inputFeed, correlId);
+				response = JSONAdapter.buildSubscriptionResponse(subscribedList, inputFeedDescriptor, correlId);
 			}
 
 		} catch (Exception e) {
@@ -959,42 +960,6 @@ public class Systems extends FabricBus {
 		response = (response == null) ? status.toJsonObject() : response;
 
 		return response;
-	}
-
-	/**
-	 * Builds a subscription response message.
-	 * 
-	 * @param outputFeedList
-	 *            the list of feeds to which subscriptions have been made.
-	 * 
-	 * @param inputFeed
-	 *            the input feed to which the subscriptions are mapped.
-	 * 
-	 * @param correlId
-	 *            The correlation ID of the request.
-	 * 
-	 * @return the JSON object containing the response message.
-	 */
-	private static JSON buildSubscriptionResponse(List<ServiceDescriptor> outputFeedList, String inputFeed,
-			String correlId) {
-
-		JSON subscriptionResponse = new JSON();
-
-		/* Build the list of output feeds */
-		List<String> outputFeeds = new ArrayList<String>();
-		for (ServiceDescriptor nextFeed : outputFeedList) {
-			outputFeeds.add(nextFeed.toString());
-		}
-		JSONArray outputFeedJSON = new JSONArray();
-		outputFeedJSON.putStringList(outputFeeds);
-
-		/* Build the full message */
-		subscriptionResponse.putString(AdapterConstants.FIELD_OPERATION, AdapterConstants.OP_SUBSCRIPTIONS);
-		subscriptionResponse.putJSONArray(AdapterConstants.FIELD_OUTPUT_FEEDS, outputFeedJSON);
-		subscriptionResponse.putString(AdapterConstants.FIELD_INPUT_FEED, inputFeed);
-		subscriptionResponse.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
-
-		return subscriptionResponse;
 	}
 
 	/**
@@ -1046,7 +1011,7 @@ public class Systems extends FabricBus {
 				/* Unsubscribe */
 				RuntimeStatus unsubscribeStatus = runtimeManager.unsubscribe(sourceFeeds, deliverToDescriptor);
 
-				if (unsubscribeStatus.getStatus() != RuntimeStatus.Status.OK) {
+				if (!unsubscribeStatus.isOK()) {
 					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_UNSUBSCRIBE,
 							AdapterConstants.ARTICLE_SYSTEM, unsubscribeStatus.getStatus() + ": "
 									+ unsubscribeStatus.getMessage(), correlId);
