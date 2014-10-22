@@ -457,7 +457,7 @@ public class SystemServices extends FabricBus {
 			} else {
 
 				logger.log(Level.FINE,
-						"Already subscribed to remote feed '%s' (wired to local feed %s) for service instance '%s':",
+						"Already subscribed to remote feed {0} (wired to local feed {1}) for service instance {2}:",
 						new Object[] {remoteOutputTaskDescriptor, localInputDescriptor,
 								systemRuntime.systemDescriptor()});
 
