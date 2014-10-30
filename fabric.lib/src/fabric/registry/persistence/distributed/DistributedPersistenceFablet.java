@@ -597,7 +597,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 			// Add SQL query to service message
 			MessagePayload mp = new MessagePayload();
-			mp.setPayloadText(results.toJsonString());
+			synchronized (results) {
+				mp.setPayloadText(results.toJsonString());
+			}
 			serviceMessage.setPayload(mp);
 			logger.finest("About to send a final response to " + resultChannelTopic);
 			resultChannel = FabricRegistry.homeNodeEndPoint.openOutputChannel(resultChannelTopic);
@@ -634,7 +636,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 			// Add result to service message
 			MessagePayload mp = new MessagePayload();
-			mp.setPayloadText(results.toJsonString());				
+			synchronized (results) {
+				mp.setPayloadText(results.toJsonString());				
+			}
 			serviceMessage.setPayload(mp);
 
 			logger.fine("Sending command: " + serviceMessage.toXML());
@@ -700,7 +704,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 		// Add result to service message
 		MessagePayload mp = new MessagePayload();
-		mp.setPayloadText(results.toJsonString());	
+		synchronized (results) {
+			mp.setPayloadText(results.toJsonString());	
+		}
 		serviceMessage.setPayload(mp);
 
 		logger.fine("Sending command: " + serviceMessage.toXML());
