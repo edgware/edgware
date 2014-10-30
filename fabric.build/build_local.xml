@@ -405,7 +405,7 @@
 		<antcall target="buildJar">
 			<param name="src.dir" value="${project-src.fabric.lib}" />
 			<param name="bin.dir" value="${project-bin.fabric.lib}" />
-			<param name="classpath" value="${project-bundle.fabric.core};${jar.apache.commons.cli}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${jar.jackson.core};${jar.jackson.databind};${jar.apache.commons.cli}" />
 			<param name="jar.file" value="${project-bundle.fabric.lib}" />
 			<param name="debug" value="true" />
 			<param name="debuglevel" value="lines,vars,source" />

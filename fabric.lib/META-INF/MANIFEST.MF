@@ -6,7 +6,8 @@ Bundle-SymbolicName: fabric.lib
 Bundle-Version: 0.4.0
 Bundle-Copyright: (C) Copyright IBM Corp. 2006, 2014
 Bundle-Vendor: IBM
-Require-Bundle: fabric.core
+Require-Bundle: fabric.core,
+ bundle.jackson
 Export-Package: fabric,
  fabric.bus,
  fabric.bus.feeds,

@@ -386,12 +386,9 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 				case DistributedJDBCPersistence.FINAL_RESULT_ACTION:
 					if (waitThreadsByCorrelationId.containsKey(correlationId)) {
 						logger.finest("This is a correlationId I am looking for");
-						ByteArrayInputStream bytein = new ByteArrayInputStream(serviceMessage.getPayload()
-								.getPayloadBytes());
-						ObjectInputStream in = new ObjectInputStream(bytein);
-						DistributedQueryResult result = (DistributedQueryResult) in.readObject();
-						in.close();
-						bytein.close();
+						DistributedQueryResult result = new DistributedQueryResult();
+						String payloadFormat = "json";
+						result.append(serviceMessage.getPayload().getPayload(), payloadFormat);
 						logger.finest("Got the DistributedQueryResult");
 						resultByCorrelationId.put(correlationId, result);
 						waitThreadsByCorrelationId.remove(correlationId).interrupt();

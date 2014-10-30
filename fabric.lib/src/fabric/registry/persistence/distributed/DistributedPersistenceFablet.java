@@ -346,23 +346,21 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						logger.exiting(CLASS_NAME, METHOD_NAME);
 						return;
 					}
-					ByteArrayInputStream bytein = new ByteArrayInputStream(serviceMessage.getPayload()
-							.getPayloadBytes());
-					ObjectInputStream in = new ObjectInputStream(bytein);
-					DistributedQueryResult partialResult = (DistributedQueryResult) in.readObject();
-					in.close();
-					bytein.close();
-					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Result: " + partialResult.toString());
+					//Get Json bytes to append to our resultset.
+					byte[] payloadBytes = serviceMessage.getPayload().getPayload();
+					//Currently only json payload handled
+					String payloadFormat = "json";
+					
 					logger.finer("Pending Node : " + prevNode + " results returned");
 					logger.finest("Appending to results");
-
 					DistributedQueryResult currentResult = resultByCorrelationId.get(correlationId);
 					// Acquire lock for result so we can complete append.
 					// Prevents another thread acquiring lock and returning a result while we are in middle of
 					// appending.
 					synchronized (currentResult) {
-						currentResult.append(partialResult);
+						currentResult.append(payloadBytes, payloadFormat);
 					}
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Result for this correlationId is now : " + currentResult.toString());
 					int numberOfNodesPending = updatePendingNodeByCorrelationIds(correlationId, prevNode);
 					if (numberOfNodesPending < 0) {
 						// Thread timeout has already processed this correlationID we missed our window so just return
@@ -467,11 +465,11 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 				+ prevNode + "' and name='" + ConfigProperties.REGISTRY_UID + "'", true);
 		logger.finest("Previous Node " + prevNode + " Registry UID = " + prevNodeRegistryUID + " my " + nodeName
 				+ " registryUID = " + myRegistryUID);
-		if (prevNode.equals(nodeName) || (myRegistryUID == null) || prevNodeRegistryUID == null
+		if (prevNode.equals(nodeName) || myRegistryUID == null || prevNodeRegistryUID == null
 				|| !myRegistryUID.equals(prevNodeRegistryUID)) {
 			// Execute our query locally before we flood
 			try {
-				// Populate Results
+				// Get local Results
 				DistributedQueryResult queryResult = jdbcp.getDistributedQueryResult(querySQL, nodeName);
 				resultByCorrelationId.put(correlationId, queryResult);
 			} catch (Exception e) {
@@ -479,14 +477,12 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 				DistributedQueryResult result = new DistributedQueryResult(nodeName, null);
 				result.setException(e, nodeName);
 				resultByCorrelationId.put(correlationId, result);
-
 				logger.finer(e.getMessage());
 				returnImmediately = true;
 				logger.exiting(CLASS_NAME, METHOD_NAME);
-
 			}
 		} else {
-			// We record an empty partial resultset
+			// We record an empty partial resultset as we don't run the query
 			DistributedQueryResult result = new DistributedQueryResult(nodeName, null);
 			resultByCorrelationId.put(correlationId, result);
 			logger.finest("Created empty partial result");
@@ -601,16 +597,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 			// Add SQL query to service message
 			MessagePayload mp = new MessagePayload();
-			ByteArrayOutputStream byteos = new ByteArrayOutputStream();
-			ObjectOutputStream outStream = new ObjectOutputStream(byteos);
-			// Synchronise on our results so noone can append anything to them while we are serialising
-			// Our append call is wrapped in synchronize
-			synchronized (results) {
-				outStream.writeObject(results);
-			}
-			outStream.close();
-			byteos.close();
-			mp.setPayloadBytes(byteos.toByteArray());
+			mp.setPayloadText(results.toJsonString());
 			serviceMessage.setPayload(mp);
 			logger.finest("About to send a final response to " + resultChannelTopic);
 			resultChannel = FabricRegistry.homeNodeEndPoint.openOutputChannel(resultChannelTopic);
@@ -647,16 +634,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 			// Add result to service message
 			MessagePayload mp = new MessagePayload();
-			ByteArrayOutputStream byteos = new ByteArrayOutputStream();
-			ObjectOutputStream outStream = new ObjectOutputStream(byteos);
-			// Synchronise on our results so noone can append anything to them while we are serialising
-			// Our append call is wrapped in synchronize
-			synchronized (results) {
-				outStream.writeObject(results);
-			}
-			outStream.close();
-			byteos.close();
-			mp.setPayloadBytes(byteos.toByteArray());
+			mp.setPayloadText(results.toJsonString());				
 			serviceMessage.setPayload(mp);
 
 			logger.fine("Sending command: " + serviceMessage.toXML());
@@ -722,16 +700,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 		// Add result to service message
 		MessagePayload mp = new MessagePayload();
-		ByteArrayOutputStream byteos = new ByteArrayOutputStream();
-		ObjectOutputStream outStream = new ObjectOutputStream(byteos);
-		// Synchronise on our results so noone can append anything to them while we are serialising
-		// Our append call is wrapped in synchronize
-		// synchronized (results) {
-		outStream.writeObject(results);
-		// }
-		outStream.close();
-		byteos.close();
-		mp.setPayloadBytes(byteos.toByteArray());
+		mp.setPayloadText(results.toJsonString());	
 		serviceMessage.setPayload(mp);
 
 		logger.fine("Sending command: " + serviceMessage.toXML());

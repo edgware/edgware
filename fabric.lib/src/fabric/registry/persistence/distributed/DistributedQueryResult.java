@@ -9,6 +9,8 @@
 
 package fabric.registry.persistence.distributed;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,14 +21,20 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fabric.registry.RegistryObject;
 import fabric.registry.exception.PersistenceException;
 import fabric.registry.impl.AbstractFactory;
 import fabric.registry.persistence.impl.PersistenceResultKeys;
 import fabric.registry.persistence.impl.PersistenceResultRow;
 
-public class DistributedQueryResult implements java.io.Serializable {
-
+public class DistributedQueryResult {
 	
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
@@ -38,10 +46,25 @@ public class DistributedQueryResult implements java.io.Serializable {
 
 	private static final long serialVersionUID = 134971301012513965L;
 
-	protected Map<String, List<PersistenceResultRow>> nodeToResults;
+	//Json
+	static public String JSON_DISTRIBUTED_QUERY_RESULTS = "distributedQueryResults";
+	static public String JSON_NODE_RESULTS = "nodeResults";
+	static public String JSON_EXCEPTIONS = "exceptions";
+	
+	static public String JSON_VALUES = "values";
+	static public String JSON_NODENAME = "nodeName";
+
+	
+	protected Map<String, List<PersistenceResultRow>> nodeToResults = new ConcurrentHashMap<String, List<PersistenceResultRow>>();
+	protected Map<String, List<String>> nodeToExceptionMessages = new ConcurrentHashMap<String, List<String>>();
+
 	private PersistenceResultKeys colNames = null;
 	private boolean exceptionOccurred = false;
 	private String exceptionMessage = "";
+	
+	public DistributedQueryResult() {
+		super();
+	}
 
 	/**
 	 * Construct a DistributedQueryResult using the resultSet from the nodeName
@@ -53,10 +76,6 @@ public class DistributedQueryResult implements java.io.Serializable {
 	{
 		String METHOD_NAME = "constructor";
 		logger.entering(CLASS_NAME, METHOD_NAME);
-		if (nodeToResults==null)
-		{
-			nodeToResults = new ConcurrentHashMap<String, List<PersistenceResultRow>>();
-		}
 		if (resultSet!=null && colNames == null)
 		{
 			try {
@@ -72,7 +91,6 @@ public class DistributedQueryResult implements java.io.Serializable {
 		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
 
-	
 	private void appendResultSet(String nodeName, ResultSet resultSet) 
 	{
 		String METHOD_NAME = "constructor";
@@ -171,7 +189,7 @@ public class DistributedQueryResult implements java.io.Serializable {
 	
 	
 	/**
-	 * Assumption here is that there is only possible result so we just take the first one we come across.
+	 * Assumption here is that there is only one possible result so we just take the first one we come across.
 	 * 
 	 * @return
 	 */
@@ -236,6 +254,10 @@ public class DistributedQueryResult implements java.io.Serializable {
 		
 		String METHOD_NAME = "setException";
 		logger.entering(CLASS_NAME, METHOD_NAME);
+		if (!nodeToExceptionMessages.containsKey(nodeName)) {
+			nodeToExceptionMessages.put(nodeName,  new Vector<String>());
+		}
+		nodeToExceptionMessages.get(nodeName).add(exceptionMessage);
 		exceptionOccurred = true;
 		exceptionMessage = exceptionMessage + nodeName + ":" + e.getMessage() + "\n";
 		logger.exiting(CLASS_NAME, METHOD_NAME);		
@@ -248,6 +270,142 @@ public class DistributedQueryResult implements java.io.Serializable {
 
 	public String getExceptionMessage() {
 		return exceptionMessage;
+	}
+	
+	/**
+	 * Convert to String (Json notation)
+	 */
+	public String toJsonString() {
+		String METHOD_NAME = "toJsonString";
+
+		logger.entering(CLASS_NAME, METHOD_NAME);
+		String jsonString = null;
+
+		try
+		{ 
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+			JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stream);
+//			jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+			toJson(jsonGenerator);			
+			jsonGenerator.flush();
+			jsonGenerator.close();
+			jsonString = stream.toString("UTF-8");
+		}
+		catch (IOException e)
+		{
+			logger.warning("Problem building json " + e.getMessage());
+		}
+		logger.finest("JsonString = " + jsonString);
+		logger.exiting(CLASS_NAME, METHOD_NAME);
+		return jsonString;
+	}
+	
+	/**
+	 * Convert to Json
+	 * @return
+	 */
+	public void toJson(JsonGenerator jsonGenerator) throws JsonGenerationException, IOException
+	{
+		String METHOD_NAME = "toJson";
+		logger.entering(CLASS_NAME, METHOD_NAME);
+
+		jsonGenerator.writeStartObject(); // start root object
+		jsonGenerator.writeObjectFieldStart(JSON_DISTRIBUTED_QUERY_RESULTS);
+
+		colNames.toJson(jsonGenerator);
+
+		for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
+			jsonGenerator.writeObjectFieldStart(JSON_NODE_RESULTS);
+			String nodeName = iterator.next();
+			jsonGenerator.writeStringField(JSON_NODENAME, nodeName);
+			//values for the node
+			jsonGenerator.writeArrayFieldStart(JSON_VALUES);
+			for (Iterator<PersistenceResultRow> resultRows = nodeToResults.get(nodeName).iterator(); resultRows.hasNext();) {
+				PersistenceResultRow resultRow = resultRows.next();
+				resultRow.toJson(jsonGenerator);
+			}
+			jsonGenerator.writeEndArray();
+			//Exceptions for the node
+			if (nodeToExceptionMessages.containsKey(nodeName) ) {
+				jsonGenerator.writeArrayFieldStart(JSON_EXCEPTIONS);
+				for (Iterator<String> exceptions = nodeToExceptionMessages.get(nodeName).iterator(); exceptions.hasNext();) {
+					String exception = exceptions.next();
+					jsonGenerator.writeString(exception);
+				}
+				jsonGenerator.writeEndArray();
+			}
+			jsonGenerator.writeEndObject();
+		}
+		jsonGenerator.writeEndObject();
+		jsonGenerator.writeEndObject(); //closing root object
+		logger.exiting(CLASS_NAME, METHOD_NAME);
+	}
+	
+	/**
+	 * append to this resultset using the bytes provided which are in the format given
+	 * @param json
+	 * @param format
+	 */
+	public void append(byte[] bytes, String format) {
+		String METHOD_NAME = "append";
+		logger.entering(CLASS_NAME, METHOD_NAME, new Object[]{bytes, format});
+		switch (format) {
+		case "json":
+			appendFromJson(bytes);
+			break;
+		default:
+			logger.warning("Format for distributedQueryResult Serialisation not supported.");
+			break;
+		}
+		logger.exiting(CLASS_NAME, METHOD_NAME);
+	}
+
+	/**
+	 * Append to the resultSet using the bytes given which are in json format.
+	 * @param json
+	 */
+	public void appendFromJson(byte[] json) {
+		String METHOD_NAME = "appendFromJson";
+		logger.entering(CLASS_NAME, METHOD_NAME, new Object[]{json});
+		logger.finer("Json = " + new String(json));
+		try
+		{
+			ObjectMapper jsonObjectMapper = new ObjectMapper();
+			JsonNode rootNode = jsonObjectMapper.readTree(json);
+			//Only one distributedQueryResults object expected.
+			JsonNode distributedQueryResults = rootNode.findValue(JSON_DISTRIBUTED_QUERY_RESULTS);
+			//This should have a Column Names object
+			JsonNode columnNamesJson = distributedQueryResults.findValue(PersistenceResultKeys.JSON_COLNAMES);
+			colNames = new PersistenceResultKeys(columnNamesJson);
+			//We can have several nodeResults
+			List<JsonNode> nodeResultsJson = distributedQueryResults.findValues(JSON_NODE_RESULTS);
+			for (Iterator<JsonNode> nodeResultJsonIter = nodeResultsJson.iterator(); nodeResultJsonIter.hasNext();) {
+				JsonNode nodeResultJson = nodeResultJsonIter.next();
+				List<PersistenceResultRow> nodeResults = new Vector<PersistenceResultRow>();
+				//This should have a nodeName
+				JsonNode nodeNameJson =  nodeResultJson.findValue(JSON_NODENAME);
+				String nodeName = nodeNameJson.asText();
+				nodeToResults.put(nodeName, nodeResults);
+				//Should also have a values object
+				//This should have a nodeName
+				JsonNode valuesJson =  nodeResultJson.findValue(JSON_VALUES);
+				for (Iterator<JsonNode> valueIter = valuesJson.elements(); valueIter.hasNext();) 
+				{
+					JsonNode row = valueIter.next();
+					nodeResults.add(new PersistenceResultRow(row, colNames));
+				}
+			}
+		}
+		catch(JsonProcessingException e)
+		{
+			logger.warning("Error parsing Json : " + e.toString());
+		}
+		catch(IOException e)
+		{
+			logger.warning("Error parsing Json : " + e.toString());
+		}
+		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
 
 }

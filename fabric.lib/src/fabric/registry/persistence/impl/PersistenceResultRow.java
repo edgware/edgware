@@ -9,13 +9,19 @@
 
 package fabric.registry.persistence.impl;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fabric.registry.exception.PersistenceException;
 import fabric.registry.persistence.IPersistenceResultRow;
@@ -43,8 +49,29 @@ public class PersistenceResultRow implements IPersistenceResultRow, java.io.Seri
 	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
 	private PersistenceResultKeys keys;
 	private boolean keysAvailable = false;
-	private List<Object> values;
+	private List<Object> values = new ArrayList<Object>();
+	
+	/**
+	 * Construct a row from JsonNode and keys
+	 */
+	public PersistenceResultRow(JsonNode row, PersistenceResultKeys keys) {
+		if (keys != null && !keys.isEmpty()) {
+			this.keys = keys;
+			keysAvailable = true;
+		}
+		//Verify this JsonNode is an array of Strings
+		if (row.isArray()) {
+			for (Iterator<JsonNode> iterator = row.elements(); iterator.hasNext();) 
+			{
+				JsonNode rowValue = iterator.next();
+				if (rowValue.isTextual()) {
+					values.add(rowValue.asText());
+				}
+			}
+		}
+	}
 
+	
 	public PersistenceResultRow(ResultSet rs, PersistenceResultKeys keys) {
 
 //		String METHOD_NAME = "constructor";
@@ -53,6 +80,10 @@ public class PersistenceResultRow implements IPersistenceResultRow, java.io.Seri
 //		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
 
+	/**
+	 * Constructor from result set 
+	 * @param rs
+	 */
 	public PersistenceResultRow(ResultSet rs) {
 
 //		String METHOD_NAME = "constructor";
@@ -61,6 +92,11 @@ public class PersistenceResultRow implements IPersistenceResultRow, java.io.Seri
 //		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
 
+	/**
+	 * 
+	 * @param rs
+	 * @param keys
+	 */
 	private void init(ResultSet rs, PersistenceResultKeys keys) {
 
 		if (keys != null && !keys.isEmpty()) {
@@ -80,6 +116,12 @@ public class PersistenceResultRow implements IPersistenceResultRow, java.io.Seri
 
 	}
 
+	/**
+	 * 
+	 * @param key
+	 * @return
+	 * @throws PersistenceException
+	 */
 	private int getIndex(String key) throws PersistenceException {
 
 		int index = -1;
@@ -296,5 +338,31 @@ public class PersistenceResultRow implements IPersistenceResultRow, java.io.Seri
 
 		return values.isEmpty();
 	}
+
+
+	@Override
+	public boolean areKeysAvailable() {
+		return keysAvailable;
+	}
+
+	/**
+	 * Method to convert this row to Json.
+	 * 
+	 * @param jsonGenerator
+	 * @throws JsonGenerationException
+	 * @throws IOException
+	 */
+	public void toJson(JsonGenerator jsonGenerator) throws JsonGenerationException, IOException {
+		jsonGenerator.writeStartArray();
+		for (int i = 0; i < values.size(); i++) {
+			Object value = values.get(i);
+			//The get methods will automatically try to convert a String back to the object requested 
+			// so for now using toString()
+			jsonGenerator.writeString(value.toString());
+		}
+		jsonGenerator.writeEndArray();
+	}
+	
+	
 
 }
