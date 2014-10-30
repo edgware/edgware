@@ -1,7 +1,7 @@
 /*
  * Licensed Materials - Property of IBM
  *  
- * (C) Copyright IBM Corp. 2008, 2012
+ * (C) Copyright IBM Corp. 2008, 2014
  * 
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
@@ -15,23 +15,26 @@ import java.util.StringTokenizer;
 /**
  * Immutable data structure to hold the parts of a Fabric system name.
  */
-public class SystemDescriptor {
+public class SystemDescriptor extends PlatformDescriptor {
 
 	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2008, 2012";
+	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2008, 2014";
 
 	/*
 	 * Class fields
 	 */
 
-	/** The ID of the platform to which the system is connected. */
-	private String platform = null;
-
 	/** The ID of the system. */
 	private String system = null;
 
-	/** The string representation of this instance. */
+	/** The type of the system. */
+	private String systemType = null;
+
+	/** The string representation of the name of this instance */
 	private String toString = null;
+
+	/** The string representation of this instance. */
+	private String toStringDescriptor = null;
 
 	/*
 	 * Class methods
@@ -52,8 +55,9 @@ public class SystemDescriptor {
 	 */
 	public SystemDescriptor(SystemDescriptor source) {
 
-		platform = source.platform;
+		super(source);
 		system = source.system;
+		systemType = source.systemType;
 
 	}
 
@@ -68,7 +72,7 @@ public class SystemDescriptor {
 	 */
 	public SystemDescriptor(String platform, String system) {
 
-		this.platform = platform;
+		super(platform);
 		this.system = system;
 
 	}
@@ -76,7 +80,7 @@ public class SystemDescriptor {
 	/**
 	 * Constructs a new instance by splitting a system descriptor the format:
 	 * <p>
-	 * <code>platform-id/system-id</code>
+	 * <code>platform-id[:platform-type]/system-id[:system-type]</code>
 	 * </p>
 	 * into its component parts.
 	 * 
@@ -86,7 +90,6 @@ public class SystemDescriptor {
 	public SystemDescriptor(String name) {
 
 		StringTokenizer systemDescriptorTokenizer = new StringTokenizer(name, "/");
-
 		splitSystemName(systemDescriptorTokenizer);
 
 	}
@@ -99,27 +102,29 @@ public class SystemDescriptor {
 	 */
 	protected void splitSystemName(StringTokenizer nameTokenizer) {
 
+		String exceptionMessage = "Invalid number of tokens in system descriptor (valid format is \"<platform-id>[:<platform-type>]/<system-id>[:<system-type>]\")";
+
 		try {
 
-			platform = nameTokenizer.nextToken();
-			system = nameTokenizer.nextToken();
+			splitPlatformName(nameTokenizer);
+
+			String[] systemParts = nameTokenizer.nextToken().split(":");
+
+			switch (systemParts.length) {
+			case 2:
+				systemType = systemParts[1];
+			case 1:
+				system = systemParts[0];
+				break;
+			default:
+				throw new IllegalArgumentException(exceptionMessage);
+			}
 
 		} catch (NoSuchElementException e) {
 
-			throw new IllegalArgumentException(
-					"Invalid number of tokens in system descriptor (must be 2 i.e. '<platform-id>/<system-id>')");
+			throw new IllegalArgumentException(exceptionMessage);
 
 		}
-	}
-
-	/**
-	 * Answers the ID of the platform to which the system is connected.
-	 * 
-	 * @return the platform ID.
-	 */
-	public String platform() {
-
-		return platform;
 	}
 
 	/**
@@ -133,14 +138,23 @@ public class SystemDescriptor {
 	}
 
 	/**
+	 * Answers the type of the system.
+	 * 
+	 * @return the system type, or <code>null</code> if it has not been set in the descriptor.
+	 */
+	public String systemType() {
+
+		return systemType;
+	}
+
+	/**
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 
-		/* If we need to generate the string form of this instance... */
 		if (toString == null) {
-			toString = platform + '/' + system;
+			toString = super.toString() + '/' + system;
 		}
 
 		return toString;
@@ -148,21 +162,30 @@ public class SystemDescriptor {
 	}
 
 	/**
-	 * @see java.lang.Object#equals(java.lang.Object)
+	 * Generates the string representation of this descriptor.
+	 * 
+	 * @return the system descriptor.
 	 */
 	@Override
-	public boolean equals(Object obj) {
+	public String toFullDescriptor() {
 
-		/* To hold the result */
-		boolean isEqual = false;
-
-		if (obj != null) {
-
-			isEqual = toString().equals(obj.toString());
-
+		if (toStringDescriptor == null) {
+			toStringDescriptor = super.toFullDescriptor() + '/' + system
+					+ ((systemType != null) ? ':' + systemType : "");
 		}
 
-		return isEqual;
+		return toStringDescriptor;
+
+	}
+
+	/**
+	 * Answers a new platform descriptor instance for this service descriptor.
+	 * 
+	 * @return a new system descriptor corresponding to this service descriptor.
+	 */
+	public PlatformDescriptor toPlatformDescriptor() {
+
+		return new PlatformDescriptor(this);
 	}
 
 	/**

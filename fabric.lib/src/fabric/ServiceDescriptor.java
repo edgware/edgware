@@ -1,7 +1,7 @@
 /*
  * Licensed Materials - Property of IBM
  *  
- * (C) Copyright IBM Corp. 2008, 2013
+ * (C) Copyright IBM Corp. 2008, 2014
  * 
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
@@ -18,7 +18,7 @@ import java.util.StringTokenizer;
 public class ServiceDescriptor extends SystemDescriptor {
 
 	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2008, 2013";
+	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2008, 2014";
 
 	/*
 	 * Class fields
@@ -27,8 +27,17 @@ public class ServiceDescriptor extends SystemDescriptor {
 	/** The ID of the service. */
 	private String service = null;
 
-	/** The string representation of this instance. */
+	/** The type of the service. */
+	private String serviceType = null;
+
+	/** The operation mode of the service. */
+	private String mode = null;
+
+	/** The string representation of the name of this instance */
 	private String toString = null;
+
+	/** The string representation of this instance. */
+	private String toStringDescriptor = null;
 
 	/*
 	 * Class methods
@@ -51,6 +60,8 @@ public class ServiceDescriptor extends SystemDescriptor {
 
 		super(source);
 		service = source.service;
+		serviceType = source.serviceType;
+		mode = source.mode;
 
 	}
 
@@ -86,7 +97,6 @@ public class ServiceDescriptor extends SystemDescriptor {
 	public ServiceDescriptor(String name) {
 
 		StringTokenizer serviceDescriptorTokenizer = new StringTokenizer(name, "/");
-
 		splitServiceName(serviceDescriptorTokenizer);
 
 	}
@@ -99,16 +109,29 @@ public class ServiceDescriptor extends SystemDescriptor {
 	 */
 	protected void splitServiceName(StringTokenizer nameTokenizer) {
 
-		splitSystemName(nameTokenizer);
+		String exceptionMessage = "Invalid number of tokens in system descriptor (valid format is \"<platform-id>[:<platform-type>]/<system-id>[:<system-type>]/<service-id>[:service-type[:service-mode]]\")";
 
 		try {
 
-			service = nameTokenizer.nextToken();
+			splitSystemName(nameTokenizer);
+
+			String[] serviceParts = nameTokenizer.nextToken().split(":");
+
+			switch (serviceParts.length) {
+			case 3:
+				mode = serviceParts[2];
+			case 2:
+				serviceType = serviceParts[1];
+			case 1:
+				service = serviceParts[0];
+				break;
+			default:
+				throw new IllegalArgumentException(exceptionMessage);
+			}
 
 		} catch (NoSuchElementException e) {
 
-			throw new IllegalArgumentException(
-					"Invalid number of tokens in service descriptor (must be 3 i.e. '<platform-id>/<system-id>/<service-id>')");
+			throw new IllegalArgumentException(exceptionMessage);
 
 		}
 	}
@@ -121,6 +144,26 @@ public class ServiceDescriptor extends SystemDescriptor {
 	public String service() {
 
 		return service;
+	}
+
+	/**
+	 * Answers the type of the service.
+	 * 
+	 * @return the service type, or <code>null</code> if it has not been set in the descriptor.
+	 */
+	public String serviceType() {
+
+		return serviceType;
+	}
+
+	/**
+	 * Answers the mode of the service.
+	 * 
+	 * @return the service mode, or <code>null</code> if it has not been set in the descriptor.
+	 */
+	public String mode() {
+
+		return mode;
 	}
 
 	/**
@@ -185,12 +228,38 @@ public class ServiceDescriptor extends SystemDescriptor {
 	@Override
 	public String toString() {
 
-		/* If we need to generate the string form of this instance... */
 		if (toString == null) {
 			toString = super.toString() + '/' + service;
 		}
 
 		return toString;
 
+	}
+
+	/**
+	 * Generates the string representation of this descriptor.
+	 * 
+	 * @return the service descriptor.
+	 */
+	@Override
+	public String toFullDescriptor() {
+
+		if (toStringDescriptor == null) {
+			toStringDescriptor = super.toFullDescriptor() + '/' + service
+					+ ((serviceType != null) ? ':' + serviceType : "") + ((mode != null) ? ':' + mode : "");
+		}
+
+		return toStringDescriptor;
+
+	}
+
+	/**
+	 * Answers a new system descriptor instance for this service descriptor.
+	 * 
+	 * @return a new system descriptor corresponding to this service descriptor.
+	 */
+	public SystemDescriptor toSystemDescriptor() {
+
+		return new SystemDescriptor(this);
 	}
 }

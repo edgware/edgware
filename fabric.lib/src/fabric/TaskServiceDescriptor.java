@@ -30,8 +30,11 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 	/** The ID of the task */
 	private String task = null;
 
-	/** The string representation of this instance */
+	/** The string representation of the name of this instance */
 	private String toString = null;
+
+	/** The string representation of this instance. */
+	private String toStringDescriptor = null;
 
 	/*
 	 * Class methods
@@ -97,13 +100,13 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 	 */
 	public TaskServiceDescriptor(String descriptor) {
 
-		final String usage = "Task service descriptor must be of the form \"<task-id>:<platform-id>/<system-id>/<service-id>\")";
+		final String usage = "Task service descriptor must be of the form \"<task-id>#<platform-id>/<system-id>/<service-id>\")";
 
 		if (descriptor == null) {
 			throw new IllegalArgumentException(usage);
 		}
 
-		task = descriptor.substring(0, descriptor.indexOf(':') - 1);
+		task = descriptor.substring(0, descriptor.indexOf('#') - 1);
 		String serviceDescriptor = descriptor.substring(task.length(), descriptor.length() - 1);
 
 		if (serviceDescriptor == null || serviceDescriptor.equals("")) {
@@ -132,11 +135,36 @@ public class TaskServiceDescriptor extends ServiceDescriptor {
 	@Override
 	public String toString() {
 
-		/* If we need to generate the string form of this instance... */
 		if (toString == null) {
-			toString = task + ':' + super.toString();
+			toString = task + '#' + super.toString();
 		}
 
 		return toString;
+
+	}
+
+	/**
+	 * Generates the string representation of this descriptor.
+	 * 
+	 * @return the task service descriptor.
+	 */
+	@Override
+	public String toFullDescriptor() {
+
+		if (toStringDescriptor == null) {
+			toStringDescriptor = task + '#' + super.toFullDescriptor();
+		}
+
+		return toStringDescriptor;
+	}
+
+	/**
+	 * Answers a new service descriptor instance for this task service descriptor.
+	 * 
+	 * @return a new service descriptor corresponding to this task service descriptor.
+	 */
+	public ServiceDescriptor toServiceDescriptor() {
+
+		return new ServiceDescriptor(this);
 	}
 }

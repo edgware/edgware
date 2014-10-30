@@ -9,8 +9,8 @@
 
 package fabric.services.json;
 
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -130,7 +130,7 @@ public class JSONArray implements Iterable<JSON> {
 		return rootNode;
 	}
 
-	public JSONArray putStringList(ArrayList<String> list) {
+	public JSONArray putStringList(List<String> list) {
 
 		if (!list.isEmpty()) {
 			for (String s : list) {

@@ -427,13 +427,17 @@ public class SystemServices extends FabricBus {
 	 * @param fromFeedID
 	 *            the local feed to which the subscription will be wired.
 	 * 
+	 * @return <code>true</code> if this is a new subscription, <code>false</code> otherwise.
+	 * 
 	 * @throws Exception
 	 */
-	public void wireInputFeed(ServiceDescriptor outputFeed, String fromFeedID) throws Exception {
+	public boolean wireInputFeed(ServiceDescriptor outputFeed, String fromFeedID) throws Exception {
+
+		boolean isNewSubscription = true;
 
 		/* Build the remote (from) task feed descriptor */
 		TaskServiceDescriptor remoteOutputTaskDescriptor = new TaskServiceDescriptor("DEFAULT", outputFeed);
-		ServiceDescriptor remoteOutputDescriptor = new ServiceDescriptor(remoteOutputTaskDescriptor);
+		ServiceDescriptor remoteOutputDescriptor = remoteOutputTaskDescriptor.toServiceDescriptor();
 
 		/* Build the local (to) feed descriptor */
 		ServiceDescriptor localInputDescriptor = new ServiceDescriptor(systemRuntime.systemDescriptor().platform(),
@@ -441,8 +445,18 @@ public class SystemServices extends FabricBus {
 
 		try {
 
-			/* If we are not already subscribed to this feed... */
-			if (!wiredInputFeeds.containsKey(remoteOutputDescriptor)) {
+			/* If we are already subscribed to this feed... */
+			if (wiredInputFeeds.containsKey(remoteOutputDescriptor)) {
+
+				isNewSubscription = false;
+
+				logger.log(
+						Level.FINEST,
+						"Repeat subscription to remote feed \"%s\" (wired to local feed \"%s\") for service instance \"%s\":",
+						new Object[] {remoteOutputTaskDescriptor, localInputDescriptor,
+								systemRuntime.systemDescriptor()});
+
+			} else {
 
 				/* Subscribe to the remote feed */
 				ISubscription inputSubscription = new Subscription(systemRuntime.fabricClient());
@@ -453,14 +467,6 @@ public class SystemServices extends FabricBus {
 
 				/* Record the mapping given by the wiring */
 				wiredInputFeedMappings.put(remoteOutputDescriptor, localInputDescriptor);
-
-			} else {
-
-				logger.log(Level.FINE,
-						"Already subscribed to remote feed '%s' (wired to local feed %s) for service instance '%s':",
-						new Object[] {remoteOutputTaskDescriptor, localInputDescriptor,
-								systemRuntime.systemDescriptor()});
-
 			}
 
 		} catch (Exception e) {
@@ -472,6 +478,8 @@ public class SystemServices extends FabricBus {
 			throw new Exception(message, e);
 
 		}
+
+		return isNewSubscription;
 	}
 
 	/**

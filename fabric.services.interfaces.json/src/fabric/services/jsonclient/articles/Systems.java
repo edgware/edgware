@@ -27,9 +27,9 @@ import fabric.registry.TaskService;
 import fabric.registry.TaskServiceFactory;
 import fabric.registry.Type;
 import fabric.registry.TypeFactory;
-import fabric.registry.exception.RegistryQueryException;
 import fabric.services.json.JSON;
 import fabric.services.json.JSONArray;
+import fabric.services.jsonclient.JSONAdapter;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 import fabric.services.jsonclient.utilities.JsonUtils;
@@ -83,52 +83,53 @@ public class Systems extends FabricBus {
 
 				SystemDescriptor systemDescriptor = new SystemDescriptor(systemName);
 
-				/* Insert the system into the Registry */
-				SystemFactory systemFactory = FabricRegistry.getSystemFactory();
-				System system = systemFactory.createSystem( //
-						systemDescriptor.platform(), // platform ID
-						systemDescriptor.system(), // service ID
-						systemType, // system type
-						null, // credentials
-						"DEPLOYED", // readiness
-						AdapterConstants.STATE_AVAILABLE, // availability,
-						0, // latitude,
-						0, // longitude,
-						0, // altitude,
-						0, // bearing,
-						0, // velocity,
-						op.getString(AdapterConstants.FIELD_DESCRIPTION), // system description
-						op.getString(AdapterConstants.FIELD_ATTRIBUTES), null); // attributes URI;
-				boolean success = systemFactory.save(system);
+				if (!(user == null)) {
+					// TODO User logic
+				}
 
-				if (!success) {
+				/* Lookup the list of service types associated with the system type */
+				String[] serviceTypes = getServiceTypes(systemType);
 
-					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
-							AdapterConstants.ARTICLE_SYSTEM, "Insert/update of system into the Registry failed",
+				/* If there are any... */
+				if (serviceTypes != null) {
+
+					/* Create the corresponding service instances in the Registry */
+					status = createServices(serviceTypes, systemDescriptor.platform(), systemDescriptor.system(),
 							correlId);
+
+					if (status != null && status.isOK()) {
+
+						/* Insert the system into the Registry */
+						SystemFactory systemFactory = FabricRegistry.getSystemFactory();
+						System system = systemFactory.createSystem(systemDescriptor.platform(), // platform ID
+								systemDescriptor.system(), // service ID
+								systemType, // system type
+								null, // credentials
+								"DEPLOYED", // readiness
+								AdapterConstants.STATE_AVAILABLE, // availability,
+								0, // latitude,
+								0, // longitude,
+								0, // altitude,
+								0, // bearing,
+								0, // velocity,
+								op.getString(AdapterConstants.FIELD_DESCRIPTION), // system description
+								op.getString(AdapterConstants.FIELD_ATTRIBUTES), null); // attributes URI;
+						boolean success = systemFactory.save(system);
+
+						if (!success) {
+
+							status = new AdapterStatus(AdapterConstants.ERROR_ACTION,
+									AdapterConstants.OP_CODE_REGISTER, AdapterConstants.ARTICLE_SYSTEM,
+									"Insert/update of system into the Registry failed", correlId);
+
+						}
+					}
 
 				} else {
 
-					if (!(user == null)) {
-						// TODO User logic
-					}
-					/* Lookup the list of service types associated with the system type */
-					String[] serviceTypes = getServiceTypes(systemType);
+					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
+							AdapterConstants.ARTICLE_SYSTEM, AdapterConstants.STATUS_MSG_UNRECOGNIZED_TYPE, correlId);
 
-					/* If there are any... */
-					if (serviceTypes != null) {
-
-						/* Create the corresponding service instances in the Registry */
-						status = createServices(serviceTypes, systemDescriptor.platform(), systemDescriptor.system(),
-								correlId);
-
-					} else {
-
-						status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
-								AdapterConstants.ARTICLE_SYSTEM, AdapterConstants.STATUS_MSG_UNRECOGNIZED_TYPE,
-								correlId);
-
-					}
 				}
 			}
 
@@ -887,7 +888,7 @@ public class Systems extends FabricBus {
 	}
 
 	/**
-	 * Subscribes to an output feed.
+	 * Subscribes to a list of output feeds.
 	 * 
 	 * @param op
 	 *            the full JSON operation object.
@@ -904,7 +905,7 @@ public class Systems extends FabricBus {
 
 		JSON response = null;
 		AdapterStatus status = new AdapterStatus(correlId);
-		ArrayList<String> actualOutputFeedList = new ArrayList<String>();
+		List<ServiceDescriptor> subscribedList = new ArrayList<ServiceDescriptor>();
 		String inputFeed = null;
 
 		try {
@@ -920,33 +921,32 @@ public class Systems extends FabricBus {
 
 			} else {
 
-				/* For each source feed... */
+				List<ServiceDescriptor> patternList = new ArrayList<ServiceDescriptor>();
+
+				/* Extract the list of output feed patterns from the message */
+
 				for (int sf = 0; sf < outputFeedPatterns.size(); sf++) {
 
-					String nextOutputFeedPattern = outputFeedPatterns.getString(sf);
-					ServiceDescriptor outputFeedPatternDescriptor = new ServiceDescriptor(nextOutputFeedPattern);
+					String nextPattern = outputFeedPatterns.getString(sf);
+					ServiceDescriptor nextDescriptor = new ServiceDescriptor(nextPattern);
+					patternList.add(nextDescriptor);
 
-					/* Get the list of feeds that match the requested feed pattern (it may contain wildcards) */
-					ServiceDescriptor[] feedsMatchingPattern = queryMatchingFeeds(outputFeedPatternDescriptor);
-
-					/* For each matching feed... */
-					for (ServiceDescriptor nextOutputFeedDescriptor : feedsMatchingPattern) {
-
-						/* Subscribe to the feed */
-						RuntimeStatus subscribeStatus = runtimeManager.subscribe(nextOutputFeedDescriptor,
-								inputFeedDescriptor);
-
-						if (subscribeStatus.getStatus() != RuntimeStatus.Status.OK) {
-							status = new AdapterStatus(AdapterConstants.ERROR_ACTION,
-									AdapterConstants.OP_CODE_SUBSCRIBE, AdapterConstants.ARTICLE_SYSTEM,
-									subscribeStatus.getStatus() + ": " + subscribeStatus.getMessage(), correlId);
-						} else {
-							actualOutputFeedList.add(nextOutputFeedDescriptor.toString());
-						}
-					}
 				}
 
-				response = buildSubscriptionResponse(actualOutputFeedList, inputFeed, correlId);
+				ServiceDescriptor[] patternDescriptors = patternList.toArray(new ServiceDescriptor[patternList.size()]);
+
+				/* Subscribe */
+
+				RuntimeStatus subscribeStatus = runtimeManager.subscribe(patternDescriptors, inputFeedDescriptor,
+						subscribedList);
+
+				if (!subscribeStatus.isOK()) {
+					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_SUBSCRIBE,
+							AdapterConstants.ARTICLE_SYSTEM, subscribeStatus.getStatus() + ": "
+									+ subscribeStatus.getMessage(), correlId);
+				}
+
+				response = JSONAdapter.buildSubscriptionResponse(subscribedList, inputFeedDescriptor, correlId);
 			}
 
 		} catch (Exception e) {
@@ -960,112 +960,6 @@ public class Systems extends FabricBus {
 		response = (response == null) ? status.toJsonObject() : response;
 
 		return response;
-	}
-
-	/**
-	 * Find the list of feeds in the Registry matching the specified pattern.
-	 * 
-	 * @param feedPattern
-	 *            the pattern to match.
-	 * 
-	 * @return the list of matching feeds.
-	 * 
-	 * @throws RegistryQueryException
-	 */
-	private static ServiceDescriptor[] queryMatchingFeeds(ServiceDescriptor feedPattern) throws RegistryQueryException {
-
-		/* To hold the results */
-		ServiceDescriptor[] matchingFeeds = null;
-
-		/* To hold the predicate required to find matching feeds in the Registry */
-		String queryPredicate = null;
-
-		/* If the feed descriptor does not contain any wildcards... */
-		if (!feedPattern.toString().contains("*")) {
-
-			matchingFeeds = new ServiceDescriptor[] {feedPattern};
-
-		} else {
-
-			/* Generate the SQL predicate required to identify the matching feeds */
-
-			String platform = feedPattern.platform();
-			String platformPredicate = null;
-
-			if (platform.contains("*")) {
-				platformPredicate = String.format("platform_id like '%s'", platform.replace('*', '%'));
-			} else {
-				platformPredicate = String.format("platform_id = '%s'", platform);
-			}
-
-			String service = feedPattern.system();
-			String servicePredicate = null;
-
-			if (service.contains("*")) {
-				servicePredicate = String.format("service_id like '%s'", service.replace('*', '%'));
-			} else {
-				servicePredicate = String.format("service_id = '%s'", service);
-			}
-
-			String feed = feedPattern.service();
-			String feedPredicate = null;
-
-			if (feed.contains("*")) {
-				feedPredicate = String.format("id like '%s'", feed.replace('*', '%'));
-			} else {
-				feedPredicate = String.format("id = '%s'", feed);
-			}
-
-			queryPredicate = String.format("direction = 'output' and %s and %s and %s", platformPredicate,
-					servicePredicate, feedPredicate);
-
-			/* Generate the list of matching feeds */
-			ServiceFactory sf = FabricRegistry.getServiceFactory();
-			Service[] registryFeedList = sf.getServices(queryPredicate);
-			matchingFeeds = new ServiceDescriptor[registryFeedList.length];
-
-			/* For each matching feed... */
-			for (int f = 0; f < matchingFeeds.length; f++) {
-
-				/* Create a feed descriptor */
-				matchingFeeds[f] = new ServiceDescriptor(registryFeedList[f].getPlatformId(), registryFeedList[f]
-						.getSystemId(), registryFeedList[f].getId());
-
-			}
-		}
-
-		return matchingFeeds;
-	}
-
-	/**
-	 * Builds a subscription response message.
-	 * 
-	 * @param outputFeedList
-	 *            the list of feeds to which subscriptions have been made.
-	 * 
-	 * @param inputFeed
-	 *            the input feed to which the subscriptions are mapped.
-	 * 
-	 * @param correlId
-	 *            The correlation ID of the request.
-	 * 
-	 * @return the JSON object containing the response message.
-	 */
-	private static JSON buildSubscriptionResponse(ArrayList<String> outputFeedList, String inputFeed, String correlId) {
-
-		JSON subscriptionResponse = new JSON();
-
-		/* Build the list of output feeds */
-		JSONArray outputFeedJSON = new JSONArray();
-		outputFeedJSON.putStringList(outputFeedList);
-
-		/* Build the full message */
-		subscriptionResponse.putString(AdapterConstants.FIELD_OPERATION, AdapterConstants.OP_SUBSCRIPTIONS);
-		subscriptionResponse.putJSONArray(AdapterConstants.FIELD_OUTPUT_FEEDS, outputFeedJSON);
-		subscriptionResponse.putString(AdapterConstants.FIELD_INPUT_FEED, inputFeed);
-		subscriptionResponse.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
-
-		return subscriptionResponse;
 	}
 
 	/**
@@ -1117,7 +1011,7 @@ public class Systems extends FabricBus {
 				/* Unsubscribe */
 				RuntimeStatus unsubscribeStatus = runtimeManager.unsubscribe(sourceFeeds, deliverToDescriptor);
 
-				if (unsubscribeStatus.getStatus() != RuntimeStatus.Status.OK) {
+				if (!unsubscribeStatus.isOK()) {
 					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_UNSUBSCRIBE,
 							AdapterConstants.ARTICLE_SYSTEM, unsubscribeStatus.getStatus() + ": "
 									+ unsubscribeStatus.getMessage(), correlId);

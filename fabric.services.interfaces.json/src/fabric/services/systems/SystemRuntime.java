@@ -16,6 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import fabric.Fabric;
+import fabric.FabricException;
+import fabric.ReasonCode;
 import fabric.ServiceDescriptor;
 import fabric.SystemDescriptor;
 import fabric.bus.SharedChannel;
@@ -38,6 +40,8 @@ import fabric.registry.Platform;
 import fabric.registry.PlatformFactory;
 import fabric.registry.Route;
 import fabric.registry.RouteFactory;
+import fabric.registry.Service;
+import fabric.registry.ServiceFactory;
 import fabric.registry.System;
 import fabric.registry.SystemFactory;
 
@@ -318,7 +322,26 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 	@Override
 	public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
 
-		logger.log(Level.FINEST, "handleDisconnectMessage() callback invoked with message:\n{0}", message);
+		logger.log(Level.FINEST, "Handling subscription event {0} from message: {1}", new Object[] {event, message});
+
+		if (event == IServiceMessage.EVENT_SUBSCRIPTION_LOST) {
+
+			/* Get the mappings between input-feeds and output-feeds for this system */
+			HashMap<ServiceDescriptor, ServiceDescriptor> feedMappings = systemServices.wiredInputFeedMappings();
+			ServiceDescriptor outputFeed = subscription.feed().toServiceDescriptor();
+			ServiceDescriptor inputFeed = feedMappings.get(outputFeed);
+
+			try {
+				/* Clean up */
+				unsubscribe(new ServiceDescriptor[] {outputFeed}, inputFeed);
+			} catch (Exception e) {
+				logger.log(Level.FINE, "Failed to unsubscribe from feed \"{0}\" (input feed \"{1}\": {2}",
+						new Object[] {outputFeed, LogUtil.stackTrace(e)});
+			}
+
+		}
+
+		/* Give the system a chance to handle the message */
 		systemInstance.handleSubscriptionEvent(subscription, event, message);
 
 	}
@@ -447,16 +470,19 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 	 * @param inputFeedService
 	 *            the local service to which feed messages will be delivered.
 	 * 
+	 * @return <code>true</code> if this is a new subscription, <code>false</code> otherwise.
+	 * 
 	 * @throws Exception
-	 *             thrown if the message cannot be forwarded.
 	 */
-	public void subscribe(ServiceDescriptor outputFeedService, ServiceDescriptor inputFeedService) throws Exception {
+	public boolean subscribe(ServiceDescriptor outputFeedService, ServiceDescriptor inputFeedService) throws Exception {
+
+		boolean isNewSubscription = true;
 
 		/* If this is a valid input feed... */
 		if (systemServices.inputFeedIDs().contains(inputFeedService.service())) {
 
 			/* Subscribe */
-			systemServices.wireInputFeed(outputFeedService, inputFeedService.service());
+			isNewSubscription = systemServices.wireInputFeed(outputFeedService, inputFeedService.service());
 
 		} else {
 
@@ -465,6 +491,8 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 			throw new IllegalArgumentException(error);
 
 		}
+
+		return isNewSubscription;
 	}
 
 	/**
@@ -487,7 +515,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 		if (systemServices.inputFeedIDs().contains(inputFeedService.service())) {
 
 			/* If no output feed services have been specified... */
-			if (outputFeedServices == null) {
+			if (outputFeedServices == null || outputFeedServices.length == 0) {
 
 				/* To hold the list of feeds to unsubscribe from */
 				ArrayList<ServiceDescriptor> outputFeedList = new ArrayList<ServiceDescriptor>();
@@ -525,7 +553,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 	}
 
 	/**
-	 * Sends a <em>notification</em> message to a remote service.
+	 * Sends a <em>notification</em> message to a remote service configured by wiring.
 	 * 
 	 * @param notificationFeedID
 	 *            the local name of the <em>notification</em> feed (wired to a remote service in the Fabric Registry).
@@ -597,13 +625,24 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 		/* If this is a valid notification feed... */
 		if (systemServices.notifyFeedIDs().contains(notificationService.service())) {
 
-			/* Build the request service message */
-			IServiceMessage notificationMessage = buildServiceMessage(listenerService, notificationService,
-					correlationID, notification);
-			notificationMessage.setProperty("f:encoding", encoding);
+			/* If the target feed can be found... */
+			if (isValidTarget(listenerService)) {
 
-			/* Send the notification message to the local Fabric Manager */
-			sendServiceMessage(notificationMessage);
+				/* Build the request service message */
+				IServiceMessage notificationMessage = buildServiceMessage(listenerService, notificationService,
+						correlationID, notification);
+				notificationMessage.setProperty("f:encoding", encoding);
+
+				/* Send the notification message to the local Fabric Manager */
+				sendServiceMessage(notificationMessage);
+
+			} else {
+
+				String message = String.format("Listener service not found in Registry: %s", listenerService);
+				logger.warning(message);
+				throw new FabricException(ReasonCode.SERVICE_NOT_FOUND, message);
+
+			}
 
 		} else {
 
@@ -731,13 +770,25 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 		/* If this is a valid solicit response feed... */
 		if (systemServices.solicitResponseFeedIDs().contains(solicitResponseService.service())) {
 
-			/* Build the request service message */
-			IServiceMessage solicitResponseMessage = buildServiceMessage(requestResponseService,
-					solicitResponseService, correlationID, request);
-			solicitResponseMessage.setProperty("f:encoding", encoding);
+			/* If the target feed can be found... */
+			if (isValidTarget(requestResponseService)) {
 
-			/* Send the notification message to the local Fabric Manager */
-			sendServiceMessage(solicitResponseMessage);
+				/* Build the request service message */
+				IServiceMessage solicitResponseMessage = buildServiceMessage(requestResponseService,
+						solicitResponseService, correlationID, request);
+				solicitResponseMessage.setProperty("f:encoding", encoding);
+
+				/* Send the notification message to the local Fabric Manager */
+				sendServiceMessage(solicitResponseMessage);
+
+			} else {
+
+				String message = String.format("Request-response service not found in Registry: %s",
+						requestResponseService);
+				logger.warning(message);
+				throw new FabricException(ReasonCode.SERVICE_NOT_FOUND, message);
+
+			}
 
 		} else {
 
@@ -781,6 +832,17 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 		sendServiceMessage(responseMessage);
 
 		return responseMessage.getCorrelationID();
+
+	}
+
+	/**
+	 * Answers the <code>ISystem</code> associated with this instance.
+	 * 
+	 * @return the <code>ISystem</code>, or <code>null</code> if it has not been instantiated.
+	 */
+	public ISystem system() {
+
+		return systemInstance;
 
 	}
 
@@ -925,6 +987,22 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 	public List<String> solicitResponseFeedIDs() {
 
 		return systemServices.solicitResponseFeedIDs();
+
+	}
+
+	/**
+	 * Determines if the specified service exists (is visible) in the Registry.
+	 * 
+	 * @param descriptor
+	 *            the target service descriptor.
+	 * 
+	 * @return <code>true</code> if the service exists, <code>false</code> otherwise.
+	 */
+	private boolean isValidTarget(ServiceDescriptor descriptor) {
+
+		ServiceFactory sf = FabricRegistry.getServiceFactory(false);
+		Service s = sf.getServiceById(descriptor.platform(), descriptor.system(), descriptor.service());
+		return (s != null);
 
 	}
 
@@ -1106,8 +1184,19 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 		String homeNode = fabricClient.homeNode();
 
 		/* Get the node to which the feed's platform is connected */
+
 		PlatformFactory platformFactory = FabricRegistry.getPlatformFactory(doQueryLocal);
 		Platform targetPlatform = platformFactory.getPlatformById(serviceDescriptor.platform());
+
+		if (targetPlatform == null) {
+
+			String message = String.format("Platform not found in Registry when building route: %s", serviceDescriptor
+					.platform());
+			logger.warning(message);
+			throw new FabricException(ReasonCode.PLATFORM_NOT_FOUND, message);
+
+		}
+
 		String targetNode = targetPlatform.getNodeId();
 
 		/* Get the routes to the specified feed */

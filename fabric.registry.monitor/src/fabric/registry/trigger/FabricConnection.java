@@ -77,8 +77,9 @@ class FabricConnection implements Runnable, MqttCallback {
 		fabric.initFabricConfig();
 
 		homeNode = fabric.config("fabric.node");
-		onrampTopic = MessageFormat.format(fabric.config("fabric.feeds.onramp"), homeNode) + '/'
-				+ REGISTRY_UPDATE_SERVICE;
+		onrampTopic = MessageFormat
+				.format(fabric.config("fabric.feeds.onramp", "$fabric/{0}/$feeds/$onramp"), homeNode)
+				+ '/' + REGISTRY_UPDATE_SERVICE;
 		System.out.println("Sending update messages to Fabric node " + homeNode + " on topic " + onrampTopic);
 
 		String configRetryInterval = fabric.config("registry.broker.retryInterval", "30");

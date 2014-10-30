@@ -119,7 +119,7 @@ public class FeedRoutesFactoryImpl extends CustomQueryFactory {
 		}
 
 		query += "ts.platform_id = p.platform_id and ";
-		query += "(" + "(p.node_id='$FABRIC' and r.start_node_id='*' and r.end_node_id='*')" + " or "
+		query += "(" + "(p.node_id='$virtual' and r.start_node_id='*' and r.end_node_id='*')" + " or "
 				+ "(r.start_node_id='" + startNode + "' and r.end_node_id=p.node_id)" + " or "
 				+ "(r.start_node_id='*' and r.end_node_id='*')" + ") ";
 		query += "order by ";

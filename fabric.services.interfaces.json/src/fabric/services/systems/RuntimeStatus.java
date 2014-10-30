@@ -25,13 +25,15 @@ public class RuntimeStatus extends FabricBus {
 
 	public static final String MESSAGE_OK = "OK";
 
+	public static final RuntimeStatus STATUS_OK = new RuntimeStatus(Status.OK, MESSAGE_OK);
+
 	/*
 	 * Class enumerated types
 	 */
 
 	/** System status codes. */
 	public enum Status {
-		NONE, OK, ALREADY_RUNNING, NOT_RUNNING, SEND_REQUEST_FAILED, SEND_NOTIFICATION_FAILED, NOT_FOUND, START_FAILED, SUBSCRIBE_FAILED, PUBLISH_FAILED, UNSUBSCRIBE_FAILED
+		NONE, OK, ALREADY_RUNNING, NOT_RUNNING, SEND_REQUEST_FAILED, SEND_NOTIFICATION_FAILED, NOT_FOUND, START_FAILED, ALREADY_SUBSCRIBED, SUBSCRIBE_FAILED, PUBLISH_FAILED, UNSUBSCRIBE_FAILED
 	};
 
 	/*
@@ -56,6 +58,19 @@ public class RuntimeStatus extends FabricBus {
 		this.status = status;
 		this.message = message;
 
+	}
+
+	/**
+	 * Answers <code>true</code> if this is a non-error (i.e. OK) status.
+	 * <p>
+	 * The detail message is not considered in this method.
+	 * </p>
+	 * 
+	 * @return <code>true</code> if this is an OK state, <code>false</code> otherwise.
+	 */
+	public boolean isOK() {
+
+		return (status == Status.OK);
 	}
 
 	/**
