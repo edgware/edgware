@@ -311,21 +311,22 @@ public class DistributedQueryResult {
 		logger.entering(CLASS_NAME, METHOD_NAME);
 
 		jsonGenerator.writeStartObject(); // start root object
-		jsonGenerator.writeObjectFieldStart(JSON_DISTRIBUTED_QUERY_RESULTS);
+		jsonGenerator.writeObjectFieldStart(JSON_DISTRIBUTED_QUERY_RESULTS); //start distributedqueryresults
 
-		colNames.toJson(jsonGenerator);
+		colNames.toJson(jsonGenerator); //column headers
 
+		jsonGenerator.writeArrayFieldStart(JSON_NODE_RESULTS); //start noderesults
 		for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
-			jsonGenerator.writeObjectFieldStart(JSON_NODE_RESULTS);
 			String nodeName = iterator.next();
-			jsonGenerator.writeStringField(JSON_NODENAME, nodeName);
+			jsonGenerator.writeStartObject();
+			jsonGenerator.writeStringField(JSON_NODENAME, nodeName); //nodename
 			//values for the node
-			jsonGenerator.writeArrayFieldStart(JSON_VALUES);
+			jsonGenerator.writeArrayFieldStart(JSON_VALUES);//start values
 			for (Iterator<PersistenceResultRow> resultRows = nodeToResults.get(nodeName).iterator(); resultRows.hasNext();) {
 				PersistenceResultRow resultRow = resultRows.next();
 				resultRow.toJson(jsonGenerator);
 			}
-			jsonGenerator.writeEndArray();
+			jsonGenerator.writeEndArray(); //end values
 			//Exceptions for the node
 			if (nodeToExceptionMessages.containsKey(nodeName) ) {
 				jsonGenerator.writeArrayFieldStart(JSON_EXCEPTIONS);
@@ -337,7 +338,8 @@ public class DistributedQueryResult {
 			}
 			jsonGenerator.writeEndObject();
 		}
-		jsonGenerator.writeEndObject();
+		jsonGenerator.writeEndArray(); //end node results
+		jsonGenerator.writeEndObject(); //end distributedqueryresults
 		jsonGenerator.writeEndObject(); //closing root object
 		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
@@ -379,8 +381,8 @@ public class DistributedQueryResult {
 			JsonNode columnNamesJson = distributedQueryResults.findValue(PersistenceResultKeys.JSON_COLNAMES);
 			colNames = new PersistenceResultKeys(columnNamesJson);
 			//We can have several nodeResults
-			List<JsonNode> nodeResultsJson = distributedQueryResults.findValues(JSON_NODE_RESULTS);
-			for (Iterator<JsonNode> nodeResultJsonIter = nodeResultsJson.iterator(); nodeResultJsonIter.hasNext();) {
+			JsonNode nodeResultsJson = distributedQueryResults.findValue(JSON_NODE_RESULTS);
+			for (Iterator<JsonNode> nodeResultJsonIter = nodeResultsJson.elements(); nodeResultJsonIter.hasNext();) {
 				JsonNode nodeResultJson = nodeResultJsonIter.next();
 				List<PersistenceResultRow> nodeResults = new Vector<PersistenceResultRow>();
 				//This should have a nodeName
