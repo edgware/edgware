@@ -5,5 +5,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/fabric.core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fabric.lib"/>
 	<classpathentry kind="lib" path="/fabric.prereqs/apache/commons/commons-cli-1.2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/bundle.paho.mqtt"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
