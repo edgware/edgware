@@ -357,7 +357,7 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 			throw new PersistenceException("Failed to send distributed query", e);
 		}
 		if (result != null && result.exceptionOccurred()) {
-			throw new PersistenceException(result.getExceptionMessage());
+			throw new PersistenceException(result.getLocalExceptionMessage());
 		}
 		if (result != null) {
 			logger.finest("Results:" + result.toString());

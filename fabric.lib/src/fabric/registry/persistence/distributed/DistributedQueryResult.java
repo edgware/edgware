@@ -59,7 +59,7 @@ public class DistributedQueryResult {
 
 	private PersistenceResultKeys colNames = null;
 	private boolean exceptionOccurred = false;
-	private String exceptionMessage = "";
+	private String localExceptionMessage = "";
 	
 	public DistributedQueryResult() {
 		super();
@@ -149,17 +149,39 @@ public class DistributedQueryResult {
 		String METHOD_NAME = "toString";
 		logger.entering(CLASS_NAME, METHOD_NAME);
 		String resultString = "";
-		for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
-			String nodeName = iterator.next();
-			resultString = resultString + "nodename : " + nodeName + "\n";
-			if (colNames != null) {
-				resultString = resultString + colNames.toString() + "\n";
+		if (colNames != null) {
+			resultString = resultString + "NodeName\t" + colNames.toString() + "\n";
+		}
+		else {
+			resultString = resultString + " NO COLUMN NAMES AVAILABLE \n";
+		}
+		if (nodeToResults.isEmpty() && nodeToExceptionMessages.isEmpty()) {
+			resultString = resultString + "NO RESULTS AVAILABLE";
+		}
+		else {
+			for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
+				String nodeName = iterator.next();
+				List<PersistenceResultRow> results = nodeToResults.get(nodeName);
+				if (results!=null && !results.isEmpty()) {
+					for (int i = 0; i < results.size(); i++) {
+						PersistenceResultRow row = results.get(i);
+						resultString = resultString +  nodeName + ":\t" + row.toString() + "\n";
+					}
+				}
+				List<String> exceptions = nodeToExceptionMessages.get(nodeName);
+				if(exceptions!=null && !exceptions.isEmpty()) {
+					for (int i = 0; i < exceptions.size(); i++) {
+						String exception = exceptions.get(i);
+						resultString = resultString +  nodeName + ":\t EXCEPTION -> " + exception + "\n";
+					}
+				}
 			}
-			List<PersistenceResultRow> results = nodeToResults.get(nodeName);
-			for (int i = 0; i < results.size(); i++) {
-				PersistenceResultRow row = results.get(i);
-				resultString = resultString + row.toString() + "\n";
-			}
+		}
+		if (colNames != null) {
+			resultString = resultString + "NodeName\t" + colNames.toString() + "\n";
+		}
+		else {
+			resultString = resultString + " NO COLUMN NAMES AVAILABLE \n";
 		}
 		logger.exiting(CLASS_NAME, METHOD_NAME);
 		return resultString;
@@ -170,7 +192,7 @@ public class DistributedQueryResult {
 		String METHOD_NAME = "toObjectArray";
 		logger.entering(CLASS_NAME, METHOD_NAME);
 		if (exceptionOccurred) {
-			throw new PersistenceException(exceptionMessage);
+			throw new PersistenceException(localExceptionMessage);
 		}
 		List<Object> values = new ArrayList<Object>();
 		for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
@@ -197,7 +219,7 @@ public class DistributedQueryResult {
 		String METHOD_NAME = "toStringResult";
 		logger.entering(CLASS_NAME, METHOD_NAME);
 		if (exceptionOccurred) {
-			throw new PersistenceException(exceptionMessage);
+			throw new PersistenceException(localExceptionMessage);
 		}
 		String resultString = null;
 		for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
@@ -225,7 +247,7 @@ public class DistributedQueryResult {
 		String METHOD_NAME = "toRegistryObjects";
 		logger.entering(CLASS_NAME, METHOD_NAME);
 		if (exceptionOccurred) {
-			throw new PersistenceException(exceptionMessage);
+			throw new PersistenceException(localExceptionMessage);
 		}
 		ArrayList<RegistryObject> objects = new ArrayList<RegistryObject>();
 		for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
@@ -249,16 +271,27 @@ public class DistributedQueryResult {
 		return resultObjects;
 	}
 
-	public void setException(Exception e, String nodeName) {
+	public void setLocalException(Exception e, String nodeName) {
 		
+		String METHOD_NAME = "setLocalException";
+		logger.entering(CLASS_NAME, METHOD_NAME);
+		localExceptionMessage = LogUtil.stackTrace(e);
+		exceptionOccurred = true;
+		addExceptionMessage(localExceptionMessage, nodeName);
+		logger.exiting(CLASS_NAME, METHOD_NAME);		
+	}
+	
+	public void addExceptionMessage(String exceptionMessage, String nodeName) {
 		String METHOD_NAME = "setException";
 		logger.entering(CLASS_NAME, METHOD_NAME);
+		//Check we have an empty nodeResults to go with the exception
+		if (!nodeToResults.containsKey(nodeName)) {
+			nodeToResults.put(nodeName, new Vector<PersistenceResultRow>());
+		}
 		if (!nodeToExceptionMessages.containsKey(nodeName)) {
 			nodeToExceptionMessages.put(nodeName,  new Vector<String>());
 		}
 		nodeToExceptionMessages.get(nodeName).add(exceptionMessage);
-		exceptionOccurred = true;
-		exceptionMessage = exceptionMessage + nodeName + ":" + LogUtil.stackTrace(e) + "\n";
 		logger.exiting(CLASS_NAME, METHOD_NAME);		
 	}
 	
@@ -267,8 +300,8 @@ public class DistributedQueryResult {
 	}
 
 
-	public String getExceptionMessage() {
-		return exceptionMessage;
+	public String getLocalExceptionMessage() {
+		return localExceptionMessage;
 	}
 	
 	/**
@@ -399,6 +432,18 @@ public class DistributedQueryResult {
 				{
 					JsonNode row = valueIter.next();
 					nodeResults.add(new PersistenceResultRow(row, colNames));
+				}
+				JsonNode exceptionsJson =  nodeResultJson.findValue(JSON_EXCEPTIONS);
+				if (exceptionsJson != null) {
+					List<String> exceptionMessages = new Vector<String>();
+					nodeToExceptionMessages.put(nodeName, exceptionMessages);
+					for (Iterator<JsonNode> exceptionIter = exceptionsJson.elements(); exceptionIter.hasNext();) 
+					{
+						JsonNode exception = exceptionIter.next();
+						if (exception.isTextual()) {
+							exceptionMessages.add(exception.asText());							
+						}
+					}
 				}
 			}
 		}

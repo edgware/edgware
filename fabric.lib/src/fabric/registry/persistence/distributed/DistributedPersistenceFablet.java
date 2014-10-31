@@ -474,7 +474,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 			} catch (Exception e) {
 				// Exception occured create empty Result with the Exception
 				DistributedQueryResult result = new DistributedQueryResult(nodeName, null);
-				result.setException(e, nodeName);
+				result.setLocalException(e, nodeName);
 				resultByCorrelationId.put(correlationId, result);
 				logger.finer(e.getMessage());
 				returnImmediately = true;
@@ -562,6 +562,10 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 		for (Iterator<String> iterator = pendingNodesByCorrelationId.get(correlationId).iterator(); iterator.hasNext();) {
 			String pendingNode = iterator.next();
 			int response = updatePendingNodeByCorrelationIds(correlationId, pendingNode);
+			DistributedQueryResult currentResult = resultByCorrelationId.get(correlationId);			
+			synchronized (currentResult) {
+				currentResult.addExceptionMessage("Query pending against node : " + pendingNode + " has timed out", nodeName);
+			}
 			if (response == 0) {
 				iRemovedLastPendingNode = true;
 				logger.fine("Query pending against node : " + pendingNode + " has timed out");
