@@ -9,9 +9,7 @@
 
 package fabric.registry.persistence.distributed;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -285,6 +283,9 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 
 		String METHOD_NAME = "constructMessage";
 		logger.entering(CLASS_NAME, METHOD_NAME, query);
+		
+		//Build Query Object
+		DistributedQuery distributedQuery = new DistributedQuery(query);
 		checkFabricConnection();
 
 		String myCorrelationId = FabricMessageFactory.generateUID();
@@ -323,7 +324,7 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 
 		// Add query to service message
 		MessagePayload mp = new MessagePayload();
-		mp.setPayloadText(query);
+		mp.setPayloadText(distributedQuery.toJsonString());
 		serviceMessage.setPayload(mp);
 
 		logger.exiting(CLASS_NAME, METHOD_NAME, serviceMessage);

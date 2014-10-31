@@ -9,11 +9,7 @@
 
 package fabric.registry.persistence.distributed;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -262,6 +258,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 				String action = serviceMessage.getAction();
 				String correlationId = serviceMessage.getCorrelationID();
 				IMessagePayload payload = serviceMessage.getPayload();
+				//Currently only json payload handled
+				String payloadFormat = "json";
 				if (action == null || correlationId == null || payload == null) {
 					logger.fine("Invalid message sent " + serviceMessage.toString());
 					logger.exiting(CLASS_NAME, METHOD_NAME);
@@ -290,8 +288,10 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						return;
 					}
 
-					String querySQL = payload.getPayloadText();
-					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: " + querySQL );
+					//Get Json bytes to append to our resultset.
+					byte[] payloadBytes = payload.getPayload();
+					DistributedQuery distributedQuery = new DistributedQuery(payloadBytes, payloadFormat);
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: " + distributedQuery.getQuery() );
 					// If this is the originating node then indicate such
 					if (nodeName.equalsIgnoreCase(prevNode)) {
 						logger.finest("Add to list of correlationIds I am responsible for");
@@ -301,7 +301,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						returnNodeByCorrelationID.put(correlationId, prevNode);
 					}
 
-					boolean returnImmediately = executeQuery(correlationId, prevNode, querySQL);
+					boolean returnImmediately = executeQuery(correlationId, prevNode, distributedQuery);
 					if (returnImmediately) {
 						// return this result immediately
 						returnResult(correlationId);
@@ -347,9 +347,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						return;
 					}
 					//Get Json bytes to append to our resultset.
-					byte[] payloadBytes = serviceMessage.getPayload().getPayload();
-					//Currently only json payload handled
-					String payloadFormat = "json";
+					payloadBytes = payload.getPayload();
 					
 					logger.finer("Pending Node : " + prevNode + " results returned");
 					logger.finest("Appending to results");
@@ -451,11 +449,11 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 	/**
 	 * We currently always execute our local query before we flood the query onwards
 	 **/
-	private boolean executeQuery(String correlationId, String prevNode, String querySQL) throws PersistenceException {
+	private boolean executeQuery(String correlationId, String prevNode, DistributedQuery query) throws PersistenceException {
 
 		String METHOD_NAME = "executeQuery";
 		boolean returnImmediately = false;
-		logger.entering(CLASS_NAME, METHOD_NAME, new Object[] {correlationId, querySQL});
+		logger.entering(CLASS_NAME, METHOD_NAME, new Object[] {correlationId, query.toString()});
 		// Hosting multiple Fabric Managers on same host with same registry leads to duplicate queries.
 		// Need a way for Distributed Registry code to realise it is the same registry
 		// and not to bother doing a local query more than once.
@@ -470,7 +468,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 			// Execute our query locally before we flood
 			try {
 				// Get local Results
-				DistributedQueryResult queryResult = jdbcp.getDistributedQueryResult(querySQL, nodeName);
+				DistributedQueryResult queryResult = jdbcp.getDistributedQueryResult(query.getQuery(), nodeName);
 				resultByCorrelationId.put(correlationId, queryResult);
 			} catch (Exception e) {
 				// Exception occured create empty Result with the Exception
