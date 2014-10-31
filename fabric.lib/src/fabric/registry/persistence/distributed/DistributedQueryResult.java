@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fabric.core.logging.LogUtil;
 import fabric.registry.RegistryObject;
 import fabric.registry.exception.PersistenceException;
 import fabric.registry.impl.AbstractFactory;
@@ -257,7 +258,7 @@ public class DistributedQueryResult {
 		}
 		nodeToExceptionMessages.get(nodeName).add(exceptionMessage);
 		exceptionOccurred = true;
-		exceptionMessage = exceptionMessage + nodeName + ":" + e.getMessage() + "\n";
+		exceptionMessage = exceptionMessage + nodeName + ":" + LogUtil.stackTrace(e) + "\n";
 		logger.exiting(CLASS_NAME, METHOD_NAME);		
 	}
 	
@@ -311,7 +312,9 @@ public class DistributedQueryResult {
 		jsonGenerator.writeStartObject(); // start root object
 		jsonGenerator.writeObjectFieldStart(JSON_DISTRIBUTED_QUERY_RESULTS); //start distributedqueryresults
 
-		colNames.toJson(jsonGenerator); //column headers
+		if (colNames != null) {
+			colNames.toJson(jsonGenerator); //column headers
+		}
 
 		jsonGenerator.writeArrayFieldStart(JSON_NODE_RESULTS); //start noderesults
 		for (Iterator<String> iterator = nodeToResults.keySet().iterator(); iterator.hasNext();) {
@@ -377,7 +380,9 @@ public class DistributedQueryResult {
 			JsonNode distributedQueryResults = rootNode.findValue(JSON_DISTRIBUTED_QUERY_RESULTS);
 			//This should have a Column Names object
 			JsonNode columnNamesJson = distributedQueryResults.findValue(PersistenceResultKeys.JSON_COLNAMES);
-			colNames = new PersistenceResultKeys(columnNamesJson);
+			if (columnNamesJson != null) {
+				colNames = new PersistenceResultKeys(columnNamesJson);
+			}
 			//We can have several nodeResults
 			JsonNode nodeResultsJson = distributedQueryResults.findValue(JSON_NODE_RESULTS);
 			for (Iterator<JsonNode> nodeResultJsonIter = nodeResultsJson.elements(); nodeResultJsonIter.hasNext();) {
