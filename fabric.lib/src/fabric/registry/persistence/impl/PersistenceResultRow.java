@@ -67,6 +67,9 @@ public class PersistenceResultRow implements IPersistenceResultRow, java.io.Seri
 				if (rowValue.isTextual()) {
 					values.add(rowValue.asText());
 				}
+				else if (rowValue.isNull()) {
+					values.add(null);
+				}
 			}
 		}
 	}
@@ -358,7 +361,12 @@ public class PersistenceResultRow implements IPersistenceResultRow, java.io.Seri
 			Object value = values.get(i);
 			//The get methods will automatically try to convert a String back to the object requested 
 			// so for now using toString()
-			jsonGenerator.writeString(value.toString());
+			if ( value==null) {
+				jsonGenerator.writeNull();
+			}
+			else {
+				jsonGenerator.writeString(value.toString());
+			}
 		}
 		jsonGenerator.writeEndArray();
 	}
