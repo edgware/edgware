@@ -38,6 +38,7 @@ import fabric.core.io.ICallback;
 import fabric.core.io.InputTopic;
 import fabric.core.io.Message;
 import fabric.core.io.OutputTopic;
+import fabric.core.logging.LogUtil;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricRegistry;
 import fabric.registry.exception.PersistenceException;
@@ -388,7 +389,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 		} catch (Exception e) {
 			// Log errors - nothing to catch them and do anything sensible
-			logger.fine("Exception:\n" + e.getMessage());
+			logger.fine("Exception:\n" + LogUtil.stackTrace(e));
 		}
 
 		if (perfLoggingEnabled) {
@@ -532,7 +533,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 					}
 				}
 			} catch (Exception e) {
-				logger.fine("Failed to flood message to " + nextNode + ":\n" + e.getMessage());
+				logger.fine("Failed to flood message to " + nextNode + ":\n" + LogUtil.stackTrace(e));
 				remainingNodes = updatePendingNodeByCorrelationIds(correlationId, nextNode);
 			}
 		}
