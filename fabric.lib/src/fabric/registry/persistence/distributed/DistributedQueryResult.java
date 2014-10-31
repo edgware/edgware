@@ -44,8 +44,6 @@ public class DistributedQueryResult {
 
 	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
 
-	private static final long serialVersionUID = 134971301012513965L;
-
 	//Json
 	static public String JSON_DISTRIBUTED_QUERY_RESULTS = "distributedQueryResults";
 	static public String JSON_NODE_RESULTS = "nodeResults";
@@ -367,7 +365,7 @@ public class DistributedQueryResult {
 	 * Append to the resultSet using the bytes given which are in json format.
 	 * @param json
 	 */
-	public void appendFromJson(byte[] json) {
+	private void appendFromJson(byte[] json) {
 		String METHOD_NAME = "appendFromJson";
 		logger.entering(CLASS_NAME, METHOD_NAME, new Object[]{json});
 		logger.finer("Json = " + new String(json));
