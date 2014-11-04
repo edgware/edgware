@@ -26,17 +26,6 @@ public class NetworkUtils {
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2011";
 
-	/** Reference to the local host address */
-	private static InetAddress localAddress = null;
-
-	static {
-		try {
-			/* initialise the local address reference */
-			localAddress = InetAddress.getLocalHost();
-		} catch (UnknownHostException e) {
-			System.err.println("Failed to get local host details.");
-		}
-	}
 
 	/**
 	 * Return all valid IP addresses for this local host. Note: List can include both IPv4 and IPv6 addresses.
@@ -47,15 +36,13 @@ public class NetworkUtils {
 	 * @throws SocketException
 	 */
 	public static String[] getLocalAddressStrings() throws UnknownHostException, SocketException {
-		String[] localAddressStrings = null;
+		String[] localAddressStrings = {};
 
-		if (localAddress != null) {
-			InetAddress[] allMyAddresses = getLocalAddresses();
-			if (allMyAddresses != null) {
-				localAddressStrings = new String[allMyAddresses.length];
-				for (int y = 0; y < allMyAddresses.length; y++) {
-					localAddressStrings[y] = allMyAddresses[y].getHostAddress();
-				}
+		InetAddress[] allMyAddresses = getLocalAddresses();
+		if (allMyAddresses != null) {
+			localAddressStrings = new String[allMyAddresses.length];
+			for (int y = 0; y < allMyAddresses.length; y++) {
+				localAddressStrings[y] = allMyAddresses[y].getHostAddress();
 			}
 		}
 
@@ -72,15 +59,13 @@ public class NetworkUtils {
 	 * @throws SocketException
 	 */
 	public static String[] getLocalInterfaceStrings() throws UnknownHostException, SocketException {
-		String[] localInterfaceStrings = null;
+		String[] localInterfaceStrings = {};
 
-		if (localAddress != null) {
-			InetAddress[] allMyAddresses = getLocalAddresses();
-			if (allMyAddresses != null) {
-				localInterfaceStrings = new String[allMyAddresses.length];
-				for (int y = 0; y < allMyAddresses.length; y++) {
-					localInterfaceStrings[y] = NetworkInterface.getByInetAddress(allMyAddresses[y]).toString();
-				}
+		InetAddress[] allMyAddresses = getLocalAddresses();
+		if (allMyAddresses != null) {
+			localInterfaceStrings = new String[allMyAddresses.length];
+			for (int y = 0; y < allMyAddresses.length; y++) {
+				localInterfaceStrings[y] = NetworkInterface.getByInetAddress(allMyAddresses[y]).toString();
 			}
 		}
 
@@ -99,20 +84,18 @@ public class NetworkUtils {
 	public static InetAddress[] getLocalAddresses() throws UnknownHostException, SocketException {
 		List<InetAddress> allMyAddresses = new ArrayList<InetAddress>();
 
-		if (localAddress != null) {
 
-			Enumeration<NetworkInterface> localInterfaces = getLocalInterfaces();
-			Enumeration<InetAddress> interfaceAddresses = null;
-			while (localInterfaces.hasMoreElements()) {
-				/* get the set of addresses for each interface */
-				interfaceAddresses = localInterfaces.nextElement().getInetAddresses();
-				while (interfaceAddresses.hasMoreElements()) {
-					allMyAddresses.add(interfaceAddresses.nextElement());
-				}
+		Enumeration<NetworkInterface> localInterfaces = getLocalInterfaces();
+		Enumeration<InetAddress> interfaceAddresses = null;
+		while (localInterfaces.hasMoreElements()) {
+			/* get the set of addresses for each interface */
+			interfaceAddresses = localInterfaces.nextElement().getInetAddresses();
+			while (interfaceAddresses.hasMoreElements()) {
+				allMyAddresses.add(interfaceAddresses.nextElement());
 			}
-
-			// allMyAddresses = InetAddress.getAllByName(localAddress.getHostName());
 		}
+
+		// allMyAddresses = InetAddress.getAllByName(localAddress.getHostName());
 
 		InetAddress[] addresses = allMyAddresses.toArray(new InetAddress[allMyAddresses.size()]);
 		return addresses;
