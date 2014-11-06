@@ -720,7 +720,6 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 		}
 
 		if (status == null) {
-			/* The system was started OK */
 			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
 		}
 
@@ -870,6 +869,46 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	}
 
 	/**
+	 * Actions a notification of a new node on the bus, attempting to fulfill any outstanding subscriptions that might
+	 * now be satisfied.
+	 * 
+	 * @throws Exception
+	 */
+	private void updateSubscriptions() throws Exception {
+
+		/* For each input feed that has subscription requests associated with it... */
+		for (ServiceDescriptor nextInputFeed : systemSubscriptionRequests.keySet()) {
+
+			/* To hold the list of new subscriptions that we make */
+			List<ServiceDescriptor> subscribedList = new ArrayList<ServiceDescriptor>();
+
+			/* Get the current list of subscription requests for the input feed */
+			List<ServiceDescriptor> patternList = fabric.lookupSublist(nextInputFeed, systemSubscriptionRequests);
+
+			if (patternList != null && patternList.size() > 0) {
+
+				/* Attempt to subscribe */
+				ServiceDescriptor[] patternArray = patternList.toArray(new ServiceDescriptor[0]);
+				subscribe(patternArray, nextInputFeed, subscribedList);
+
+				/* If any new subscriptions were made... */
+				if (subscribedList.size() > 0) {
+
+					/* Get the system instance that owns the input feed */
+					SystemRuntime systemRuntime = activeSystems.get(nextInputFeed.toSystemDescriptor());
+
+					/* Build the response */
+					JSON response = JSONAdapter.buildSubscriptionResponse(subscribedList, nextInputFeed, null);
+
+					/* Send to the client */
+					systemRuntime.system().sendToClient(response.toString());
+
+				}
+			}
+		}
+	}
+
+	/**
 	 * Searches a list of service descriptors for those matching the specified pattern and returns the matching subset.
 	 * 
 	 * @param descriptorPattern
@@ -965,26 +1004,41 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 					JSON triggerJSON = new JSON(payload);
 					String table = triggerJSON.getString("table");
 
-					/* If there is no table... */
-					if (table == null) {
-						/* Ignore */
-					}
-					/* Else if this is a system table notification... */
-					else if (table.equalsIgnoreCase("SYSTEMS")) {
+					if (table != null) {
 
 						String action = triggerJSON.getString("action");
 
-						/* if a new system has been added... */
-						if (action != null && (action.equalsIgnoreCase("INSERT") || action.equalsIgnoreCase("UPDATE"))) {
+						if (action != null) {
 
-							/* Check all active subscriptions for a new match */
-							updateSubscriptions(triggerJSON);
+							table = table.toUpperCase();
+							action = action.toUpperCase();
 
+							switch (table) {
+
+							case "SYSTEMS":
+
+								switch (action) {
+								case "INSERT":
+								case "UPDATE":
+									updateSubscriptions(triggerJSON);
+									break;
+								}
+								break;
+
+							case "NODE_NEIGHBOURS":
+
+								switch (action) {
+								case "INSERT":
+								case "UPDATE":
+									updateSubscriptions();
+									break;
+								case "DELETE":
+//									updateRouteCache(triggerJSON);
+									break;
+								}
+								break;
+							}
 						}
-					}
-					/* Else if this is a neighbours table notification... */
-					else if (table.equalsIgnoreCase("NODE_NEIGHBOURS")) {
-						/* Not currently implemented */
 					}
 				}
 
