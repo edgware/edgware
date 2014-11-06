@@ -68,8 +68,12 @@ public class TableUpdate {
 
 			StringBuilder notification = new StringBuilder("{");
 			StringBuilder notificationDetail = new StringBuilder();
+			tableName = (tableName != null) ? tableName.toUpperCase() : null;
+			action = (action != null) ? action.toUpperCase() : null;
 
 			if (resourceManager.isReportable(tableName)) {
+
+				String[] idParts = null;
 
 				switch (tableName.toUpperCase()) {
 
@@ -79,20 +83,34 @@ public class TableUpdate {
 					 * Determine the type of the system, and its name; the string is encoded as "id:type", where id is a
 					 * "/" separated string
 					 */
-					String[] idParts = id.split(":");
+					idParts = id.split(":");
 					String type = (idParts.length > 1) ? idParts[1] : "";
 					String[] keyParts = idParts[0].split("/");
 
-					/* Lookup and record the feeds associated with this service */
-					notificationDetail = query(keyParts[0], keyParts[1], type);
+					if (action != null && (action.equals("UPDATE") || action.equals("INSERT"))) {
+						/* Lookup and record the services associated with this system */
+						notificationDetail = servicesForSystem(keyParts[0], keyParts[1], type);
+					}
 
-				default:
+					break;
 
-					/* Build the notification message (a JSON object) */
-					notification.append(String.format(
-							"\"table\":\"%s\",\"key\":\"%s\",\"id\":\"%s\",\"action\":\"%s\",\"timestamp\":%d",
-							tableName, key, id, action, System.currentTimeMillis()));
+				case "NODE_NEIGHBOURS":
+
+					/* Determine the ID of the neighbour; the string is encoded as "node_id/neighbour_id" */
+					idParts = id.split("/");
+					String nodeID = (idParts.length > 0) ? idParts[0] : "";
+					String neighbourID = (idParts.length > 0) ? idParts[1] : "";
+
+					if (action != null && (action.equals("UPDATE") || action.equals("INSERT"))) {
+						notificationDetail = neighbourAvailability(nodeID, neighbourID);
+					}
+
 				}
+
+				/* Build the notification message (a JSON object) */
+				notification.append(String.format(
+						"\"table\":\"%s\",\"key\":\"%s\",\"id\":\"%s\",\"action\":\"%s\",\"timestamp\":%d", tableName,
+						key, id, action, System.currentTimeMillis()));
 
 				notification.append(notificationDetail);
 				notification.append('}');
@@ -127,7 +145,8 @@ public class TableUpdate {
 	 * 
 	 * @throws SQLException
 	 */
-	private static StringBuilder query(String platformID, String systemID, String systemType) throws SQLException {
+	private static StringBuilder servicesForSystem(String platformID, String systemID, String systemType)
+			throws SQLException {
 
 		Connection connection = null;
 		Statement statement = null;
@@ -187,6 +206,66 @@ public class TableUpdate {
 		}
 
 		return services;
+	}
+
+	/**
+	 * Lookup the neighbour's availability.
+	 * 
+	 * @param nodeID
+	 *            the ID of the discovering node.
+	 * 
+	 * @param neighbourID
+	 *            the ID of the neighbour.
+	 * 
+	 * @throws SQLException
+	 */
+	private static StringBuilder neighbourAvailability(String nodeID, String neighbourID) throws SQLException {
+
+		Connection connection = null;
+		Statement statement = null;
+		ResultSet resultSet = null;
+		StringBuilder availabilityJSON = new StringBuilder();
+
+		try {
+
+			/* Get the database connection */
+			connection = DriverManager.getConnection("jdbc:default:connection");
+//			connection = debugConnection;
+
+			/* Execute the query */
+			String sql = String.format("select * from node_neighbours where node_id='%s' and neighbour_id='%s'",
+					nodeID, neighbourID);
+			statement = connection.createStatement();
+			resultSet = statement.executeQuery(sql);
+
+			/* Convert the result to JSON */
+			resultSet.next();
+			String availability = resultSet.getString("AVAILABILITY");
+			availability = (availability != null) ? availability : "";
+			availabilityJSON.append(String.format(",\"availability\":\"%s\"", availability));
+
+		} catch (Exception e) {
+
+			System.out.println("Query for node neighbour failed: " + LogUtil.stackTrace(e));
+
+		} finally {
+
+			/* Tidy up */
+
+			if (resultSet != null) {
+				resultSet.close();
+			}
+
+			if (statement != null) {
+				statement.close();
+			}
+
+			if (connection != null) {
+				connection.close();
+			}
+		}
+
+		return availabilityJSON;
 	}
 
 //  Test harness for developing/debugging trigger code outside of Derby
