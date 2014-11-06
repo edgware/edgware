@@ -70,7 +70,7 @@ public class ConfigProperties {
 	public static final String REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY = "registry.distributed.flood.remote.query";
 
 	/**  Default value for indicating whether remote distributed queries should be forwarded to our neighbours */
-	public static final String REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY_DEFAULT = "false";
+	public static final String REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY_DEFAULT = "true";
 
 
 	/** Distributed query topic configuration property. */

@@ -9,9 +9,7 @@
 
 package fabric.registry.persistence.distributed;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -285,6 +283,9 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 
 		String METHOD_NAME = "constructMessage";
 		logger.entering(CLASS_NAME, METHOD_NAME, query);
+		
+		//Build Query Object
+		DistributedQuery distributedQuery = new DistributedQuery(query);
 		checkFabricConnection();
 
 		String myCorrelationId = FabricMessageFactory.generateUID();
@@ -323,7 +324,7 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 
 		// Add query to service message
 		MessagePayload mp = new MessagePayload();
-		mp.setPayloadText(query);
+		mp.setPayloadText(distributedQuery.toJsonString());
 		serviceMessage.setPayload(mp);
 
 		logger.exiting(CLASS_NAME, METHOD_NAME, serviceMessage);
@@ -356,7 +357,7 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 			throw new PersistenceException("Failed to send distributed query", e);
 		}
 		if (result != null && result.exceptionOccurred()) {
-			throw new PersistenceException(result.getExceptionMessage());
+			throw new PersistenceException(result.getLocalExceptionMessage());
 		}
 		if (result != null) {
 			logger.finest("Results:" + result.toString());
@@ -386,12 +387,9 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
 				case DistributedJDBCPersistence.FINAL_RESULT_ACTION:
 					if (waitThreadsByCorrelationId.containsKey(correlationId)) {
 						logger.finest("This is a correlationId I am looking for");
-						ByteArrayInputStream bytein = new ByteArrayInputStream(serviceMessage.getPayload()
-								.getPayloadBytes());
-						ObjectInputStream in = new ObjectInputStream(bytein);
-						DistributedQueryResult result = (DistributedQueryResult) in.readObject();
-						in.close();
-						bytein.close();
+						DistributedQueryResult result = new DistributedQueryResult();
+						String payloadFormat = "json";
+						result.append(serviceMessage.getPayload().getPayload(), payloadFormat);
 						logger.finest("Got the DistributedQueryResult");
 						resultByCorrelationId.put(correlationId, result);
 						waitThreadsByCorrelationId.remove(correlationId).interrupt();

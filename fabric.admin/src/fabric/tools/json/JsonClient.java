@@ -7,7 +7,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */
 
-package tests.common;
+package fabric.tools.json;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -27,15 +27,15 @@ import fabric.core.properties.ConfigProperties;
 
 /**
  * 
- * TestClient for JSON messages to Edgware
+ * Client for JSON messages to Edgware
  *
  */
-public class FabricTestJsonClient implements MqttCallback {
+public class JsonClient implements MqttCallback {
 	
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
 	
-	private final static String PACKAGE_NAME = FabricTestJsonClient.class.getSimpleName();
+	private final static String PACKAGE_NAME = JsonClient.class.getSimpleName();
 	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
 
 	/** Hold the returned messages in order received */
@@ -58,11 +58,11 @@ public class FabricTestJsonClient implements MqttCallback {
 	 * broker.ipaddress, fabric.adapter.mqtt.intopic, fabric.adapter.mqtt.outtopic
 	 * @param clientID Identity for the client
 	 */
-    public FabricTestJsonClient(Properties props, String clientID) throws IOException {
+    public JsonClient(Properties props, String clientID) throws IOException {
     	this.clientID = clientID;
     	this.nodeName = props.getProperty(ConfigProperties.NODE_NAME);
 		sendToAdapterTopic = props.getProperty("fabric.adapters.mqtt.intopic") + "/" + this.clientID;
-		receiveFromAdapterTopic = props.getProperty("fabric.adapters.mqtt.outtopic") + "/" + this.clientID;
+		receiveFromAdapterTopic = props.getProperty("fabric.adapters.mqtt.outtopic") + "/" + this.clientID + "/#";
 		disconnectMessage = String.format("{\"op\":\"disconnect\",\"client-id\":\"%s\"}", this.clientID);
     	init(props.getProperty("broker.ipaddress"), props.getProperty(ConfigProperties.MQTT_REMOTE_PORT));
     }
@@ -205,7 +205,7 @@ public class FabricTestJsonClient implements MqttCallback {
 	}
 	
 	/**
-	 * Is the TestJsonClient connected?
+	 * Are we connected?
 	 * @return
 	 */
 	public boolean isConnected() {

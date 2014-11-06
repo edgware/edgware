@@ -9,11 +9,7 @@
 
 package fabric.registry.persistence.distributed;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,6 +38,7 @@ import fabric.core.io.ICallback;
 import fabric.core.io.InputTopic;
 import fabric.core.io.Message;
 import fabric.core.io.OutputTopic;
+import fabric.core.logging.LogUtil;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricRegistry;
 import fabric.registry.exception.PersistenceException;
@@ -262,6 +259,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 				String action = serviceMessage.getAction();
 				String correlationId = serviceMessage.getCorrelationID();
 				IMessagePayload payload = serviceMessage.getPayload();
+				//Currently only json payload handled
+				String payloadFormat = "json";
 				if (action == null || correlationId == null || payload == null) {
 					logger.fine("Invalid message sent " + serviceMessage.toString());
 					logger.exiting(CLASS_NAME, METHOD_NAME);
@@ -290,8 +289,10 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						return;
 					}
 
-					String querySQL = payload.getPayloadText();
-					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: " + querySQL );
+					//Get Json bytes to append to our resultset.
+					byte[] payloadBytes = payload.getPayload();
+					DistributedQuery distributedQuery = new DistributedQuery(payloadBytes, payloadFormat);
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: " + distributedQuery.getQuery() );
 					// If this is the originating node then indicate such
 					if (nodeName.equalsIgnoreCase(prevNode)) {
 						logger.finest("Add to list of correlationIds I am responsible for");
@@ -301,7 +302,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						returnNodeByCorrelationID.put(correlationId, prevNode);
 					}
 
-					boolean returnImmediately = executeQuery(correlationId, prevNode, querySQL);
+					boolean returnImmediately = executeQuery(correlationId, prevNode, distributedQuery);
 					if (returnImmediately) {
 						// return this result immediately
 						returnResult(correlationId);
@@ -346,23 +347,19 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						logger.exiting(CLASS_NAME, METHOD_NAME);
 						return;
 					}
-					ByteArrayInputStream bytein = new ByteArrayInputStream(serviceMessage.getPayload()
-							.getPayloadBytes());
-					ObjectInputStream in = new ObjectInputStream(bytein);
-					DistributedQueryResult partialResult = (DistributedQueryResult) in.readObject();
-					in.close();
-					bytein.close();
-					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Result: " + partialResult.toString());
+					//Get Json bytes to append to our resultset.
+					payloadBytes = payload.getPayload();
+					
 					logger.finer("Pending Node : " + prevNode + " results returned");
 					logger.finest("Appending to results");
-
 					DistributedQueryResult currentResult = resultByCorrelationId.get(correlationId);
 					// Acquire lock for result so we can complete append.
 					// Prevents another thread acquiring lock and returning a result while we are in middle of
 					// appending.
 					synchronized (currentResult) {
-						currentResult.append(partialResult);
+						currentResult.append(payloadBytes, payloadFormat);
 					}
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Result for this correlationId is now : " + currentResult.toString());
 					int numberOfNodesPending = updatePendingNodeByCorrelationIds(correlationId, prevNode);
 					if (numberOfNodesPending < 0) {
 						// Thread timeout has already processed this correlationID we missed our window so just return
@@ -392,7 +389,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 		} catch (Exception e) {
 			// Log errors - nothing to catch them and do anything sensible
-			logger.fine("Exception:\n" + e.getMessage());
+			logger.fine("Exception:\n" + LogUtil.stackTrace(e));
 		}
 
 		if (perfLoggingEnabled) {
@@ -453,11 +450,11 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 	/**
 	 * We currently always execute our local query before we flood the query onwards
 	 **/
-	private boolean executeQuery(String correlationId, String prevNode, String querySQL) throws PersistenceException {
+	private boolean executeQuery(String correlationId, String prevNode, DistributedQuery query) throws PersistenceException {
 
 		String METHOD_NAME = "executeQuery";
 		boolean returnImmediately = false;
-		logger.entering(CLASS_NAME, METHOD_NAME, new Object[] {correlationId, querySQL});
+		logger.entering(CLASS_NAME, METHOD_NAME, new Object[] {correlationId, query.toString()});
 		// Hosting multiple Fabric Managers on same host with same registry leads to duplicate queries.
 		// Need a way for Distributed Registry code to realise it is the same registry
 		// and not to bother doing a local query more than once.
@@ -467,26 +464,24 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 				+ prevNode + "' and name='" + ConfigProperties.REGISTRY_UID + "'", true);
 		logger.finest("Previous Node " + prevNode + " Registry UID = " + prevNodeRegistryUID + " my " + nodeName
 				+ " registryUID = " + myRegistryUID);
-		if (prevNode.equals(nodeName) || (myRegistryUID == null) || prevNodeRegistryUID == null
+		if (prevNode.equals(nodeName) || myRegistryUID == null || prevNodeRegistryUID == null
 				|| !myRegistryUID.equals(prevNodeRegistryUID)) {
 			// Execute our query locally before we flood
 			try {
-				// Populate Results
-				DistributedQueryResult queryResult = jdbcp.getDistributedQueryResult(querySQL, nodeName);
+				// Get local Results
+				DistributedQueryResult queryResult = jdbcp.getDistributedQueryResult(query.getQuery(), nodeName);
 				resultByCorrelationId.put(correlationId, queryResult);
 			} catch (Exception e) {
 				// Exception occured create empty Result with the Exception
 				DistributedQueryResult result = new DistributedQueryResult(nodeName, null);
-				result.setException(e, nodeName);
+				result.setLocalException(e, nodeName);
 				resultByCorrelationId.put(correlationId, result);
-
 				logger.finer(e.getMessage());
 				returnImmediately = true;
 				logger.exiting(CLASS_NAME, METHOD_NAME);
-
 			}
 		} else {
-			// We record an empty partial resultset
+			// We record an empty partial resultset as we don't run the query
 			DistributedQueryResult result = new DistributedQueryResult(nodeName, null);
 			resultByCorrelationId.put(correlationId, result);
 			logger.finest("Created empty partial result");
@@ -538,7 +533,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 					}
 				}
 			} catch (Exception e) {
-				logger.fine("Failed to flood message to " + nextNode + ":\n" + e.getMessage());
+				logger.fine("Failed to flood message to " + nextNode + ":\n" + LogUtil.stackTrace(e));
 				remainingNodes = updatePendingNodeByCorrelationIds(correlationId, nextNode);
 			}
 		}
@@ -567,6 +562,10 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 		for (Iterator<String> iterator = pendingNodesByCorrelationId.get(correlationId).iterator(); iterator.hasNext();) {
 			String pendingNode = iterator.next();
 			int response = updatePendingNodeByCorrelationIds(correlationId, pendingNode);
+			DistributedQueryResult currentResult = resultByCorrelationId.get(correlationId);			
+			synchronized (currentResult) {
+				currentResult.addExceptionMessage("Query pending against node : " + pendingNode + " has timed out", nodeName);
+			}
 			if (response == 0) {
 				iRemovedLastPendingNode = true;
 				logger.fine("Query pending against node : " + pendingNode + " has timed out");
@@ -601,16 +600,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 			// Add SQL query to service message
 			MessagePayload mp = new MessagePayload();
-			ByteArrayOutputStream byteos = new ByteArrayOutputStream();
-			ObjectOutputStream outStream = new ObjectOutputStream(byteos);
-			// Synchronise on our results so noone can append anything to them while we are serialising
-			// Our append call is wrapped in synchronize
 			synchronized (results) {
-				outStream.writeObject(results);
+				mp.setPayloadText(results.toJsonString());
 			}
-			outStream.close();
-			byteos.close();
-			mp.setPayloadBytes(byteos.toByteArray());
 			serviceMessage.setPayload(mp);
 			logger.finest("About to send a final response to " + resultChannelTopic);
 			resultChannel = FabricRegistry.homeNodeEndPoint.openOutputChannel(resultChannelTopic);
@@ -647,16 +639,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 			// Add result to service message
 			MessagePayload mp = new MessagePayload();
-			ByteArrayOutputStream byteos = new ByteArrayOutputStream();
-			ObjectOutputStream outStream = new ObjectOutputStream(byteos);
-			// Synchronise on our results so noone can append anything to them while we are serialising
-			// Our append call is wrapped in synchronize
 			synchronized (results) {
-				outStream.writeObject(results);
+				mp.setPayloadText(results.toJsonString());				
 			}
-			outStream.close();
-			byteos.close();
-			mp.setPayloadBytes(byteos.toByteArray());
 			serviceMessage.setPayload(mp);
 
 			logger.fine("Sending command: " + serviceMessage.toXML());
@@ -722,16 +707,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 		// Add result to service message
 		MessagePayload mp = new MessagePayload();
-		ByteArrayOutputStream byteos = new ByteArrayOutputStream();
-		ObjectOutputStream outStream = new ObjectOutputStream(byteos);
-		// Synchronise on our results so noone can append anything to them while we are serialising
-		// Our append call is wrapped in synchronize
-		// synchronized (results) {
-		outStream.writeObject(results);
-		// }
-		outStream.close();
-		byteos.close();
-		mp.setPayloadBytes(byteos.toByteArray());
+		synchronized (results) {
+			mp.setPayloadText(results.toJsonString());	
+		}
 		serviceMessage.setPayload(mp);
 
 		logger.fine("Sending command: " + serviceMessage.toXML());
