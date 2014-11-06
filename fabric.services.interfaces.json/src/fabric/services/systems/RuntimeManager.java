@@ -61,7 +61,9 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 * Class fields
 	 */
 
-	/** To hold the list of active systems, including both those in the running and stopped states. */
+	/**
+	 * To hold the list of active systems, including both those in the running and stopped states.
+	 */
 	private final HashMap<SystemDescriptor, SystemRuntime> activeSystems = new HashMap<SystemDescriptor, SystemRuntime>();
 
 	/** To hold the list of subscription requests for active systems. */
@@ -578,7 +580,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 			ServiceDescriptor[] feedsMatchingPattern = queryMatchingFeeds(outputFeedPatterns[sf]);
 
 			/* While there are more feeds and no errors... */
-			for (int f = 0; f < feedsMatchingPattern.length && subscribeStatus.isOK(); f++) {
+			for (int f = 0; f < feedsMatchingPattern.length; f++) {
 
 				/* Subscribe to the feed */
 				subscribeStatus = subscribe(feedsMatchingPattern[f], inputFeed);
@@ -876,7 +878,9 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 	 */
 	private void updateSubscriptions() throws Exception {
 
-		/* For each input feed that has subscription requests associated with it... */
+		/*
+		 * For each input feed that has subscription requests associated with it...
+		 */
 		for (ServiceDescriptor nextInputFeed : systemSubscriptionRequests.keySet()) {
 
 			/* To hold the list of new subscriptions that we make */
@@ -1033,7 +1037,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 									updateSubscriptions();
 									break;
 								case "DELETE":
-//									updateRouteCache(triggerJSON);
+									// updateRouteCache(triggerJSON);
 									break;
 								}
 								break;
