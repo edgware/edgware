@@ -343,8 +343,8 @@ public class FabricBus extends Fabric {
 
 			} catch (Exception e) {
 				sharedEndPoint = null;
-				logger.log(Level.SEVERE, "Unable to connect to broker for Fabric node \"{0}\":", new Object[] {nodeID,
-						LogUtil.stackTrace(e)});
+				logger.log(Level.SEVERE, "Unable to connect to broker for Fabric node \"{0}\": {1}", new Object[] {
+						nodeID, LogUtil.stackTrace(e)});
 			}
 		}
 
