@@ -66,7 +66,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
 	/** Flag used to indicate when the main thread should terminate */
 	private boolean isRunning = false;
-	
+
 	/** Indicates if we should forward a remote query onwards to all our known neighbours. **/
 	private boolean floodRemoteQuery = false;
 
@@ -127,7 +127,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 		defaultQueryTimeoutDecrement = new Integer(DistributedJDBCPersistence.DEFAULT_RESPONSE_TIMEOUT_DECREMENT);
 		defaultQueryTimeOut = new Integer(DistributedJDBCPersistence.DEFAULT_RESPONSE_TIMEOUT);
 		perfLoggingEnabled = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_PERF_LOGGING));
-		floodRemoteQuery = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY, ConfigProperties.REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY_DEFAULT));
+		floodRemoteQuery = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY,
+				ConfigProperties.REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY_DEFAULT));
 
 		logger.exiting(CLASS_NAME, METHOD_NAME);
 	}
@@ -259,7 +260,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 				String action = serviceMessage.getAction();
 				String correlationId = serviceMessage.getCorrelationID();
 				IMessagePayload payload = serviceMessage.getPayload();
-				//Currently only json payload handled
+				// Currently only json payload handled
 				String payloadFormat = "json";
 				if (action == null || correlationId == null || payload == null) {
 					logger.fine("Invalid message sent " + serviceMessage.toString());
@@ -289,10 +290,11 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						return;
 					}
 
-					//Get Json bytes to append to our resultset.
+					// Get Json bytes to append to our resultset.
 					byte[] payloadBytes = payload.getPayload();
 					DistributedQuery distributedQuery = new DistributedQuery(payloadBytes, payloadFormat);
-					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: " + distributedQuery.getQuery() );
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Query: "
+							+ distributedQuery.getQuery());
 					// If this is the originating node then indicate such
 					if (nodeName.equalsIgnoreCase(prevNode)) {
 						logger.finest("Add to list of correlationIds I am responsible for");
@@ -309,12 +311,12 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 					}
 
 					String[] nodes = null;
-					//Trim the nodes for flooding no point the query arriving twice in the same place
+					// Trim the nodes for flooding no point the query arriving twice in the same place
 					if (nodeName.equalsIgnoreCase(prevNode) || floodRemoteQuery) {
-					   //We are the initial node (we are local to query) or flooding is enabled so flood widely
-					    nodes = serviceMessage.getRouting().nextNodes();
+						// We are the initial node (we are local to query) or flooding is enabled so flood widely
+						nodes = serviceMessage.getRouting().nextNodes();
 					}
-					
+
 					if (nodes == null || nodes.length == 0) {
 						// We have no onward route so no point waiting just respond
 						returnResult(correlationId);
@@ -347,9 +349,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 						logger.exiting(CLASS_NAME, METHOD_NAME);
 						return;
 					}
-					//Get Json bytes to append to our resultset.
+					// Get Json bytes to append to our resultset.
 					payloadBytes = payload.getPayload();
-					
+
 					logger.finer("Pending Node : " + prevNode + " results returned");
 					logger.finest("Appending to results");
 					DistributedQueryResult currentResult = resultByCorrelationId.get(correlationId);
@@ -359,7 +361,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 					synchronized (currentResult) {
 						currentResult.append(payloadBytes, payloadFormat);
 					}
-					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId + " Result for this correlationId is now : " + currentResult.toString());
+					logger.fine("From: " + prevNode + " CorrelationID: " + correlationId
+							+ " Result for this correlationId is now : " + currentResult.toString());
 					int numberOfNodesPending = updatePendingNodeByCorrelationIds(correlationId, prevNode);
 					if (numberOfNodesPending < 0) {
 						// Thread timeout has already processed this correlationID we missed our window so just return
@@ -450,7 +453,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 	/**
 	 * We currently always execute our local query before we flood the query onwards
 	 **/
-	private boolean executeQuery(String correlationId, String prevNode, DistributedQuery query) throws PersistenceException {
+	private boolean executeQuery(String correlationId, String prevNode, DistributedQuery query)
+			throws PersistenceException {
 
 		String METHOD_NAME = "executeQuery";
 		boolean returnImmediately = false;
@@ -562,9 +566,10 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 		for (Iterator<String> iterator = pendingNodesByCorrelationId.get(correlationId).iterator(); iterator.hasNext();) {
 			String pendingNode = iterator.next();
 			int response = updatePendingNodeByCorrelationIds(correlationId, pendingNode);
-			DistributedQueryResult currentResult = resultByCorrelationId.get(correlationId);			
+			DistributedQueryResult currentResult = resultByCorrelationId.get(correlationId);
 			synchronized (currentResult) {
-				currentResult.addExceptionMessage("Query pending against node : " + pendingNode + " has timed out", nodeName);
+				currentResult.addExceptionMessage("Query pending against node : " + pendingNode + " has timed out",
+						nodeName);
 			}
 			if (response == 0) {
 				iRemovedLastPendingNode = true;
@@ -606,8 +611,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 			serviceMessage.setPayload(mp);
 			logger.finest("About to send a final response to " + resultChannelTopic);
 			resultChannel = FabricRegistry.homeNodeEndPoint.openOutputChannel(resultChannelTopic);
-
 			resultChannel.write(serviceMessage.toWireBytes());
+			FabricRegistry.homeNodeEndPoint.closeChannel(resultChannel, false);
 
 		} else {
 			// Returning to previous Node
@@ -640,7 +645,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 			// Add result to service message
 			MessagePayload mp = new MessagePayload();
 			synchronized (results) {
-				mp.setPayloadText(results.toJsonString());				
+				mp.setPayloadText(results.toJsonString());
 			}
 			serviceMessage.setPayload(mp);
 
@@ -708,7 +713,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 		// Add result to service message
 		MessagePayload mp = new MessagePayload();
 		synchronized (results) {
-			mp.setPayloadText(results.toJsonString());	
+			mp.setPayloadText(results.toJsonString());
 		}
 		serviceMessage.setPayload(mp);
 

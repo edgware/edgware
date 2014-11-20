@@ -473,10 +473,11 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 		}
 	}
 
+	/**
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
-
-		return this.activeServiceDescriptor.toString();
+		return super.toString();
 	}
-
 }
