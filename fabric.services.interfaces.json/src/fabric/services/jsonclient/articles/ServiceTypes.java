@@ -54,8 +54,9 @@ public class ServiceTypes {
 
 				/* Get the mode of the service, indicating its semantics */
 				String mode = jsonOpObject.getString(AdapterConstants.FIELD_MODE);
+				String testMode = (mode != null) ? mode : "";
 
-				switch (mode) {
+				switch (testMode) {
 
 				case AdapterConstants.MODE_OUTPUT:
 				case AdapterConstants.MODE_INPUT:
@@ -63,6 +64,7 @@ public class ServiceTypes {
 				case AdapterConstants.MODE_LISTEN:
 				case AdapterConstants.MODE_SOLICIT:
 				case AdapterConstants.MODE_RESPONSE:
+				case "":
 
 					/* Create the Registry entry for the new service type */
 					TypeFactory typeFactory = FabricRegistry.getTypeFactory();
