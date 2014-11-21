@@ -63,15 +63,16 @@ public class ConfigProperties {
 	 * the flood, to avoid requests timing-out before partial results are returned.
 	 **/
 	public static final String REGISTRY_DISTRIBUTED_TIMEOUT_DECREMENT = "registry.distributed.timeout.decrement";
-	
-	/** Configuration property indicating whether remote distributed queries received should be forwarded to our neighbours.
-	 *  Setting this to true will increase network traffic but would allow distributed queries to reach nodes not visible to the original querying node.
+
+	/**
+	 * Configuration property indicating whether remote distributed queries received should be forwarded to our
+	 * neighbours. Setting this to true will increase network traffic but would allow distributed queries to reach nodes
+	 * not visible to the original querying node.
 	 */
 	public static final String REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY = "registry.distributed.flood.remote.query";
 
-	/**  Default value for indicating whether remote distributed queries should be forwarded to our neighbours */
+	/** Default value for indicating whether remote distributed queries should be forwarded to our neighbours */
 	public static final String REGISTRY_DISTRIBUTED_FLOOD_REMOTE_QUERY_DEFAULT = "true";
-
 
 	/** Distributed query topic configuration property. */
 	public static final String REGISTRY_COMMAND_TOPIC = "registry.distributed.command.topic";
@@ -234,10 +235,13 @@ public class ConfigProperties {
 
 	/** Default value for TTL for auto discovery multicast requests. */
 	public static final String AUTO_DISCOVERY_TTL_DEFAULT = "1";
-	
-	/** Configuration property indicating whether to process all autodiscovery messages, true means yes, false means only process those autodiscovery meessages from the interface's subnet. */
+
+	/**
+	 * Configuration property indicating whether to process all autodiscovery messages, true means yes, false means only
+	 * process those autodiscovery meessages from the interface's subnet.
+	 */
 	public static final String AUTO_DISCOVERY_ACCEPT_ALL = "autodiscovery.accept.all";
-	
+
 	/** Default value for Accepting all autodiscovery messages */
 	public static final String AUTO_DISCOVERY_ACCEPT_ALL_DEFAULT = "false";
 
@@ -264,7 +268,6 @@ public class ConfigProperties {
 	 */
 	public static final String AUTO_DISCOVERY_SWEEPER_INTERVAL_DEFAULT = "5510";
 
-	
 	/*
 	 * Class methods
 	 */
