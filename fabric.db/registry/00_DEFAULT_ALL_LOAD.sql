@@ -88,6 +88,12 @@ insert into fabric.default_config values ('instrumentation.buffer', '100');
 -- This does not effect retries on startup which will always be attempted.
 --insert into fabric.default_config values ('registry.reconnect', 'true');
 
+-- Configuration property indicating whether remote distributed queries
+-- received should be forwarded to neighbours. Setting this to true will
+-- increase network traffic but will allow distributed queries to reach nodes
+-- not directly visible to the original querying node.
+insert into fabric.default_config values ('registry.distributed.flood.remote.query', 'false');
+
 -------------------------------------------------------------------------------
 -- F a b r i c   S e r v i c e   C o n f i g u r a t i o n
 --
@@ -281,11 +287,13 @@ insert into fabric.default_config values ('fabric.node.interfaces', 'lo0');
 
 insert into fabric.default_config values ('autodiscovery.port','61883');
 insert into fabric.default_config values ('autodiscovery.frequency','30000');
-insert into fabric.default_config values ('autodiscovery.timeout','600000');
+insert into fabric.default_config values ('autodiscovery.timeout','64000');
+insert into fabric.default_config values ('autodiscovery.ttl','6');
 insert into fabric.default_config values ('autodiscovery.sweeper.interval','5510');
 insert into fabric.default_config values ('autodiscovery.group','225.0.18.83');
 insert into fabric.default_config values ('autodiscovery.request','enabled');
 insert into fabric.default_config values ('autodiscovery.listen','enabled');
+insert into fabric.default_config values ('autodiscovery.accept.all','true');
 insert into fabric.default_config values ('autodiscovery.purgeNeighbours','false');
 -- Topic for discovery messages
 insert into fabric.default_config values ('fabric.discovery.topic','$fabric/{0}/$discovery');
