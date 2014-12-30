@@ -69,7 +69,7 @@ individually via the fabadmin command, in the order shown below. To start the
 components in the background add the -daemon command line option.
 
 To start the Edgware components as system services, see the readme.txt files
-under $FABRIC_HOME/server/linux or%FABRIC_HOME%\server\windows.
+under $FABRIC_HOME/server/linux or %FABRIC_HOME%\server\windows.
 
 Note: these instructions assume that the Mosquitto broker is already running,
 either from the command line or as a system service. See the Mosquitto
@@ -136,7 +136,7 @@ if required.
 
 5.1 INSTALLATION USING A DIRECTORY PATH CONTAINING SPACES
 
-It is not currently possible to install Edgeware into a directory that contains
+It is not currently possible to install Edgware into a directory that contains
 one or more spaces in its path (for example: "C:\Program Files\Edgware".)
 
 Please select an alternative directory whose path does not contain spaces.
