@@ -9,8 +9,8 @@ A lightweight, agile service bus for systems at the edge of the network, in the 
 The [getting started](http://edgware-fabric.org/docs/getting_started) guide provides full instructions on starting out with Edgware including:
 
 1. Prereqs
-2. Running Edgware
-3. Installation
+2. Installation
+3. Running Edgware
 
 ## Documentation
 
