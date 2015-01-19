@@ -6,7 +6,7 @@ A lightweight, agile service bus for systems at the edge of the network, in the 
 
 ## Quick Start
 
-The [getting started](http://edgware-fabric.org/docs/) guide provides full instructions on starting out with Edgware including:
+The [getting started](http://edgware-fabric.org/docs/getting_started) guide provides full instructions on starting out with Edgware including:
 
 1. Prereqs
 2. Running Edgware
@@ -26,8 +26,8 @@ Please see our [contributing guide](CONTRIBUTING.md).
 
 Edgware Fabric is a creation of [IBM Emerging Technology](http://ibm.com/blogs/et).
 
-For more open-source projects from IBM, head over [here](http://ibm.github.io).
+For more open-source projects from IBM, take a look [here](http://ibm.github.io).
 
 ## Copyright and License
 
-Copyright 2006, 2014 IBM Corp. under [the Eclipse Public License v1.0](LICENSE).
+Copyright 2006, 2014 IBM Corp. under the [Eclipse Public License v1.0](LICENSE).
