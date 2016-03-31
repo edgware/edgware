@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2006, 2007
  *  
  * LICENSE: Eclipse Public License v1.0

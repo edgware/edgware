@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2010, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -29,177 +27,177 @@ import fabric.client.FabricClient;
  * Handles notification messages sent from the Fabric to a platform.
  */
 public class PlatformNotificationService extends Fabric implements IClientService, IPersistentService,
-		IPlatformNotificationServices {
+        IPlatformNotificationServices {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/** The service configuration. */
-	private IPluginConfig config = null;
+    /** The service configuration. */
+    private IPluginConfig config = null;
 
-	/** The Fabric Client associated with this service. */
-	private FabricClient fabricClient = null;
+    /** The Fabric Client associated with this service. */
+    private FabricClient fabricClient = null;
 
-	/** Channels used for Fabric I/O */
-	private BusIOChannels ioChannels = null;
+    /** Channels used for Fabric I/O */
+    private BusIOChannels ioChannels = null;
 
-	/** The notification handlers registered for each platform ID */
-	private final HashMap<String, IPlatformNotificationHandler> platformNotificationHandlers = new HashMap<String, IPlatformNotificationHandler>();
+    /** The notification handlers registered for each platform ID */
+    private final HashMap<String, IPlatformNotificationHandler> platformNotificationHandlers = new HashMap<String, IPlatformNotificationHandler>();
 
-	/** The notification handlers registered for each platform ID */
-	private final HashMap<SystemDescriptor, IPlatformNotificationHandler> serviceNotificationHandlers = new HashMap<SystemDescriptor, IPlatformNotificationHandler>();
+    /** The notification handlers registered for each platform ID */
+    private final HashMap<SystemDescriptor, IPlatformNotificationHandler> serviceNotificationHandlers = new HashMap<SystemDescriptor, IPlatformNotificationHandler>();
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public PlatformNotificationService() {
+    /**
+     * Constructs a new instance.
+     */
+    public PlatformNotificationService() {
 
-		super(Logger.getLogger("fabric.client.services"));
+        super(Logger.getLogger("fabric.client.services"));
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IService#serviceConfig()
-	 */
-	@Override
-	public IPluginConfig serviceConfig() {
+    /**
+     * @see fabric.bus.services.IService#serviceConfig()
+     */
+    @Override
+    public IPluginConfig serviceConfig() {
 
-		return config;
+        return config;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IClientService#setFabricClient(fabric.client.FabricClient)
-	 */
-	@Override
-	@Deprecated
-	public void setFabricClient(FabricClient fabricClient) {
+    /**
+     * @see fabric.bus.services.IClientService#setFabricClient(fabric.client.FabricClient)
+     */
+    @Override
+    @Deprecated
+    public void setFabricClient(FabricClient fabricClient) {
 
-		this.fabricClient = fabricClient;
+        this.fabricClient = fabricClient;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IClientService#setIOChannels(fabric.bus.BusIOChannels)
-	 */
-	@Override
-	public void setIOChannels(BusIOChannels ioChannels) {
+    /**
+     * @see fabric.bus.services.IClientService#setIOChannels(fabric.bus.BusIOChannels)
+     */
+    @Override
+    public void setIOChannels(BusIOChannels ioChannels) {
 
-		this.ioChannels = ioChannels;
+        this.ioChannels = ioChannels;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IService#initService(fabric.bus.plugins.IPluginConfig)
-	 */
-	@Override
-	public void initService(IPluginConfig config) {
+    /**
+     * @see fabric.bus.services.IService#initService(fabric.bus.plugins.IPluginConfig)
+     */
+    @Override
+    public void initService(IPluginConfig config) {
 
-		this.config = config;
+        this.config = config;
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#registerPlatformNotificationHandler(java.lang.String,
-	 *      fabric.client.services.IPlatformNotificationHandler)
-	 */
-	@Override
-	public IPlatformNotificationHandler registerPlatformNotificationHandler(String platform,
-			IPlatformNotificationHandler handler) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#registerPlatformNotificationHandler(java.lang.String,
+     *      fabric.client.services.IPlatformNotificationHandler)
+     */
+    @Override
+    public IPlatformNotificationHandler registerPlatformNotificationHandler(String platform,
+            IPlatformNotificationHandler handler) {
 
-		logger.log(Level.FINEST, "Registering notification handler for platform \"{0}\": {1}", new Object[] {platform,
-				"" + handler});
+        logger.log(Level.FINEST, "Registering notification handler for platform \"{0}\": {1}", new Object[] {platform,
+                "" + handler});
 
-		IPlatformNotificationHandler oldHandler = platformNotificationHandlers.put(platform, handler);
-		return oldHandler;
+        IPlatformNotificationHandler oldHandler = platformNotificationHandlers.put(platform, handler);
+        return oldHandler;
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#deregisterPlatformNotificationHandler(java.lang.String)
-	 */
-	@Override
-	public IPlatformNotificationHandler deregisterPlatformNotificationHandler(String platform) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#deregisterPlatformNotificationHandler(java.lang.String)
+     */
+    @Override
+    public IPlatformNotificationHandler deregisterPlatformNotificationHandler(String platform) {
 
-		logger.log(Level.FINEST, "De-registering notification handler for platform \"{0}\"", platform);
+        logger.log(Level.FINEST, "De-registering notification handler for platform \"{0}\"", platform);
 
-		IPlatformNotificationHandler oldHandler = platformNotificationHandlers.remove(platform);
-		return oldHandler;
+        IPlatformNotificationHandler oldHandler = platformNotificationHandlers.remove(platform);
+        return oldHandler;
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#registerServiceNotificationHandler(java.lang.String,
-	 *      java.lang.String, fabric.client.services.IPlatformNotificationHandler)
-	 */
-	@Override
-	public IPlatformNotificationHandler registerServiceNotificationHandler(String platform, String service,
-			IPlatformNotificationHandler handler) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#registerServiceNotificationHandler(java.lang.String,
+     *      java.lang.String, fabric.client.services.IPlatformNotificationHandler)
+     */
+    @Override
+    public IPlatformNotificationHandler registerServiceNotificationHandler(String platform, String service,
+            IPlatformNotificationHandler handler) {
 
-		SystemDescriptor systemDescriptor = new SystemDescriptor(platform, service);
-		IPlatformNotificationHandler oldHandler = serviceNotificationHandlers.put(systemDescriptor, handler);
-		return oldHandler;
+        SystemDescriptor systemDescriptor = new SystemDescriptor(platform, service);
+        IPlatformNotificationHandler oldHandler = serviceNotificationHandlers.put(systemDescriptor, handler);
+        return oldHandler;
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#deregisterServiceNotificationHandler(java.lang.String,
-	 *      java.lang.String)
-	 */
-	@Override
-	public IPlatformNotificationHandler deregisterServiceNotificationHandler(String platform, String service) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#deregisterServiceNotificationHandler(java.lang.String,
+     *      java.lang.String)
+     */
+    @Override
+    public IPlatformNotificationHandler deregisterServiceNotificationHandler(String platform, String service) {
 
-		SystemDescriptor systemDescriptor = new SystemDescriptor(platform, service);
-		IPlatformNotificationHandler oldHandler = serviceNotificationHandlers.remove(systemDescriptor);
-		return oldHandler;
+        SystemDescriptor systemDescriptor = new SystemDescriptor(platform, service);
+        IPlatformNotificationHandler oldHandler = serviceNotificationHandlers.remove(systemDescriptor);
+        return oldHandler;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IService#handleServiceMessage(fabric.bus.messages.IServiceMessage,INotificationMessage,
-	 *      IClientNotificationMessage[])
-	 */
-	@Override
-	public IServiceMessage handleServiceMessage(IServiceMessage message, INotificationMessage response,
-			IClientNotificationMessage[] clientResponses) throws Exception {
+    /**
+     * @see fabric.bus.services.IService#handleServiceMessage(fabric.bus.messages.IServiceMessage,INotificationMessage,
+     *      IClientNotificationMessage[])
+     */
+    @Override
+    public IServiceMessage handleServiceMessage(IServiceMessage message, INotificationMessage response,
+            IClientNotificationMessage[] clientResponses) throws Exception {
 
-		PlatformNotificationMessage notificationMessage = (PlatformNotificationMessage) message;
+        PlatformNotificationMessage notificationMessage = (PlatformNotificationMessage) message;
 
-		/* Get the registered platform notification handler */
-		IPlatformNotificationHandler notificationHandler = platformNotificationHandlers.get(notificationMessage
-				.getPlatform());
+        /* Get the registered platform notification handler */
+        IPlatformNotificationHandler notificationHandler = platformNotificationHandlers.get(notificationMessage
+                .getPlatform());
 
-		/* If there is a notification handler... */
-		if (notificationHandler != null) {
+        /* If there is a notification handler... */
+        if (notificationHandler != null) {
 
-			/* Invoke it */
-			notificationHandler.handlePlatformNotification(notificationMessage);
+            /* Invoke it */
+            notificationHandler.handlePlatformNotification(notificationMessage);
 
-		} else {
+        } else {
 
-			logger.log(Level.FINE, "No handler registered for message for platform \"{0}\": {1}", new Object[] {
-					message.getCorrelationID(), notificationMessage.toString()});
+            logger.log(Level.FINE, "No handler registered for message for platform \"{0}\": {1}", new Object[] {
+                    message.getCorrelationID(), notificationMessage.toString()});
 
-		}
+        }
 
-		return message;
+        return message;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IPersistentService#stopService()
-	 */
-	@Override
-	public void stopService() {
+    /**
+     * @see fabric.bus.services.IPersistentService#stopService()
+     */
+    @Override
+    public void stopService() {
 
-		logger.log(Level.FINE, "Service stopped: {0}", getClass().getName());
-	}
+        logger.log(Level.FINE, "Service [{0}] stopped", getClass().getName());
+    }
 }

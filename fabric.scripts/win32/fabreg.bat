@@ -1,7 +1,5 @@
 @ECHO OFF
 rem **************************************************************************
-rem Licensed Materials - Property of IBM
-rem
 rem (C) Copyright IBM Corp. 2012
 rem
 rem LICENSE: Eclipse Public License v1.0

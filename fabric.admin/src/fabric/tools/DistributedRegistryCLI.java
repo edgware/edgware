@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -26,112 +24,109 @@ import fabric.registry.persistence.distributed.DistributedQueryResult;
 
 public class DistributedRegistryCLI {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
 
-	private final static String PACKAGE_NAME = DistributedRegistryCLI.class.getPackage().getName();
-	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
-	
-	private Properties cliProperties = new Properties();
-	DistributedJDBCPersistence persistence = null;
+    private final static String PACKAGE_NAME = DistributedRegistryCLI.class.getPackage().getName();
+    private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
 
-	FabricClient fabricClient;
+    private Properties cliProperties = new Properties();
+    DistributedJDBCPersistence persistence = null;
 
-	public DistributedRegistryCLI(String configPropertyFileName) {
-		//Configuration required for Test clients.
-	    try {
-			cliProperties.load(new FileInputStream(configPropertyFileName));
-			setUp();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    FabricClient fabricClient;
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		logger.finest("Starting");
-		DistributedRegistryCLI registry = new DistributedRegistryCLI(System.getProperty("config", "../config/DistributedRegistryCLI.properties"));
-		if (args.length > 0) {
-			registry.start(args);
-		} else {
-			System.out.println("RegistryCLI started");
-			registry.start();
-			System.out.println("RegistryCLI exited");
-		}
-         
-	}
+    public DistributedRegistryCLI(String configPropertyFileName) {
+        // Configuration required for Test clients.
+        try {
+            cliProperties.load(new FileInputStream(configPropertyFileName));
+            setUp();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	public void start() {
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        logger.finest("Starting");
+        DistributedRegistryCLI registry = new DistributedRegistryCLI(System.getProperty("config",
+                "../config/DistributedRegistryCLI.properties"));
+        if (args.length > 0) {
+            registry.start(args);
+        } else {
+            System.out.println("RegistryCLI started");
+            registry.start();
+            System.out.println("RegistryCLI exited");
+        }
 
-		Scanner scanner = new Scanner(System.in);
-		String input = "";
+    }
 
-		while (!input.equalsIgnoreCase("exit")) {
-			System.out.print("?");
-			input = scanner.nextLine();
-			if (!input.equalsIgnoreCase("exit")) {
-				String response = issueQuery(input);
-				System.out.println(response);
-			}
+    public void start() {
 
-		}
-		scanner.close();
-		fabricClient.close();
-		System.exit(0);
-	}
+        Scanner scanner = new Scanner(System.in);
+        String input = "";
 
-	void start(String[] args) throws UnsupportedOperationException {
-		String response = issueQuery(args[0]);
-		fabricClient.close();
-		System.out.println(response);
-	}
+        while (!input.equalsIgnoreCase("exit")) {
+            System.out.print("?");
+            input = scanner.nextLine();
+            if (!input.equalsIgnoreCase("exit")) {
+                String response = issueQuery(input);
+                System.out.println(response);
+            }
 
-	protected void setUp() {
+        }
+        scanner.close();
+        fabricClient.close();
+        System.exit(0);
+    }
 
-		String METHOD_NAME = "setUp";
-		logger.entering(PACKAGE_NAME, METHOD_NAME);
-		String PLATFORM_NAME = MqttConfig.generateClient("RQA_");
-		String ACTOR_NAME = "DistributedRegistryCLI";
-		logger.finest("Creating a Fabric Client using Actor = " + ACTOR_NAME + " and platform " + PLATFORM_NAME);
-		try {
-			System.setProperty("fabric.node", cliProperties.getProperty("fabric.node"));
-			fabricClient = new FabricClient(ACTOR_NAME, PLATFORM_NAME);
-			fabricClient.connect();
-		} catch (Exception e) {
-			logger.warning("Error occured connecting the Client");
-			e.printStackTrace();
-		}
-		Persistence pm = PersistenceManager.getPersistence();
-		if (pm != null && pm instanceof DistributedJDBCPersistence) {
-			persistence = (DistributedJDBCPersistence) pm;			
-		}
-		else {
-			System.out.println("UNABLE TO FIND A DISTRIBUTED REGISTRY PERSISTENCE LAYER!!");
-			System.exit(-1);
-		}
-		logger.exiting(PACKAGE_NAME, METHOD_NAME);
+    void start(String[] args) throws UnsupportedOperationException {
+        String response = issueQuery(args[0]);
+        fabricClient.close();
+        System.out.println(response);
+    }
 
-	}
+    protected void setUp() {
 
-	/**
-	 * Send Query to Edgware Node
-	 * @param query
-	 * @return
-	 */
-	private String issueQuery(String query) {
-		String response = query + "\n";
-		DistributedQueryResult results = null;
-		try {
-			results = persistence.distributedQuery(query,false);
-			response = results.toString();
-			response = response + "\nLast Query : " + query;
-		} catch (PersistenceException e) {
-			e.printStackTrace();
-		}
-		return response;
-	}
+        String PLATFORM_NAME = MqttConfig.generateClient("RQA_");
+        String ACTOR_NAME = "DistributedRegistryCLI";
+        logger.finest("Creating a Fabric Client using Actor = " + ACTOR_NAME + " and platform " + PLATFORM_NAME);
+        try {
+            System.setProperty("fabric.node", cliProperties.getProperty("fabric.node"));
+            fabricClient = new FabricClient(ACTOR_NAME, PLATFORM_NAME);
+            fabricClient.connect();
+        } catch (Exception e) {
+            logger.warning("Error occured connecting the Client");
+            e.printStackTrace();
+        }
+        Persistence pm = PersistenceManager.getPersistence();
+        if (pm != null && pm instanceof DistributedJDBCPersistence) {
+            persistence = (DistributedJDBCPersistence) pm;
+        } else {
+            System.out.println("UNABLE TO FIND A DISTRIBUTED REGISTRY PERSISTENCE LAYER!!");
+            System.exit(-1);
+        }
+    }
+
+    /**
+     * Send Query to Edgware Node
+     * 
+     * @param query
+     * @return
+     */
+    private String issueQuery(String query) {
+        String response = query + "\n";
+        DistributedQueryResult results = null;
+        try {
+            results = persistence.distributedQuery(query, false);
+            response = results.toString();
+            response = response + "\nLast Query : " + query;
+        } catch (PersistenceException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
 }

@@ -1,6 +1,4 @@
 --------------------------------------------------------------------------------
--- Licensed Materials - Property of IBM
---
 -- (C) Copyright IBM Corp. 2006, 2014
 --
 -- LICENSE: Eclipse Public License v1.0
@@ -120,7 +118,7 @@ create VIEW Fabric.G_NODES as SELECT * FROM new com.ibm.db2j.GaianTable('NODES',
 create VIEW Fabric.G_ROUTES as SELECT * FROM new com.ibm.db2j.GaianTable('ROUTES', 'with_provenance') RLT;
 
 -- SERVICES view
-create VIEW Fabric.G_SERVICES as SELECT * FROM new com.ibm.db2j.GaianTable('SERVICES', 'with_provenance') RLT;
+create VIEW Fabric.G_SERVICES as SELECT * FROM new com.ibm.db2j.GaianTable('SERVICES', 'with_provenance') SLT;
 
 -- ACTOR_PLUGINS view
 create VIEW Fabric.G_ACTOR_PLUGINS as SELECT * FROM new com.ibm.db2j.GaianTable('ACTOR_PLUGINS', 'with_provenance') APLT;

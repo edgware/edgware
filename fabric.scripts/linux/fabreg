@@ -1,8 +1,6 @@
 #!/bin/bash
 
 # **************************************************************************
-# Licensed Materials - Property of IBM
-#
 # (C) Copyright IBM Corp. 2012
 #
 # LICENSE: Eclipse Public License v1.0
@@ -16,5 +14,3 @@
 export CLASSPATH=$FABRIC_HOME/lib/db-derby/lib/derbyclient.jar:$FABRIC_HOME/lib/oslib/commons-cli-1.2.jar:`ls -1 $FABRIC_HOME/lib/fabric/fabric.admin*.jar`
 
 java fabric.tools.RegistryTool "$@"
-
-

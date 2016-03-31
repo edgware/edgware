@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2012, 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -71,11 +69,11 @@ public class Broker {
 					}
 				}
 			}
-			brokerExternalPort = props.getProperty(ConfigProperties.MQTT_REMOTE_PORT);
+			brokerExternalPort = props.getProperty(ConfigProperties.BROKER_REMOTE_PORT);
 		}
 
 		if (brokerExternalPort == null) {
-			brokerExternalPort = FabricConfig.getNodeProperty(node, ConfigProperties.MQTT_REMOTE_PORT);
+			brokerExternalPort = FabricConfig.getNodeProperty(node, ConfigProperties.BROKER_REMOTE_PORT);
 		}
 
 		/* Defaults, if required */

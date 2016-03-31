@@ -1,6 +1,4 @@
 --------------------------------------------------------------------------------
--- Licensed Materials - Property of IBM
---
 -- (C) Copyright IBM Corp. 2006, 2014
 --
 -- LICENSE: Eclipse Public License v1.0
@@ -180,12 +178,12 @@ CREATE TABLE Fabric.Node_IP_Mapping (
 	
 CREATE TABLE Fabric.Bearers (
 		Bearer_ID VARCHAR(32672) NOT NULL,
-		Availability VARCHAR(32672) NOT NULL,
+		Available VARCHAR(7) NOT NULL,
 		Description VARCHAR(32672),
 		Attributes VARCHAR(32672),
 		Attributes_URI VARCHAR(32672),
 		PRIMARY KEY (Bearer_ID),
-		CONSTRAINT Bearers_CK CHECK (Availability IN ('AVAILABLE', 'UNAVAILABLE', 'UNKNOWN'))
+		CONSTRAINT Bearers_CK CHECK (Available IN ('true', 'false', 'unknown'))
 	);
 	
 CREATE TABLE Fabric.Task_Services (
