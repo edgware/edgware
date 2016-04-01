@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2010
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -10,12 +8,12 @@
 package fabric.client;
 
 import fabric.client.services.IClientNotificationServices;
-import fabric.client.services.IHomeNodeConnectivityCallback;
+import fabric.client.services.ITopologyChange;
 
 /**
  * Interface for classes supporting Fabric client operations.
  */
-public interface IFabricClientServices extends IClientNotificationServices, IHomeNodeConnectivityCallback {
+public interface IFabricClientServices extends IClientNotificationServices, ITopologyChange {
 
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010";
@@ -30,6 +28,6 @@ public interface IFabricClientServices extends IClientNotificationServices, IHom
 	 * @param callback
 	 *            the callback.
 	 */
-	public IHomeNodeConnectivityCallback registerHomeNodeConnectivityCallback(IHomeNodeConnectivityCallback callback);
+	public ITopologyChange registerHomeNodeConnectivityCallback(ITopologyChange callback);
 
 }
