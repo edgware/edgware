@@ -5,3 +5,5 @@
 /work-no-os
 /prereqs
 /.DS_Store
+/build_local-dev.xml
+/build_local_040.xml
