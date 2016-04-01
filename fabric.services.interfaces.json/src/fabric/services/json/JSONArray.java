@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -116,9 +114,7 @@ public class JSONArray implements Iterable<JSON> {
 	 */
 	public int size() {
 
-		int i = 0;
-		i = rootNode.size();
-		return i;
+		return rootNode.size();
 	}
 
 	/**
