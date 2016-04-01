@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2012, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -25,8 +23,12 @@ import fabric.bus.feeds.ISubscription;
 import fabric.bus.feeds.impl.Subscription;
 import fabric.core.io.OutputTopic;
 import fabric.registry.FabricRegistry;
+import fabric.registry.QueryScope;
 import fabric.registry.Service;
 import fabric.registry.ServiceFactory;
+import fabric.registry.SystemWiring;
+import fabric.registry.SystemWiringFactory;
+import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
 import fabric.registry.exception.RegistryQueryException;
 
@@ -50,916 +52,997 @@ import fabric.registry.exception.RegistryQueryException;
  */
 public class SystemServices extends FabricBus {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012, 2014";
-
-	/*
-	 * Class fields
-	 */
-
-	/** The container managing this system instance. */
-	private SystemRuntime systemRuntime = null;
-
-	/** The table of input feed subscriptions; the key is the remote feed descriptor to which the input is mapped. */
-	private final HashMap<ServiceDescriptor, ISubscription> wiredInputFeeds = new HashMap<ServiceDescriptor, ISubscription>();
-
-	/**
-	 * Table mapping upstream output feeds to their local input feeds (i.e. the feed wiring); the key is the remote feed
-	 * descriptor.
-	 */
-	private final HashMap<ServiceDescriptor, ServiceDescriptor> wiredInputFeedMappings = new HashMap<ServiceDescriptor, ServiceDescriptor>();
-
-	/** The table of request/response subscriptions; the key is feed descriptor. */
-	private final HashMap<ServiceDescriptor, ISubscription> requestResponseFeeds = new HashMap<ServiceDescriptor, ISubscription>();
-
-	/** The table of one way subscriptions; the key is feed descriptor. */
-	private final HashMap<ServiceDescriptor, ISubscription> oneWayFeeds = new HashMap<ServiceDescriptor, ISubscription>();
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012, 2014";
+
+    /*
+     * Class fields
+     */
+
+    /** The container managing this system instance. */
+    private SystemRuntime systemRuntime = null;
+
+    /** The table of input feed subscriptions; the key is the remote feed descriptor to which the input is mapped. */
+    private final HashMap<ServiceDescriptor, ISubscription> wiredInputFeeds = new HashMap<ServiceDescriptor, ISubscription>();
+
+    /**
+     * Table mapping output feeds to their local input feeds (i.e. the feed wiring); the key is the descriptor of the
+     * remote output feed service.
+     */
+    private final HashMap<ServiceDescriptor, ServiceDescriptor> wiredInputFeedMappings = new HashMap<ServiceDescriptor, ServiceDescriptor>();
+
+    /** The table of request/response subscriptions; the key is the descriptor of the remote request/response service. */
+    private final HashMap<ServiceDescriptor, ISubscription> requestResponseFeeds = new HashMap<ServiceDescriptor, ISubscription>();
+
+    /** The table of solicit response subscriptions; the key is the descriptor of the local deliver-to service. */
+    private final HashMap<ServiceDescriptor, ISubscription> solicitResponseFeeds = new HashMap<ServiceDescriptor, ISubscription>();
 
-	/** The table of solicit response subscriptions; the key is the local feed descriptor. */
-	private final HashMap<ServiceDescriptor, ISubscription> solicitResponseFeeds = new HashMap<ServiceDescriptor, ISubscription>();
-
-	/**
-	 * Table mapping solicit response feeds to their remote remote request/response counterparts; the key is the local
-	 * solicit response feed descriptor.
-	 */
-	private final HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredSolicitResponseFeedMappings = new HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>>();
-
-	/**
-	 * Table mapping notification feeds to their remote remote one way counterparts; the key is the local notification
-	 * feed descriptor.
-	 */
-	private final HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredNotificationFeedMappings = new HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>>();
+    /** The table of one-way subscriptions; the key is descriptor of the remote notification service. */
+    private final HashMap<ServiceDescriptor, ISubscription> oneWayFeeds = new HashMap<ServiceDescriptor, ISubscription>();
+
+    /**
+     * Table mapping solicit response feeds to their remote remote request/response counterparts; the key is the local
+     * solicit response feed descriptor.
+     */
+    private final HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredSolicitResponseFeedMappings = new HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>>();
+
+    /**
+     * Table mapping notification feeds to their remote remote one way counterparts; the key is the local notification
+     * feed descriptor.
+     */
+    private final HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredNotificationFeedMappings = new HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>>();
+
+    /**
+     * The table of Fabric channels to which this service instance will write <em>on-ramp</em> messages, i.e. raw
+     * payloads (the key is the ID of the output feed).
+     */
+    private final HashMap<ServiceDescriptor, SharedChannel> onrampOutputFeeds = new HashMap<ServiceDescriptor, SharedChannel>();
+
+    /**
+     * The table of Fabric channels to which this service instance will write <em>bus</em> messages (the key is the ID
+     * of the output feed).
+     */
+    private final HashMap<ServiceDescriptor, SharedChannel> busOutputFeeds = new HashMap<ServiceDescriptor, SharedChannel>();
+
+    /*
+     * Feed lists (recorded for the convenience of the calling code)
+     */
+
+    /** List of this service's INPUT feeds. */
+    private final ArrayList<String> inputFeedList = new ArrayList<String>();
+
+    /** List of this service's OUTPUT feeds. */
+    private final ArrayList<String> outputFeedList = new ArrayList<String>();
+
+    /** List of this service's NOTIFY feeds. */
+    private final ArrayList<String> notifyFeedList = new ArrayList<String>();
+
+    /** List of this service's ONE_WAY feeds. */
+    private final ArrayList<String> oneWayFeedList = new ArrayList<String>();
+
+    /** List of this service's SOLICIT_RESPONSE feeds. */
+    private final ArrayList<String> solicitResponseFeedList = new ArrayList<String>();
+
+    /** List of this service's REQUEST_RESPONSE feeds. */
+    private final ArrayList<String> requestResponseFeedList = new ArrayList<String>();
+
+    /** Flag indicating if Registry queries should be local or distributed. */
+    private QueryScope queryScope = QueryScope.DISTRIBUTED;
 
-	/**
-	 * The table of Fabric channels to which this service instance will write <em>on-ramp</em> messages, i.e. raw
-	 * payloads (the key is the ID of the output feed).
-	 */
-	private final HashMap<ServiceDescriptor, SharedChannel> onrampOutputFeeds = new HashMap<ServiceDescriptor, SharedChannel>();
-
-	/**
-	 * The table of Fabric channels to which this service instance will write <em>bus</em> messages (the key is the ID
-	 * of the output feed).
-	 */
-	private final HashMap<ServiceDescriptor, SharedChannel> busOutputFeeds = new HashMap<ServiceDescriptor, SharedChannel>();
-
-	/*
-	 * Feed lists (recorded for the convenience of the calling code)
-	 */
-
-	/** List of this service's INPUT feeds. */
-	private final ArrayList<String> inputFeedList = new ArrayList<String>();
-
-	/** List of this service's OUTPUT feeds. */
-	private final ArrayList<String> outputFeedList = new ArrayList<String>();
-
-	/** List of this service's NOTIFY feeds. */
-	private final ArrayList<String> notifyFeedList = new ArrayList<String>();
-
-	/** List of this service's ONE_WAY feeds. */
-	private final ArrayList<String> oneWayFeedList = new ArrayList<String>();
-
-	/** List of this service's SOLICIT_RESPONSE feeds. */
-	private final ArrayList<String> solicitResponseFeedList = new ArrayList<String>();
-
-	/** List of this service's REQUEST_RESPONSE feeds. */
-	private final ArrayList<String> requestResponseFeedList = new ArrayList<String>();
+    /*
+     * Registry queries
+     */
 
-	/** Flag indicating if Registry queries should be local or distributed. */
-	private boolean doQueryLocal = false;
+    /** Query for input feeds wired to the output feeds of remote services. */
+    private String WIRING_QUERY = null;
 
-	/*
-	 * Registry queries
-	 */
+    /*
+     * Static code
+     */
 
-	/** Query for input feeds wired to the output feeds of remote services. */
-	private String WIRING_QUERY = null;
+    {
 
-	/*
-	 * Static code
-	 */
+        /* Query for input feeds; parameters (%s) are for the platform ID and the service ID respectively */
+        WIRING_QUERY = "select ";
+        WIRING_QUERY += "sw.to_service_platform_id, "; // Column 0
+        WIRING_QUERY += "sw.to_service_id, "; // Column 1
+        WIRING_QUERY += "sw.to_interface_id, "; // Column 2
+        WIRING_QUERY += "sw.from_interface_id, "; // Column 3
+        WIRING_QUERY += "df.direction "; // Column 4
+        WIRING_QUERY += "from ";
+        WIRING_QUERY += "service_wiring as sw, ";
+        WIRING_QUERY += "data_feeds as df ";
+        WIRING_QUERY += "where ";
+        WIRING_QUERY += "sw.from_service_platform_id='%s' and sw.from_service_id='%s' and ";
+        WIRING_QUERY += "sw.from_service_platform_id=df.platform_id and ";
+        WIRING_QUERY += "sw.from_service_id=df.service_id and ";
+        WIRING_QUERY += "sw.from_interface_id=df.id and ";
+        WIRING_QUERY += "(df.direction='" + Service.MODE_INPUT_FEED + "' or df.direction='"
+                + Service.MODE_SOLICIT_RESPONSE + "' or df.direction='" + Service.MODE_NOTIFICATION + "')";
 
-	{
+    }
 
-		/* Query for input feeds; parameters (%s) are for the platform ID and the service ID respectively */
-		WIRING_QUERY = "select ";
-		WIRING_QUERY += "sw.to_service_platform_id, "; // Column 0
-		WIRING_QUERY += "sw.to_service_id, "; // Column 1
-		WIRING_QUERY += "sw.to_interface_id, "; // Column 2
-		WIRING_QUERY += "sw.from_interface_id, "; // Column 3
-		WIRING_QUERY += "df.direction "; // Column 4
-		WIRING_QUERY += "from ";
-		WIRING_QUERY += "service_wiring as sw, ";
-		WIRING_QUERY += "data_feeds as df ";
-		WIRING_QUERY += "where ";
-		WIRING_QUERY += "sw.from_service_platform_id='%s' and sw.from_service_id='%s' and ";
-		WIRING_QUERY += "sw.from_service_platform_id=df.platform_id and ";
-		WIRING_QUERY += "sw.from_service_id=df.service_id and ";
-		WIRING_QUERY += "sw.from_interface_id=df.id and ";
-		WIRING_QUERY += "(df.direction='" + Service.MODE_INPUT_FEED + "' or df.direction='"
-				+ Service.MODE_SOLICIT_RESPONSE + "' or df.direction='" + Service.MODE_NOTIFICATION + "')";
+    /*
+     * Class methods
+     */
 
-	}
+    public SystemServices() {
 
-	/*
-	 * Class methods
-	 */
+        this(Logger.getLogger("fabric.services.systems"));
+    }
 
-	public SystemServices() {
+    public SystemServices(Logger logger) {
 
-		this(Logger.getLogger("fabric.services.systems"));
-	}
+        this.logger = logger;
+    }
 
-	public SystemServices(Logger logger) {
+    /**
+     * Constructor.
+     *
+     * @param systemRuntime
+     *            the container for this service instance.
+     */
+    public SystemServices(SystemRuntime componentContainer) {
 
-		this.logger = logger;
-	}
+        this.systemRuntime = componentContainer;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param systemRuntime
-	 *            the container for this service instance.
-	 */
-	public SystemServices(SystemRuntime componentContainer) {
+        /* Determine if Registry queries should be local or distributed */
+        boolean doQueryLocal = Boolean.parseBoolean(config("fabric.system.services.queryLocal", "true"));
+        this.queryScope = doQueryLocal ? QueryScope.LOCAL : QueryScope.DISTRIBUTED;
 
-		this.systemRuntime = componentContainer;
+    }
 
-		/* Determine if Registry queries should be local or distributed */
-		doQueryLocal = Boolean.parseBoolean(config("fabric.composition.queryLocal", "false"));
+    /**
+     * Initializes all of the feeds (input and output) associated with this service instance, including wiring to remote
+     * services as indicated in the Fabric Registry.
+     *
+     * @throws Exception
+     */
+    public void initFeeds() throws Exception {
 
-	}
+        initWiredFeeds();
+        initUnwiredFeeds();
+        enumerateFeeds();
 
-	/**
-	 * Initializes all of the feeds (input and output) associated with this service instance, including wiring to remote
-	 * services as indicated in the Fabric Registry.
-	 * 
-	 * @throws Exception
-	 */
-	public void initFeeds() throws Exception {
+    }
 
-		initWiredFeeds();
-		initUnwiredFeeds();
-		enumerateFeeds();
+    /**
+     * Enumerate all of the services, by type, for this system.
+     */
+    private void enumerateFeeds() {
 
-	}
+        /* Get the list of feeds for the service */
+        ServiceFactory serviceFactory = FabricRegistry.getServiceFactory(queryScope);
+        Service[] services = serviceFactory.getServicesBySystem(systemRuntime.systemDescriptor().platform(),
+                systemRuntime.systemDescriptor().system());
 
-	/**
-	 * Enumerate all of the services, by type, for this system.
-	 */
-	private void enumerateFeeds() {
+        /* For each service... */
+        for (int f = 0; f < services.length; f++) {
 
-		/* Get the list of feeds for the service */
-		ServiceFactory serviceFactory = FabricRegistry.getServiceFactory(doQueryLocal);
-		Service[] services = serviceFactory.getServicesBySystem(systemRuntime.systemDescriptor().platform(),
-				systemRuntime.systemDescriptor().system());
+            /* Sort the services into their types and save */
 
-		/* For each service... */
-		for (int f = 0; f < services.length; f++) {
+            String serviceMode = services[f].getMode();
+            String serviceID = services[f].getId();
 
-			/* Sort the services into their types and save */
+            if (serviceMode.equals(Service.MODE_INPUT_FEED)) {
 
-			String serviceMode = services[f].getMode();
-			String serviceID = services[f].getId();
+                inputFeedList.add(serviceID);
 
-			if (serviceMode.equals(Service.MODE_INPUT_FEED)) {
+            } else if (serviceMode.equals(Service.MODE_OUTPUT_FEED)) {
 
-				inputFeedList.add(serviceID);
+                outputFeedList.add(serviceID);
 
-			} else if (serviceMode.equals(Service.MODE_OUTPUT_FEED)) {
+            } else if (serviceMode.equals(Service.MODE_NOTIFICATION)) {
 
-				outputFeedList.add(serviceID);
+                notifyFeedList.add(serviceID);
 
-			} else if (serviceMode.equals(Service.MODE_NOTIFICATION)) {
+            } else if (serviceMode.equals(Service.MODE_LISTENER)) {
 
-				notifyFeedList.add(serviceID);
+                oneWayFeedList.add(serviceID);
 
-			} else if (serviceMode.equals(Service.MODE_LISTENER)) {
+            } else if (serviceMode.equals(Service.MODE_SOLICIT_RESPONSE)) {
 
-				oneWayFeedList.add(serviceID);
+                solicitResponseFeedList.add(serviceID);
 
-			} else if (serviceMode.equals(Service.MODE_SOLICIT_RESPONSE)) {
+            } else if (serviceMode.equals(Service.MODE_REQUEST_RESPONSE)) {
 
-				solicitResponseFeedList.add(serviceID);
+                requestResponseFeedList.add(serviceID);
 
-			} else if (serviceMode.equals(Service.MODE_REQUEST_RESPONSE)) {
+            }
+        }
+    }
 
-				requestResponseFeedList.add(serviceID);
+    /**
+     * Lookup and iniitalize wiring information for this system instance:
+     * <ol>
+     * <li>Subscriptions will be made for <em>input</em> feed wirings.</li>
+     * <li>Mappings between local <em>solicit request</em> feeds and remote <em>request response</em> services will be
+     * recorded.</li>
+     * </ol>
+     *
+     * @throws Exception
+     */
+    private void initWiredFeeds() throws Exception {
 
-			}
-		}
-	}
+        /* Build the query for the wiring (sources) of the input feeds */
+        String wiringQuery = Fabric.format(WIRING_QUERY, systemRuntime.systemDescriptor().platform(), systemRuntime
+                .systemDescriptor().system());
 
-	/**
-	 * Lookup and iniitalize wiring information for this system instance:
-	 * <ol>
-	 * <li>Subscriptions will be made for <em>input</em> feed wirings.</li>
-	 * <li>Mappings between local <em>solicit request</em> feeds and remote <em>request response</em> services will be
-	 * recorded.</li>
-	 * </ol>
-	 * 
-	 * @throws Exception
-	 */
-	private void initWiredFeeds() throws Exception {
+        /* Run the query */
 
-		/* Build the query for the wiring (sources) of the input feeds */
-		String wiringQuery = Fabric.format(WIRING_QUERY, systemRuntime.systemDescriptor().platform(), systemRuntime
-				.systemDescriptor().system());
+        Object[] resultTable = null;
 
-		/* Run the query */
+        try {
 
-		Object[] resultTable = null;
+            resultTable = FabricRegistry.runQuery(wiringQuery, queryScope);
 
-		try {
+        } catch (PersistenceException e) {
 
-			resultTable = FabricRegistry.runQuery(wiringQuery, false);
+            String message = Fabric.format("Cannot get wiring for service %s", systemRuntime.systemDescriptor());
+            logger.log(Level.SEVERE, message);
+            throw new Exception(message, e);
 
-		} catch (PersistenceException e) {
+        }
 
-			String message = Fabric.format("Cannot get wiring for service %s", systemRuntime.systemDescriptor());
-			logger.log(Level.SEVERE, message);
-			throw new Exception(message, e);
+        /* For each wiring entry... */
+        for (int w = 0; resultTable != null && w < resultTable.length; w++) {
 
-		}
+            /* Extract the columns of the next row */
+            Object[] nextRow = (Object[]) resultTable[w];
+            String toPlatformID = (String) nextRow[0];
+            String toServiceID = (String) nextRow[1];
+            String toFeedID = (String) nextRow[2];
+            String fromFeedID = (String) nextRow[3];
+            String direction = (String) nextRow[4];
 
-		/* For each wiring entry... */
-		for (int w = 0; resultTable != null && w < resultTable.length; w++) {
+            /* If this wires the output of another service to the input of this one... */
+            if (direction.equals(Service.MODE_INPUT_FEED)) {
 
-			/* Extract the columns of the next row */
-			Object[] nextRow = (Object[]) resultTable[w];
-			String toPlatformID = (String) nextRow[0];
-			String toServiceID = (String) nextRow[1];
-			String toFeedID = (String) nextRow[2];
-			String fromFeedID = (String) nextRow[3];
-			String direction = (String) nextRow[4];
+                ServiceDescriptor outputFeed = new ServiceDescriptor(toPlatformID, toServiceID, toFeedID);
+                wireInputFeed(outputFeed, fromFeedID);
 
-			/* If this wires the output of another service to the input of this one... */
-			if (direction.equals(Service.MODE_INPUT_FEED)) {
+            }
+            /* Else if this is a request/response wiring... */
+            else if (direction.equals(Service.MODE_SOLICIT_RESPONSE)) {
 
-				ServiceDescriptor outputFeed = new ServiceDescriptor(toPlatformID, toServiceID, toFeedID);
-				wireInputFeed(outputFeed, fromFeedID);
+                /* Build the descriptor for the remote request/response endpoint */
+                ServiceDescriptor requestResponseDescriptor = new ServiceDescriptor(toPlatformID, toServiceID, toFeedID);
 
-			}
-			/* Else if this is a request/response wiring... */
-			else if (direction.equals(Service.MODE_SOLICIT_RESPONSE)) {
+                /* Build the descriptor for the local solicit response endpoint */
+                ServiceDescriptor solicitResponseDescriptor = new ServiceDescriptor(systemRuntime.systemDescriptor()
+                        .platform(), systemRuntime.systemDescriptor().system(), fromFeedID);
 
-				/* Build the descriptor for the remote request/response endpoint */
-				ServiceDescriptor requestResponseDescriptor = new ServiceDescriptor(toPlatformID, toServiceID, toFeedID);
+                /* Build the task feed descriptor */
+                TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT",
+                        solicitResponseDescriptor);
 
-				/* Build the descriptor for the local solicit response endpoint */
-				ServiceDescriptor solicitResponseDescriptor = new ServiceDescriptor(systemRuntime.systemDescriptor()
-						.platform(), systemRuntime.systemDescriptor().system(), fromFeedID);
+                try {
 
-				/* Build the task feed descriptor */
-				TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT",
-						solicitResponseDescriptor);
+                    /* Subscribe to the request feed */
+                    ISubscription solicitResponseSubscription = new Subscription(systemRuntime.fabricClient());
+                    solicitResponseSubscription.subscribe(solicitResponseTaskDescriptor, systemRuntime);
 
-				try {
+                    /* Record the subscription */
+                    solicitResponseFeeds.put(solicitResponseDescriptor, solicitResponseSubscription);
 
-					/* Subscribe to the request feed */
-					ISubscription solicitResponseSubscription = new Subscription(systemRuntime.fabricClient());
-					solicitResponseSubscription.subscribe(solicitResponseTaskDescriptor, systemRuntime);
+                } catch (Exception e) {
 
-					/* Record the subscription */
-					solicitResponseFeeds.put(solicitResponseDescriptor, solicitResponseSubscription);
+                    String message = Fabric.format("Cannot subscribe to request feed '%s' for service instance '%s':",
+                            e, solicitResponseTaskDescriptor.toString(), systemRuntime.toString());
+                    logger.log(Level.SEVERE, message);
+                    throw new Exception(message, e);
 
-				} catch (Exception e) {
+                }
 
-					String message = Fabric.format("Cannot subscribe to request feed '%s' for service instance '%s':",
-							e, solicitResponseTaskDescriptor.toString(), systemRuntime.toString());
-					logger.log(Level.SEVERE, message);
-					throw new Exception(message, e);
+                /* Get the list of mappings for the local name */
+                ArrayList<ServiceDescriptor> descriptorList = wiredSolicitResponseFeedMappings
+                        .get(solicitResponseDescriptor);
 
-				}
+                /* If the list has not been created... */
+                if (descriptorList == null) {
 
-				/* Get the list of mappings for the local name */
-				ArrayList<ServiceDescriptor> descriptorList = wiredSolicitResponseFeedMappings
-						.get(solicitResponseDescriptor);
+                    /* Create it */
+                    descriptorList = new ArrayList<ServiceDescriptor>();
+                    wiredSolicitResponseFeedMappings.put(solicitResponseDescriptor, descriptorList);
 
-				/* If the list has not been created... */
-				if (descriptorList == null) {
+                }
 
-					/* Create it */
-					descriptorList = new ArrayList<ServiceDescriptor>();
-					wiredSolicitResponseFeedMappings.put(solicitResponseDescriptor, descriptorList);
+                /* Record the mapping */
+                descriptorList.add(requestResponseDescriptor);
+                addWiringToRegistry(requestResponseDescriptor, solicitResponseDescriptor);
 
-				}
+            }
+            /* Else if this is a notification wiring... */
+            else if (direction.equals(Service.MODE_NOTIFICATION)) {
 
-				/* Record the mapping */
-				descriptorList.add(requestResponseDescriptor);
+                /* Build the descriptor for the remote one way endpoint */
+                ServiceDescriptor oneWayDescriptor = new ServiceDescriptor(toPlatformID, toServiceID, toFeedID);
 
-			}
-			/* Else if this is a notification wiring... */
-			else if (direction.equals(Service.MODE_NOTIFICATION)) {
+                /* Build the descriptor for the local notification endpoint */
+                ServiceDescriptor notificationDescriptor = new ServiceDescriptor(systemRuntime.systemDescriptor()
+                        .platform(), systemRuntime.systemDescriptor().system(), fromFeedID);
 
-				/* Build the descriptor for the remote one way endpoint */
-				ServiceDescriptor oneWayDescriptor = new ServiceDescriptor(toPlatformID, toServiceID, toFeedID);
+                /* Get the list of mappings for the local name */
+                ArrayList<ServiceDescriptor> descriptorList = wiredNotificationFeedMappings.get(notificationDescriptor);
 
-				/* Build the descriptor for the local notification endpoint */
-				ServiceDescriptor notificationDescriptor = new ServiceDescriptor(systemRuntime.systemDescriptor()
-						.platform(), systemRuntime.systemDescriptor().system(), fromFeedID);
+                /* If the list has not been created... */
+                if (descriptorList == null) {
 
-				/* Get the list of mappings for the local name */
-				ArrayList<ServiceDescriptor> descriptorList = wiredNotificationFeedMappings.get(notificationDescriptor);
+                    /* Create it */
+                    descriptorList = new ArrayList<ServiceDescriptor>();
+                    wiredNotificationFeedMappings.put(notificationDescriptor, descriptorList);
 
-				/* If the list has not been created... */
-				if (descriptorList == null) {
+                }
 
-					/* Create it */
-					descriptorList = new ArrayList<ServiceDescriptor>();
-					wiredNotificationFeedMappings.put(notificationDescriptor, descriptorList);
+                /* Record the mapping */
+                descriptorList.add(oneWayDescriptor);
 
-				}
+            } else {
 
-				/* Record the mapping */
-				descriptorList.add(oneWayDescriptor);
+                String error = Fabric.format("Unsupported feed direction '%s' for service '%s'", direction,
+                        systemRuntime.systemDescriptor());
+                logger.log(Level.SEVERE, error);
+                throw new UnsupportedOperationException(error);
 
-			} else {
+            }
+        }
+    }
 
-				String error = Fabric.format("Unsupported feed direction '%s' for service '%s'", direction,
-						systemRuntime.systemDescriptor());
-				logger.log(Level.SEVERE, error);
-				throw new UnsupportedOperationException(error);
+    /**
+     * Records the wiring between a producer and a consumer in the Registry.
+     *
+     * @param subscribeToDescriptor
+     *            the producer.
+     *
+     * @param deliverToDescriptor
+     *            the consumer.
+     *
+     * @throws IncompleteObjectException
+     */
+    protected void addWiringToRegistry(ServiceDescriptor subscribeToDescriptor, ServiceDescriptor deliverToDescriptor)
+        throws IncompleteObjectException {
 
-			}
-		}
-	}
+        SystemWiringFactory swf = FabricRegistry.getSystemWiringFactory(QueryScope.LOCAL);
+        SystemWiring sw = swf.create("DEFAULT", subscribeToDescriptor.platform(), subscribeToDescriptor.system(),
+                subscribeToDescriptor.service(), deliverToDescriptor.platform(), deliverToDescriptor.system(),
+                deliverToDescriptor.service());
+        swf.save(sw);
 
-	/**
-	 * Subscribes to an output feed and wires it to a local input feed.
-	 * 
-	 * @param outputFeed
-	 *            the feed to which a subscription is being made.
-	 * 
-	 * @param fromFeedID
-	 *            the local feed to which the subscription will be wired.
-	 * 
-	 * @throws Exception
-	 */
-	public void unwireInputFeed(ServiceDescriptor outputFeed) throws Exception {
+    }
 
-		try {
+    /**
+     * Removes the wiring between a producer and a consumer from the Registry.
+     * <p>
+     * If both parameters are <code>null</code> then all wiring will be removed.
+     * </p>
+     *
+     * @param subscribeToDescriptor
+     *            the producer (can be <code>null</code>).
+     *
+     * @param deliverToDescriptor
+     *            the consumer (can be <code>null</code>).
+     *
+     * @throws IncompleteObjectException
+     */
+    protected void removeWiringFromRegistry(ServiceDescriptor subscribeToDescriptor,
+            ServiceDescriptor deliverToDescriptor) throws IncompleteObjectException {
 
-			ISubscription subscription = wiredInputFeeds.remove(outputFeed);
+        SystemWiringFactory swf = FabricRegistry.getSystemWiringFactory(QueryScope.LOCAL);
+        SystemWiring[] allSw = swf.getAll();
 
-			if (subscription != null) {
+        for (SystemWiring sw : allSw) {
 
-				subscription.unsubscribe();
-				wiredInputFeedMappings.remove(outputFeed);
+            ServiceDescriptor swSubscribeToDescriptor = new ServiceDescriptor(sw.getFromSystemPlatformId(), sw
+                    .getFromSystemId(), sw.getFromInterfaceId());
 
-			}
+            ServiceDescriptor swDeliverToDescriptor = new ServiceDescriptor(sw.getToSystemPlatformId(), sw
+                    .getToSystemId(), sw.getToInterfaceId());
 
-		} catch (Exception e) {
+            boolean isSubscribeDescriptorMatch = false;
 
-			String message = Fabric.format("Cannot unsubscribe from output feed '%s' for service instance '%s':", e,
-					outputFeed, systemRuntime.systemDescriptor());
-			logger.log(Level.SEVERE, message);
-			throw new Exception(message, e);
+            if (subscribeToDescriptor == null) {
+                isSubscribeDescriptorMatch = true;
+            } else if (subscribeToDescriptor.equals(swSubscribeToDescriptor)) {
+                isSubscribeDescriptorMatch = true;
+            }
 
-		}
-	}
+            boolean isDeliverDescriptorMatch = false;
 
-	/**
-	 * Subscribes to an output feed.
-	 * 
-	 * @param outputFeed
-	 *            the feed from which a subscription is being made.
-	 * 
-	 * @param fromFeedID
-	 *            the local feed to which the subscription will be wired.
-	 * 
-	 * @return <code>true</code> if this is a new subscription, <code>false</code> otherwise.
-	 * 
-	 * @throws Exception
-	 */
-	public boolean wireInputFeed(ServiceDescriptor outputFeed, String fromFeedID) throws Exception {
+            if (deliverToDescriptor == null) {
+                isDeliverDescriptorMatch = true;
+            } else if (deliverToDescriptor.equals(swDeliverToDescriptor)) {
+                isDeliverDescriptorMatch = true;
+            }
 
-		boolean isNewSubscription = true;
+            if (isSubscribeDescriptorMatch && isDeliverDescriptorMatch) {
+                swf.delete(sw);
+            }
+        }
+    }
 
-		/* Build the remote (from) task feed descriptor */
-		TaskServiceDescriptor remoteOutputTaskDescriptor = new TaskServiceDescriptor("DEFAULT", outputFeed);
-		ServiceDescriptor remoteOutputDescriptor = remoteOutputTaskDescriptor.toServiceDescriptor();
+    /**
+     * Unsubscribes from an output feed and unwires it from the local input feed.
+     *
+     * @param subscribeToDescriptor
+     *            the feed to which a subscription has been made.
+     *
+     * @return the service descriptor of the input feed that has been unwired, or <code>null</code> if none.
+     *
+     * @throws Exception
+     */
+    public ServiceDescriptor unwireInputFeed(ServiceDescriptor subscribeToDescriptor) throws Exception {
 
-		/* Build the local (to) feed descriptor */
-		ServiceDescriptor localInputDescriptor = new ServiceDescriptor(systemRuntime.systemDescriptor().platform(),
-				systemRuntime.systemDescriptor().system(), fromFeedID);
+        ServiceDescriptor inputFeed = null;
 
-		try {
+        try {
 
-			/* If we are already subscribed to this feed... */
-			if (wiredInputFeeds.containsKey(remoteOutputDescriptor)) {
+            ISubscription subscription = wiredInputFeeds.remove(subscribeToDescriptor);
 
-				isNewSubscription = false;
+            if (subscription != null) {
 
-				logger.log(
-						Level.FINEST,
-						"Repeat subscription to remote feed \"%s\" (wired to local feed \"%s\") for service instance \"%s\":",
-						new Object[] {remoteOutputTaskDescriptor, localInputDescriptor,
-								systemRuntime.systemDescriptor()});
+                subscription.unsubscribe();
+                inputFeed = wiredInputFeedMappings.remove(subscribeToDescriptor);
+                removeWiringFromRegistry(subscribeToDescriptor, null);
 
-			} else {
+            }
 
-				/* Subscribe to the remote feed */
-				ISubscription inputSubscription = new Subscription(systemRuntime.fabricClient());
-				inputSubscription.subscribe(remoteOutputTaskDescriptor, systemRuntime);
+        } catch (Exception e) {
 
-				/* Record the subscription */
-				wiredInputFeeds.put(remoteOutputDescriptor, inputSubscription);
+            String message = Fabric.format("Cannot unsubscribe from output feed '%s' for service instance '%s':", e,
+                    subscribeToDescriptor, systemRuntime.systemDescriptor());
+            logger.log(Level.SEVERE, message);
+            throw new Exception(message, e);
 
-				/* Record the mapping given by the wiring */
-				wiredInputFeedMappings.put(remoteOutputDescriptor, localInputDescriptor);
-			}
+        }
 
-		} catch (Exception e) {
+        return inputFeed;
+    }
 
-			String message = Fabric.format(
-					"Cannot subscribe to remote feed '%s' (wired to local feed %s) for service instance '%s':", e,
-					remoteOutputTaskDescriptor, localInputDescriptor, systemRuntime.systemDescriptor());
-			logger.log(Level.SEVERE, message);
-			throw new Exception(message, e);
+    /**
+     * Subscribes to an output feed.
+     *
+     * @param subscribeToDescriptor
+     *            the feed from which a subscription is being made.
+     *
+     * @param deliverToFeedID
+     *            the local feed to which the subscription will be wired.
+     *
+     * @return <code>true</code> if this is a new subscription, <code>false</code> otherwise.
+     *
+     * @throws Exception
+     */
+    public boolean wireInputFeed(ServiceDescriptor subscribeToDescriptor, String deliverToFeedID) throws Exception {
 
-		}
+        boolean isNewSubscription = true;
 
-		return isNewSubscription;
-	}
+        /* Build the remote (from) task feed descriptor */
+        TaskServiceDescriptor subscribeToTaskDescriptor = new TaskServiceDescriptor("DEFAULT", subscribeToDescriptor);
+        ServiceDescriptor subscribeToDescriptorFromTaskDescriptor = subscribeToTaskDescriptor.toServiceDescriptor();
 
-	/**
-	 * This method subscribes to the feeds used by this service instance to:
-	 * <p>
-	 * <ol>
-	 * <li>Receive <em>requests</em> for request/response actions (i.e. incoming requests for services offered).</li>
-	 * <li>Receive <em>responses</em> to this service's request/response requests (i.e. incoming replies to service
-	 * invocations).</li>
-	 * </ol>
-	 * The method also opens channels to the feeds to which the specified service instance will publish its output.
-	 * <p>
-	 * Two sets of channels are opened:
-	 * <ul>
-	 * <li><strong>On-ramp</strong> channels to send raw payload data onto the Fabric for a new data feed created by
-	 * this service.</li>
-	 * <li><strong>Bus</strong> channels to send Fabric messages onto the Fabric when this service is delivering
-	 * in-flight message processing.</li>
-	 * </ul>
-	 * </p>
-	 * <p>
-	 * Note that this method is not concerned with the wiring of these feeds, just with setting up the appropriate
-	 * subscriptions and output channels on the bus.
-	 * 
-	 * @throws Exception
-	 * 
-	 * @see initWiredFeeds
-	 */
-	private void initUnwiredFeeds() throws Exception {
+        /* Build the local (to) feed descriptor */
+        ServiceDescriptor deliverToDescriptor = new ServiceDescriptor(systemRuntime.systemDescriptor().platform(),
+                systemRuntime.systemDescriptor().system(), deliverToFeedID);
 
-		/* Get the request feeds */
+        try {
 
-		ServiceFactory serviceFactory = FabricRegistry.getServiceFactory(doQueryLocal);
+            /* If we are already subscribed to this feed... */
+            if (wiredInputFeeds.containsKey(subscribeToDescriptorFromTaskDescriptor)) {
 
-		String predicate = String
-				.format("platform_id = '%s' and service_id = '%s' and (direction='%s' or direction='%s' or direction='%s' or direction='%s')",
-						systemRuntime.systemDescriptor().platform(), systemRuntime.systemDescriptor().system(),
-						Service.MODE_REQUEST_RESPONSE, Service.MODE_LISTENER, Service.MODE_OUTPUT_FEED,
-						Service.MODE_SOLICIT_RESPONSE); // Added solicit-response
-		Service[] services = null;
+                isNewSubscription = false;
 
-		try {
+                logger.log(
+                        Level.FINEST,
+                        "Repeat subscription to remote feed \"%s\" (wired to local feed \"%s\") for service instance \"%s\":",
+                        new Object[] {subscribeToTaskDescriptor, deliverToDescriptor, systemRuntime.systemDescriptor()});
 
-			services = serviceFactory.getServices(predicate);
+            } else {
 
-		} catch (RegistryQueryException e) {
+                /* Subscribe to the remote feed */
+                ISubscription inputSubscription = new Subscription(systemRuntime.fabricClient());
+                inputSubscription.subscribe(subscribeToTaskDescriptor, systemRuntime);
 
-			String message = Fabric.format("Cannot get wiring for service %s", systemRuntime.systemDescriptor());
-			logger.log(Level.SEVERE, message);
-			throw new Exception(message, e);
+                /* Record the subscription */
+                wiredInputFeeds.put(subscribeToDescriptorFromTaskDescriptor, inputSubscription);
+                addWiringToRegistry(subscribeToDescriptor, deliverToDescriptor);
 
-		}
+                /* Record the mapping given by the wiring */
+                wiredInputFeedMappings.put(subscribeToDescriptorFromTaskDescriptor, deliverToDescriptor);
+            }
 
-		/* For each feed... */
-		for (int f = 0; f < services.length; f++) {
+        } catch (Exception e) {
 
-			/* If this is an output feed... */
-			if (services[f].getMode().equals(Service.MODE_OUTPUT_FEED)) {
+            String message = Fabric.format(
+                    "Cannot subscribe to remote feed '%s' (wired to local feed %s) for service instance '%s':", e,
+                    subscribeToTaskDescriptor, deliverToDescriptor, systemRuntime.systemDescriptor());
+            logger.log(Level.SEVERE, message);
+            throw new Exception(message, e);
 
-				/*
-				 * Open channels ready for the service to write messages from this feed onto the bus.
-				 */
+        }
 
-				/* Build the on-ramp topic */
-				String onrampSubtopic = Fabric.format("/%s/%s/%s", services[f].getPlatformId(), services[f]
-						.getSystemId(), services[f].getId());
-				OutputTopic onrampTopic = new OutputTopic(config("fabric.feeds.onramp", null, homeNode())
-						+ onrampSubtopic);
+        return isNewSubscription;
+    }
 
-				try {
+    /**
+     * This method subscribes to the feeds used by this service instance to:
+     * <p>
+     * <ol>
+     * <li>Receive <em>requests</em> for request/response actions (i.e. incoming requests for services offered).</li>
+     * <li>Receive <em>responses</em> to this service's request/response requests (i.e. incoming replies to service
+     * invocations).</li>
+     * </ol>
+     * The method also opens channels to the feeds to which the specified service instance will publish its output.
+     * <p>
+     * Two sets of channels are opened:
+     * <ul>
+     * <li><strong>On-ramp</strong> channels to send raw payload data onto the Fabric for a new data feed created by
+     * this service.</li>
+     * <li><strong>Bus</strong> channels to send Fabric messages onto the Fabric when this service is delivering
+     * in-flight message processing.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Note that this method is not concerned with the wiring of these feeds, just with setting up the appropriate
+     * subscriptions and output channels on the bus.
+     *
+     * @throws Exception
+     *
+     * @see initWiredFeeds
+     */
+    private void initUnwiredFeeds() throws Exception {
 
-					/* Open and record the channel */
-					SharedChannel onrampChannel = homeNodeEndPoint().openOutputChannel(onrampTopic);
-					ServiceDescriptor onrampDescriptor = new ServiceDescriptor(services[f].getPlatformId(), services[f]
-							.getSystemId(), services[f].getId());
-					onrampOutputFeeds.put(onrampDescriptor, onrampChannel);
+        /* Get the request feeds */
 
-				} catch (Exception e) {
+        ServiceFactory serviceFactory = FabricRegistry.getServiceFactory(queryScope);
 
-					String message = Fabric.format("Cannot open on-ramp feed '%s' for service instance '%s':", e,
-							onrampTopic, systemRuntime.toString());
-					logger.log(Level.SEVERE, message);
-					throw new Exception(message, e);
+        String predicate = String
+                .format("platform_id = '%s' and service_id = '%s' and (direction='%s' or direction='%s' or direction='%s' or direction='%s')",
+                        systemRuntime.systemDescriptor().platform(), systemRuntime.systemDescriptor().system(),
+                        Service.MODE_REQUEST_RESPONSE, Service.MODE_LISTENER, Service.MODE_OUTPUT_FEED,
+                        Service.MODE_SOLICIT_RESPONSE); // Added solicit-response
+        Service[] services = null;
 
-				}
+        try {
 
-				/* Build the bus topic */
-				String busSubtopic = Fabric.format("/%s/%s/%s", services[f].getPlatformId(), services[f].getSystemId(),
-						services[f].getId());
-				OutputTopic busTopic = new OutputTopic(config("fabric.feeds.bus", null, homeNode()) + busSubtopic);
+            services = serviceFactory.getServices(predicate);
 
-				try {
+        } catch (RegistryQueryException e) {
 
-					/* Open and record the channel */
-					SharedChannel busChannel = homeNodeEndPoint().openOutputChannel(busTopic);
-					ServiceDescriptor busDescriptor = new ServiceDescriptor(services[f].getPlatformId(), services[f]
-							.getSystemId(), services[f].getId());
-					busOutputFeeds.put(busDescriptor, busChannel);
+            String message = Fabric.format("Cannot get service information for system [%s]", systemRuntime
+                    .systemDescriptor());
+            logger.log(Level.SEVERE, message);
+            throw new Exception(message, e);
 
-				} catch (Exception e) {
+        }
 
-					String message = Fabric.format("Cannot open output feed '%s' for service instance '%s':", e,
-							onrampTopic, systemRuntime.toString());
-					logger.log(Level.SEVERE, message);
-					throw new Exception(message, e);
+        /* For each feed... */
+        for (int f = 0; f < services.length; f++) {
 
-				}
+            /* If this is an output feed... */
+            if (services[f].getMode().equals(Service.MODE_OUTPUT_FEED)) {
 
-			}
-			/*
-			 * Else if this is a request/response feed (i.e. for the receipt of requests in a request/response
-			 * operation)...
-			 */
-			else if (services[f].getMode().equals(Service.MODE_REQUEST_RESPONSE)) {
+                /*
+                 * Open channels ready for the service to write messages from this feed onto the bus.
+                 */
 
-				/* Build the descriptor for the local service feed */
-				TaskServiceDescriptor requestResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
-						.getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
-						.toString());
+                /* Build the on-ramp topic */
+                String onrampSubtopic = Fabric.format("/%s/%s/%s", services[f].getPlatformId(), services[f]
+                        .getSystemId(), services[f].getId());
+                OutputTopic onrampTopic = new OutputTopic(config("fabric.feeds.onramp", null, homeNode())
+                        + onrampSubtopic);
 
-				try {
+                try {
 
-					/* Subscribe to the feed */
-					ISubscription responseSubscription = new Subscription(systemRuntime.fabricClient());
-					responseSubscription.subscribe(requestResponseTaskDescriptor, systemRuntime);
+                    /* Open and record the channel */
+                    SharedChannel onrampChannel = homeNodeEndPoint().openOutputChannel(onrampTopic);
+                    ServiceDescriptor onrampDescriptor = new ServiceDescriptor(services[f].getPlatformId(), services[f]
+                            .getSystemId(), services[f].getId());
+                    onrampOutputFeeds.put(onrampDescriptor, onrampChannel);
 
-					/* Record the subscription */
-					ServiceDescriptor requestResponseDescriptor = new ServiceDescriptor(requestResponseTaskDescriptor);
-					requestResponseFeeds.put(requestResponseDescriptor, responseSubscription);
+                } catch (Exception e) {
 
-				} catch (Exception e) {
+                    String message = Fabric.format("Cannot open on-ramp feed '%s' for service instance '%s':", e,
+                            onrampTopic, systemRuntime.toString());
+                    logger.log(Level.SEVERE, message);
+                    throw new Exception(message, e);
 
-					String message = Fabric.format("Cannot subscribe to input feed '%s' for service instance '%s':", e,
-							requestResponseTaskDescriptor.toString(), systemRuntime.toString());
-					logger.log(Level.SEVERE, message);
-					throw new Exception(message, e);
+                }
 
-				}
+                /* Build the bus topic */
+                String busSubtopic = Fabric.format("/%s/%s/%s", services[f].getPlatformId(), services[f].getSystemId(),
+                        services[f].getId());
+                OutputTopic busTopic = new OutputTopic(config("fabric.feeds.bus", null, homeNode()) + busSubtopic);
 
-			}
-			/*
-			 * Else if this is a solicit response feed (i.e. for the receipt of responses in a request/response
-			 * operation)...
-			 */
-			else if (services[f].getMode().equals(Service.MODE_SOLICIT_RESPONSE)) {
+                try {
 
-				/* Build the descriptor for the local service feed */
-				TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
-						.getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
-						.toString());
+                    /* Open and record the channel */
+                    SharedChannel busChannel = homeNodeEndPoint().openOutputChannel(busTopic);
+                    ServiceDescriptor busDescriptor = new ServiceDescriptor(services[f].getPlatformId(), services[f]
+                            .getSystemId(), services[f].getId());
+                    busOutputFeeds.put(busDescriptor, busChannel);
 
-				try {
+                } catch (Exception e) {
 
-					/* Subscribe to the feed */
-					ISubscription solicitResponseSubscription = new Subscription(systemRuntime.fabricClient());
-					solicitResponseSubscription.subscribe(solicitResponseTaskDescriptor, systemRuntime);
+                    String message = Fabric.format("Cannot open output feed '%s' for service instance '%s':", e,
+                            onrampTopic, systemRuntime.toString());
+                    logger.log(Level.SEVERE, message);
+                    throw new Exception(message, e);
 
-					/* Record the subscription */
-					ServiceDescriptor solicitResponseDescriptor = new ServiceDescriptor(solicitResponseTaskDescriptor);
-					solicitResponseFeeds.put(solicitResponseDescriptor, solicitResponseSubscription);
+                }
 
-				} catch (Exception e) {
+            }
+            /*
+             * Else if this is a request/response feed (i.e. for the receipt of requests in a request/response
+             * operation)...
+             */
+            else if (services[f].getMode().equals(Service.MODE_REQUEST_RESPONSE)) {
 
-					String message = Fabric.format("Cannot subscribe to input feed '%s' for service instance '%s':", e,
-							solicitResponseTaskDescriptor.toString(), systemRuntime.toString());
-					logger.log(Level.SEVERE, message);
-					throw new Exception(message, e);
+                /* Build the descriptor for the local service feed */
+                TaskServiceDescriptor requestResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
+                        .getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
+                        .toString());
 
-				}
+                try {
 
-			}
-			/*
-			 * Else if this is a one way feed (i.e. for the receipt of notification messages that do not receive a
-			 * response)...
-			 */
-			else if (services[f].getMode().equals(Service.MODE_LISTENER)) {
+                    /* Subscribe to the feed */
+                    ISubscription responseSubscription = new Subscription(systemRuntime.fabricClient());
+                    responseSubscription.subscribe(requestResponseTaskDescriptor, systemRuntime);
 
-				/* Build the descriptor for the local service feed */
-				TaskServiceDescriptor oneWayTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
-						.getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
-						.toString());
+                    /* Record the subscription */
+                    ServiceDescriptor requestResponseDescriptor = new ServiceDescriptor(requestResponseTaskDescriptor);
+                    requestResponseFeeds.put(requestResponseDescriptor, responseSubscription);
 
-				try {
+                } catch (Exception e) {
 
-					/* Subscribe to the feed */
-					ISubscription responseSubscription = new Subscription(systemRuntime.fabricClient());
-					responseSubscription.subscribe(oneWayTaskDescriptor, systemRuntime);
+                    String message = Fabric.format("Cannot subscribe to input feed '%s' for service instance '%s':", e,
+                            requestResponseTaskDescriptor.toString(), systemRuntime.toString());
+                    logger.log(Level.SEVERE, message);
+                    throw new Exception(message, e);
 
-					/* Record the subscription */
-					ServiceDescriptor oneWayDescriptor = new ServiceDescriptor(oneWayTaskDescriptor);
-					oneWayFeeds.put(oneWayDescriptor, responseSubscription);
+                }
 
-				} catch (Exception e) {
+            }
+            /*
+             * Else if this is a solicit response feed (i.e. for the receipt of responses in a request/response
+             * operation)...
+             */
+            else if (services[f].getMode().equals(Service.MODE_SOLICIT_RESPONSE)) {
 
-					String message = Fabric.format("Cannot subscribe to input feed '%s' for service instance '%s':", e,
-							oneWayTaskDescriptor.toString(), systemRuntime.toString());
-					logger.log(Level.SEVERE, message);
-					throw new Exception(message, e);
+                /* Build the descriptor for the local service feed */
+                TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
+                        .getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
+                        .toString());
 
-				}
+                try {
 
-			} else {
+                    /* Subscribe to the feed */
+                    ISubscription solicitResponseSubscription = new Subscription(systemRuntime.fabricClient());
+                    solicitResponseSubscription.subscribe(solicitResponseTaskDescriptor, systemRuntime);
 
-				String error = Fabric.format("Unsupported feed direction '%s' for service '%s'", services[f].getMode(),
-						systemRuntime.systemDescriptor());
-				logger.log(Level.SEVERE, error);
-				throw new UnsupportedOperationException(error);
+                    /* Record the subscription */
+                    ServiceDescriptor solicitResponseDescriptor = new ServiceDescriptor(solicitResponseTaskDescriptor);
+                    solicitResponseFeeds.put(solicitResponseDescriptor, solicitResponseSubscription);
 
-			}
-		}
-	}
+                } catch (Exception e) {
 
-	/**
-	 * Closes all of the feeds associated with this service instance including unsubscribing from input feeds, and
-	 * closing the channels associated with the output feeds.
-	 * 
-	 * @throws Exception
-	 */
-	public void closeFeeds() throws Exception {
+                    String message = Fabric.format("Cannot subscribe to input feed '%s' for service instance '%s':", e,
+                            solicitResponseTaskDescriptor.toString(), systemRuntime.toString());
+                    logger.log(Level.SEVERE, message);
+                    throw new Exception(message, e);
 
-		unsubscribe(wiredInputFeeds);
-		wiredInputFeedMappings.clear();
+                }
 
-		unsubscribe(requestResponseFeeds);
+            }
+            /*
+             * Else if this is a one way feed (i.e. for the receipt of notification messages that do not receive a
+             * response)...
+             */
+            else if (services[f].getMode().equals(Service.MODE_LISTENER)) {
 
-		unsubscribe(oneWayFeeds);
+                /* Build the descriptor for the local service feed */
+                TaskServiceDescriptor oneWayTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
+                        .getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
+                        .toString());
 
-		wiredNotificationFeedMappings.clear();
+                try {
 
-		unsubscribe(solicitResponseFeeds);
-		wiredSolicitResponseFeedMappings.clear();
+                    /* Subscribe to the feed */
+                    ISubscription responseSubscription = new Subscription(systemRuntime.fabricClient());
+                    responseSubscription.subscribe(oneWayTaskDescriptor, systemRuntime);
 
-		closeChannels(busOutputFeeds);
-		closeChannels(onrampOutputFeeds);
+                    /* Record the subscription */
+                    ServiceDescriptor oneWayDescriptor = new ServiceDescriptor(oneWayTaskDescriptor);
+                    oneWayFeeds.put(oneWayDescriptor, responseSubscription);
 
-	}
+                } catch (Exception e) {
 
-	/**
-	 * Unsubscribes from the specified set of feeds.
-	 * 
-	 * @param feeds
-	 *            the table of feeds.
-	 * 
-	 * @throws Exception
-	 */
-	private void unsubscribe(HashMap<ServiceDescriptor, ISubscription> feeds) throws Exception {
+                    String message = Fabric.format("Cannot subscribe to input feed '%s' for service instance '%s':", e,
+                            oneWayTaskDescriptor.toString(), systemRuntime.toString());
+                    logger.log(Level.SEVERE, message);
+                    throw new Exception(message, e);
 
-		HashMap<ServiceDescriptor, ISubscription> feedsCopy = (HashMap<ServiceDescriptor, ISubscription>) feeds.clone();
+                }
 
-		/* For each feed... */
-		for (Iterator<ServiceDescriptor> i = feedsCopy.keySet().iterator(); i.hasNext();) {
+            } else {
 
-			ServiceDescriptor serviceDescriptor = i.next();
-			ISubscription feedSubscription = feedsCopy.get(serviceDescriptor);
+                String error = Fabric.format("Unsupported feed direction '%s' for service '%s'", services[f].getMode(),
+                        systemRuntime.systemDescriptor());
+                logger.log(Level.SEVERE, error);
+                throw new UnsupportedOperationException(error);
 
-			try {
+            }
+        }
+    }
 
-				/* Unsubscribe */
-				feedSubscription.unsubscribe();
+    /**
+     * Closes all of the feeds associated with this service instance including unsubscribing from input feeds, and
+     * closing the channels associated with the output feeds.
+     *
+     * @throws Exception
+     */
+    public void closeFeeds() throws Exception {
 
-			} catch (Exception e) {
+        unsubscribe(wiredInputFeeds);
+        wiredInputFeedMappings.clear();
 
-				String message = Fabric.format("Cannot unsubscribe from input feed '%s' for service instance '%s':", e,
-						serviceDescriptor, systemRuntime.toString());
-				logger.log(Level.SEVERE, message);
-				throw new Exception(message, e);
+        unsubscribe(requestResponseFeeds);
 
-			}
+        unsubscribe(oneWayFeeds);
 
-			feeds.remove(serviceDescriptor);
+        wiredNotificationFeedMappings.clear();
 
-		}
-	}
+        unsubscribe(solicitResponseFeeds);
+        wiredSolicitResponseFeedMappings.clear();
 
-	/**
-	 * Closes the specified set of channels.
-	 * 
-	 * @param channels
-	 *            the table of channels.
-	 * 
-	 * @throws Exception
-	 */
-	private void closeChannels(HashMap<ServiceDescriptor, SharedChannel> channels) throws Exception {
+        closeChannels(busOutputFeeds);
+        closeChannels(onrampOutputFeeds);
 
-		HashMap<ServiceDescriptor, SharedChannel> channelsCopy = (HashMap<ServiceDescriptor, SharedChannel>) channels
-				.clone();
+    }
 
-		/* For each channel... */
-		for (ServiceDescriptor serviceDescriptor : channelsCopy.keySet()) {
+    /**
+     * Unsubscribes from the specified set of feeds.
+     *
+     * @param services
+     *            the table of feeds.
+     *
+     * @throws Exception
+     */
+    private void unsubscribe(HashMap<ServiceDescriptor, ISubscription> services) throws Exception {
 
-			SharedChannel channel = channels.get(serviceDescriptor);
+        HashMap<ServiceDescriptor, ISubscription> feedsCopy = (HashMap<ServiceDescriptor, ISubscription>) services
+                .clone();
 
-			try {
+        /* For each feed... */
+        for (Iterator<ServiceDescriptor> i = feedsCopy.keySet().iterator(); i.hasNext();) {
 
-				/* Close the channel */
-				homeNodeEndPoint().closeChannel(channel, false);
-				// channel.instance().close(null);
+            ServiceDescriptor serviceDescriptor = i.next();
+            ISubscription feedSubscription = feedsCopy.get(serviceDescriptor);
 
-			} catch (Exception e) {
+            try {
 
-				String message = Fabric.format("Cannot close output channel '%s' for service instance '%s':", e,
-						serviceDescriptor, systemRuntime.toString());
-				logger.log(Level.SEVERE, message);
-				throw new Exception(message, e);
+                /* Unsubscribe */
+                feedSubscription.unsubscribe();
 
-			}
+            } catch (Exception e) {
 
-			channels.remove(serviceDescriptor);
+                String message = Fabric.format("Cannot unsubscribe from input feed '%s' for service instance '%s':", e,
+                        serviceDescriptor, systemRuntime.toString());
+                logger.log(Level.SEVERE, message);
+                throw new Exception(message, e);
 
-		}
-	}
+            }
 
-	/**
-	 * Answers the table of input feed subscriptions; the key is the remote feed descriptor to which the input is
-	 * mapped.
-	 * 
-	 * @return the input feeds.
-	 */
-	public HashMap<ServiceDescriptor, ISubscription> wiredInputFeeds() {
+            services.remove(serviceDescriptor);
+            removeWiringFromRegistry(serviceDescriptor, null);
 
-		return wiredInputFeeds;
+        }
+    }
 
-	}
+    /**
+     * Closes the specified set of channels.
+     *
+     * @param channels
+     *            the table of channels.
+     *
+     * @throws Exception
+     */
+    private void closeChannels(HashMap<ServiceDescriptor, SharedChannel> channels) throws Exception {
 
-	/**
-	 * Answers the table mapping upstream output feeds to their local input feeds (i.e. the feed wiring); the key is the
-	 * remote feed descriptor.
-	 * 
-	 * @return the table.
-	 */
-	public HashMap<ServiceDescriptor, ServiceDescriptor> wiredInputFeedMappings() {
+        HashMap<ServiceDescriptor, SharedChannel> channelsCopy = (HashMap<ServiceDescriptor, SharedChannel>) channels
+                .clone();
 
-		return wiredInputFeedMappings;
+        /* For each channel... */
+        for (ServiceDescriptor serviceDescriptor : channelsCopy.keySet()) {
 
-	}
+            SharedChannel channel = channels.get(serviceDescriptor);
 
-	/**
-	 * Answers the table of request/response subscriptions; the key is feed descriptor.
-	 * 
-	 * @return the response feeds.
-	 */
-	public HashMap<ServiceDescriptor, ISubscription> requestResponseFeeds() {
+            try {
 
-		return requestResponseFeeds;
+                /* Close the channel */
+                homeNodeEndPoint().closeChannel(channel, false);
+                // channel.instance().close(null);
 
-	}
+            } catch (Exception e) {
 
-	/**
-	 * Answers the table of one way subscriptions; the key is feed descriptor.
-	 * 
-	 * @return the response feeds.
-	 */
-	public HashMap<ServiceDescriptor, ISubscription> oneWayFeeds() {
+                String message = Fabric.format("Cannot close output channel '%s' for service instance '%s':", e,
+                        serviceDescriptor, systemRuntime.toString());
+                logger.log(Level.SEVERE, message);
+                throw new Exception(message, e);
 
-		return oneWayFeeds;
+            }
 
-	}
+            channels.remove(serviceDescriptor);
 
-	/**
-	 * Answers the table of solicit response subscriptions; the key is the local feed descriptor.
-	 * 
-	 * @return the response feeds.
-	 */
-	public HashMap<ServiceDescriptor, ISubscription> solicitResponseFeeds() {
+        }
+    }
 
-		return solicitResponseFeeds;
+    /**
+     * Answers the table of input feed subscriptions; the key is the remote feed descriptor to which the input is
+     * mapped.
+     *
+     * @return the input feeds.
+     */
+    public HashMap<ServiceDescriptor, ISubscription> wiredInputFeeds() {
 
-	}
+        return wiredInputFeeds;
 
-	/**
-	 * Answers the table mapping solicit response feeds to their remote remote request/response counterparts; the key is
-	 * the local solicit response feed descriptor.
-	 * 
-	 * @return the table.
-	 */
-	public HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredSolicitResponseFeedMappings() {
+    }
 
-		return wiredSolicitResponseFeedMappings;
+    /**
+     * Answers the table mapping upstream output feeds to their local input feeds (i.e. the feed wiring); the key is the
+     * remote feed descriptor.
+     *
+     * @return the table.
+     */
+    public HashMap<ServiceDescriptor, ServiceDescriptor> wiredInputFeedMappings() {
 
-	}
+        return wiredInputFeedMappings;
 
-	/**
-	 * Answers the table mapping notification feeds to their remote remote one way counterparts; the key is the local
-	 * notification feed descriptor.
-	 * 
-	 * @return the table.
-	 */
-	public HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredNotificationFeedMappings() {
+    }
 
-		return wiredNotificationFeedMappings;
+    /**
+     * Answers the table of request/response subscriptions; the key is feed descriptor.
+     *
+     * @return the response feeds.
+     */
+    public HashMap<ServiceDescriptor, ISubscription> requestResponseFeeds() {
 
-	}
+        return requestResponseFeeds;
 
-	/**
-	 * Answers the table of Fabric channels to which this service instance will write <em>on-ramp</em> messages, i.e.
-	 * raw payloads (the key is the ID of the output feed).
-	 * 
-	 * @return the output feeds.
-	 */
-	public HashMap<ServiceDescriptor, SharedChannel> onrampOutputFeeds() {
+    }
 
-		return onrampOutputFeeds;
+    /**
+     * Answers the table of one way subscriptions; the key is feed descriptor.
+     *
+     * @return the response feeds.
+     */
+    public HashMap<ServiceDescriptor, ISubscription> oneWayFeeds() {
 
-	}
+        return oneWayFeeds;
 
-	/**
-	 * Answers the table of Fabric channels to which this service instance will write <em>bus</em> messages (the key is
-	 * the ID of the output feed).
-	 * 
-	 * @return the output feeds.
-	 */
-	public HashMap<ServiceDescriptor, SharedChannel> busOutputFeeds() {
+    }
 
-		return busOutputFeeds;
+    /**
+     * Answers the table of solicit response subscriptions; the key is the local feed descriptor.
+     *
+     * @return the response feeds.
+     */
+    public HashMap<ServiceDescriptor, ISubscription> solicitResponseFeeds() {
 
-	}
+        return solicitResponseFeeds;
 
-	/**
-	 * Answers the list of <em>input</em> feed names.
-	 * 
-	 * @return the input feed names.
-	 */
-	public List<String> inputFeedIDs() {
+    }
 
-		return inputFeedList;
+    /**
+     * Answers the table mapping solicit response feeds to their remote remote request/response counterparts; the key is
+     * the local solicit response feed descriptor.
+     *
+     * @return the table.
+     */
+    public HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredSolicitResponseFeedMappings() {
 
-	}
+        return wiredSolicitResponseFeedMappings;
 
-	/**
-	 * Answers the list of <em>output</em> feed names.
-	 * 
-	 * @return the output feed names.
-	 */
-	public List<String> outputFeedIDs() {
+    }
 
-		return outputFeedList;
+    /**
+     * Answers the table mapping notification feeds to their remote remote one way counterparts; the key is the local
+     * notification feed descriptor.
+     *
+     * @return the table.
+     */
+    public HashMap<ServiceDescriptor, ArrayList<ServiceDescriptor>> wiredNotificationFeedMappings() {
 
-	}
+        return wiredNotificationFeedMappings;
 
-	/**
-	 * Answers the list of <em>notify</em> feed names.
-	 * 
-	 * @return the notify feed names.
-	 */
-	public List<String> notifyFeedIDs() {
+    }
 
-		return notifyFeedList;
+    /**
+     * Answers the table of Fabric channels to which this service instance will write <em>on-ramp</em> messages, i.e.
+     * raw payloads (the key is the ID of the output feed).
+     *
+     * @return the output feeds.
+     */
+    public HashMap<ServiceDescriptor, SharedChannel> onrampOutputFeeds() {
 
-	}
+        return onrampOutputFeeds;
 
-	/**
-	 * Answers the list of <em>one way</em> feed names.
-	 * 
-	 * @return the one way feed names.
-	 */
-	public List<String> oneWayFeedIDs() {
+    }
 
-		return oneWayFeedList;
+    /**
+     * Answers the table of Fabric channels to which this service instance will write <em>bus</em> messages (the key is
+     * the ID of the output feed).
+     *
+     * @return the output feeds.
+     */
+    public HashMap<ServiceDescriptor, SharedChannel> busOutputFeeds() {
 
-	}
+        return busOutputFeeds;
 
-	/**
-	 * Answers the list of <em>solicit response</em> feed names.
-	 * 
-	 * @return the solicit response feed names.
-	 */
-	public List<String> solicitResponseFeedIDs() {
+    }
 
-		return solicitResponseFeedList;
+    /**
+     * Answers the list of <em>input</em> feed names.
+     *
+     * @return the input feed names.
+     */
+    public List<String> inputFeedIDs() {
 
-	}
+        return inputFeedList;
 
-	/**
-	 * Answers the list of <em>request response</em> feed names.
-	 * 
-	 * @return the request response feed names.
-	 */
-	public List<String> requestResponseFeedIDs() {
+    }
 
-		return requestResponseFeedList;
+    /**
+     * Answers the list of <em>output</em> feed names.
+     *
+     * @return the output feed names.
+     */
+    public List<String> outputFeedIDs() {
 
-	}
+        return outputFeedList;
+
+    }
+
+    /**
+     * Answers the list of <em>notify</em> feed names.
+     *
+     * @return the notify feed names.
+     */
+    public List<String> notifyFeedIDs() {
+
+        return notifyFeedList;
+
+    }
+
+    /**
+     * Answers the list of <em>one way</em> feed names.
+     *
+     * @return the one way feed names.
+     */
+    public List<String> oneWayFeedIDs() {
+
+        return oneWayFeedList;
+
+    }
+
+    /**
+     * Answers the list of <em>solicit response</em> feed names.
+     *
+     * @return the solicit response feed names.
+     */
+    public List<String> solicitResponseFeedIDs() {
+
+        return solicitResponseFeedList;
+
+    }
+
+    /**
+     * Answers the list of <em>request response</em> feed names.
+     *
+     * @return the request response feed names.
+     */
+    public List<String> requestResponseFeedIDs() {
+
+        return requestResponseFeedList;
+
+    }
 }
