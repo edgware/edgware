@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# **************************************************************************
+# (C) Copyright IBM Corp. 2014
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+# **************************************************************************
+
 FABRIC_LIBS=$(echo $FABRIC_HOME/lib/db-derby/lib/*.jar | tr ' ' ':')
 FABRIC_LIBS=$FABRIC_LIBS:$(echo $FABRIC_HOME/lib/fabric/*.jar | tr ' ' ':')
 FABRIC_LIBS=$FABRIC_LIBS:$(echo $FABRIC_HOME/lib/gaiandb/lib/*.jar | tr ' ' ':')
