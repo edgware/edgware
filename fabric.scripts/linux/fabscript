@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# **************************************************************************
+# (C) Copyright IBM Corp. 2014, 2016
+#
+# LICENSE: Eclipse Public License v1.0
+# http://www.eclipse.org/legal/epl-v10.html
+# **************************************************************************
+
+FABRIC_LIBS=$(echo $FABRIC_HOME/lib/db-derby/lib/*.jar | tr ' ' ':')
+FABRIC_LIBS=$FABRIC_LIBS:$(echo $FABRIC_HOME/lib/fabric/*.jar | tr ' ' ':')
+FABRIC_LIBS=$FABRIC_LIBS:$(echo $FABRIC_HOME/lib/gaiandb/lib/*.jar | tr ' ' ':')
+FABRIC_LIBS=$FABRIC_LIBS:$(echo $FABRIC_HOME/lib/oslib/*.jar | tr ' ' ':')
+
+NODE=`hostname`
+GET_NODE=0
+IP="127.0.0.1"
+GET_IP=0
+SCRIPT=""
+GET_SCRIPT=0
+
+for arg in "$@"
+do
+	case "$arg" in
+		'-n')
+			GET_NODE=1
+			GET_IP=0
+			GET_SCRIPT=0
+			;;
+		'-i')
+			GET_IP=1
+			GET_NODE=0
+			GET_SCRIPT=0
+			;;
+		'-s')
+			GET_SCRIPT=1
+			GET_IP=0
+			GET_NODE=0
+			;;
+		'-help')
+			echo "Usage: fabscript -n node -i node-ip -s script-file"
+			exit 0
+			;;
+		*)
+			if [ $GET_NODE -eq 1 ]
+			then
+				NODE="$arg"
+				GET_NODE=0
+			elif [ $GET_IP -eq 1 ]
+			then
+				IP="$arg"
+				GET_IP=0
+			elif [ $GET_SCRIPT -eq 1 ]
+			then
+				SCRIPT="$arg"
+				GET_SCRIPT=0
+			fi
+			;;
+	esac
+done
+
+if [ "$NODE" = "" -o "$IP" = "" -o "$SCRIPT" = "" ]
+then
+	echo "Usage: fabscript -n node -i node-ip -s script-file"
+	exit 1
+else
+	java -cp $FABRIC_LIBS fabric.script.RunScript "$NODE" "$IP" "FABSCRIPT-$$" "$SCRIPT"
+fi
