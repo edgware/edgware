@@ -44,7 +44,7 @@ Generic Installation Instructions
 
 These instructions serve as a generic installation guide for fully manual installation of the Edgware components as Linux daemons.  It is likely your Linux distribution has some commands to help, see the following sections for examples.
 
-1) Edit the $FABRIC_HOME/server/sysconfig file and set the variables as appropriate for your Edgware installation
+1) Edit the $FABRIC_HOME/server/linux/sysconfig file and set the variables as appropriate for your Edgware installation
 
 2) Copy the 3 scripts edgware-registry, edgware-nodes and edgware-webserver to the /etc/rc.d/init.d/ directory, ensure they are executable and check the variables in the scripts match your installation
 
@@ -80,7 +80,7 @@ Generic LSB Compliant Instructions
 
 These instructions serve as a generic installation guide for installation of Edgware components as Linux daemons on LSB compliant distributions.  Use these instructions if none of those listed below help.
 
-1) Edit the $FABRIC_HOME/server/sysconfig file and set the variables as appropriate for your Edgware installation
+1) Edit the $FABRIC_HOME/server/linux/sysconfig file and set the variables as appropriate for your Edgware installation
 
 2) Copy the 3 scripts edgware-registry, edgware-nodes and edgware-webserver to the /etc/init.d/ directory, ensure they are executable and check the variables in the scripts match your installation
 
@@ -99,7 +99,7 @@ Installation on Red Hat Like Linux Distributions
 
 These instructions serve as a generic installation guide for installation of Edgware components as Linux daemons on Red Hat like distributions.  This includes distributions such as Red Hat Enterprise Linux, CentOS and Fedora.
 
-1) Edit the $FABRIC_HOME/server/sysconfig file and set the variables as appropriate for your Edgware installation
+1) Edit the $FABRIC_HOME/server/linux/sysconfig file and set the variables as appropriate for your Edgware installation
 
 2) Copy the 3 scripts edgware-registry, edgware-nodes and edgware-webserver to the /etc/init.d/ directory, ensure they are executable and check the variables in the scripts match your installation
 
@@ -117,7 +117,7 @@ Installation on SUSE Like Linux Distributions
 
 These instructions serve as a generic installation guide for installation of Edgware components as Linux daemons on SUSE like distributions.  This includes distributions such as SUSE Linux Enterprise Server and openSUSE.
 
-1) Edit the $FABRIC_HOME/server/sysconfig file and set the variables as appropriate for your Edgware installation
+1) Edit the $FABRIC_HOME/server/linux/sysconfig file and set the variables as appropriate for your Edgware installation
 
 2) Copy the 3 scripts edgware-registry, edgware-nodes and edgware-webserver to the /etc/init.d/ directory, ensure they are executable and check the variables in the scripts match your installation
 
@@ -137,7 +137,7 @@ Installation on Ubuntu
 
 These instructions serve as a generic installation guide for installation of Edgware components as Linux daemons on Ubuntu.
 
-1) Edit the $FABRIC_HOME/server/sysconfig file and set the variables as appropriate for your Edgware installation
+1) Edit the $FABRIC_HOME/server/linux/sysconfig file and set the variables as appropriate for your Edgware installation
 
 2) Copy the 3 scripts edgware-registry, edgware-nodes and edgware-webserver to the /etc/init.d/ directory, ensure they are executable and check the variables in the scripts match your installation
 
@@ -165,7 +165,7 @@ These instructions are a guide for installation of Edgware components as Linux d
 
 Note: the systemd scripts start a Edgware Node called "default".  You should edit this name and rename the appropriate file to start the name of the Edgware Node you intend to start.  To start multiple Edgware Nodes on the same machine, copy the service file and change the node name, issuing one systemctl command for each Node.
 
-1) Edit the $FABRIC_HOME/server/sysconfig file and set the variables as appropriate for your Edgware installation
+1) Edit the $FABRIC_HOME/server/linux/sysconfig file and set the variables as appropriate for your Edgware installation
 
 2) Copy the 3 files edgware-registry.service, edgware-nodes.service and edgware-webserver.service to the /etc/systemd/ directory
 
