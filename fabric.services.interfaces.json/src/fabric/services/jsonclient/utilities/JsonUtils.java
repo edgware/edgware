@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -11,7 +9,6 @@ package fabric.services.jsonclient.utilities;
 
 import java.io.IOException;
 
-import fabric.registry.Platform;
 import fabric.services.json.JSON;
 import fabric.services.json.JSONArray;
 
@@ -22,6 +19,10 @@ public class JsonUtils {
 
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
+
+	/*
+	 * Class methods
+	 */
 
 	/**
 	 * Catches any exceptions and returns a null. Used if the key doesn't exist in the JSON object.
@@ -151,80 +152,6 @@ public class JsonUtils {
 	}
 
 	/**
-	 * Creates a JSON object with location information pulled from a Platform object.
-	 * 
-	 * @param platform
-	 *            The platform object that contains location information.
-	 * @return A location JSON Object.
-	 */
-	public static JSON buildLocationObject(Platform platform) {
-
-		JSON location = new JSON();
-		location = location.putDouble(AdapterConstants.FIELD_LATITUDE, platform.getLatitude());
-		location = location.putDouble(AdapterConstants.FIELD_LONGITUDE, platform.getLongitude());
-		if (location.toString().equals("{}")) {
-			location = null;
-		}
-		return location;
-	}
-
-	/**
-	 * Generates SQL for a generic query type from any JSON object
-	 * 
-	 * @param jsonOpbject
-	 *            The JSON object from which the query data is taken.
-	 * 
-	 * @return A string containing SQL.
-	 */
-	public static String generateSQLLogic(JSON jsonOpbject) {
-
-		String querySQL = null;
-		StringBuilder s = new StringBuilder();
-
-		/* If the query contains a type ID... */
-		if (jsonOpbject.getString(AdapterConstants.FIELD_TYPE) != null) {
-			s.append("TYPE_ID='");
-			s.append(jsonOpbject.getString(AdapterConstants.FIELD_TYPE));
-			s.append("' AND ");
-		}
-
-		/* If the query contains a location.. */
-		if (!jsonOpbject.getJSON(AdapterConstants.FIELD_LOCATION).toString().equals("{}")) {
-			JSON jsonLocation = jsonOpbject.getJSON(AdapterConstants.FIELD_LOCATION);
-			s.append("LATITUDE>=");
-			s.append(jsonLocation.getDouble(AdapterConstants.FIELD_LOCATION_BOTTOM));
-			s.append(" AND LATITUDE<=");
-			s.append(jsonLocation.getDouble(AdapterConstants.FIELD_LOCATION_TOP));
-			s.append(" AND ");
-			s.append("LONGITUDE>=");
-			s.append(jsonLocation.getDouble(AdapterConstants.FIELD_LOCATION_LEFT));
-			s.append(" AND LONGITUDE<=");
-			s.append(jsonLocation.getDouble(AdapterConstants.FIELD_LOCATION_RIGHT));
-			s.append(" AND ");
-		}
-
-		String attributes = jsonOpbject.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
-		attributes = attributes.substring(attributes.indexOf('{') + 1, attributes.lastIndexOf('}'));
-
-		/* If the query contains attributes... */
-		if (jsonOpbject.getString(AdapterConstants.FIELD_ATTRIBUTES) != null) {
-			s.append("ATTRIBUTES LIKE '%");
-			s.append(attributes);
-			s.append("%' AND ");
-		}
-
-		/* If the query contains a description... */
-		if (jsonOpbject.getString(AdapterConstants.FIELD_DESCRIPTION) != null) {
-			s.append("DESCRIPTION='");
-			s.append(jsonOpbject.getString(AdapterConstants.FIELD_DESCRIPTION));
-			s.append("' AND ");
-		}
-
-		querySQL = s.toString();
-		return querySQL;
-	}
-
-	/**
 	 * Answers a JSON object corresponding to a string containing JSON.
 	 * <p>
 	 * If the string does not contain valid JSON then the specified error message is returned in a JSON object of the
@@ -253,7 +180,9 @@ public class JsonUtils {
 
 		try {
 
-			json = new JSON(jsonString);
+			if (jsonString != null && !jsonString.equals("null") && !jsonString.equals("")) {
+				json = new JSON(jsonString);
+			}
 
 		} catch (Exception e) {
 
