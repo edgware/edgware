@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2009
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -24,7 +22,7 @@ public class NodeIpMappingImpl extends AbstractRegistryObject implements NodeIpM
 	private String nodeId = null;
 	private String nodeInterface = null;
 	private String ipAddress = null;
-	private int port = Integer.parseInt(ConfigProperties.MQTT_REMOTE_PORT_DEFAULT);
+	private int port = Integer.parseInt(ConfigProperties.BROKER_REMOTE_PORT_DEFAULT);
 
 	protected NodeIpMappingImpl() {
 	}
