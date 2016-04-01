@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -19,7 +17,7 @@ import fabric.SystemDescriptor;
 import fabric.bus.feeds.ISubscription;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 import fabric.services.json.JSON;
 
 /**
@@ -187,7 +185,7 @@ public class HTTPSystem extends JSONSystem {
 			}
 
 			logger.log(Level.SEVERE, "Failed to deliver \"{0}\" message to client via session \"{1}\": {2}",
-					new Object[] {type, session, LogUtil.stackTrace(e)});
+					new Object[] {type, session, FLog.stackTrace(e)});
 
 		}
 	}

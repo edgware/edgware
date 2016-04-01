@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -17,7 +15,7 @@ import fabric.bus.feeds.ISubscription;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.core.io.OutputTopic;
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 import fabric.services.json.JSON;
 
 /**
@@ -187,7 +185,7 @@ public class MQTTSystem extends JSONSystem {
 			}
 
 			logger.log(Level.SEVERE, "Failed to deliver \"{0}\" message to client on topic \"{1}\": {2}", new Object[] {
-					type, topic, LogUtil.stackTrace(e)});
+					type, topic, FLog.stackTrace(e)});
 
 		}
 	}
