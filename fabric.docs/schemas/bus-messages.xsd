@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:f="http://edgware-fabric.org/xmlns/f/v1.0.0/"
+	targetNamespace="http://edgware-fabric.org/xmlns/f/v1.0.0/">
+
+	<!--*********************************************************************-->
+	<!--* (C) Copyright IBM Corp. 2006, 2014                                *-->
+	<!--*                                                                   *-->
+	<!--* LICENSE: Eclipse Public License v1.0                              *-->
+	<!--* http://www.eclipse.org/legal/epl-v10.html                         *-->
+	<!--*********************************************************************-->
+
+	<!--*********************************************************************-->
+	<!--* Edgware Fabric Bus Message Schema                                 *-->
+	<!--*                                                                   *-->
+	<!--* Base schema describing Fabric bus messages, i.e. the messages     *-->
+	<!--* that flow between nodes on the Fabric.                            *-->
+	<!--*********************************************************************-->
+
+	<!--*********************************************************************-->
+	<!--* Global Elements                                                   *-->
+	<!--*                                                                   *-->
+	<!--*     <fabric>:                                                     *-->
+	<!--*         The base type for all bus messages.                       *-->
+	<!--*                                                                   *-->
+	<!--*     <service>:                                                    *-->
+	<!--*         The base type for all bus service messages.               *-->
+	<!--*                                                                   *-->
+	<!--*     <feed>:                                                       *-->
+	<!--*         The base type for all bus feed messages.                  *-->
+	<!--*********************************************************************-->
+
+	<!-- The base type for a bus message -->
+	<element name="fabric" type="f:Fabric"/>
+
+	<!-- The base type for a bus service message -->
+	<element name="service" type="f:Service"/>
+
+	<!-- The base type for a bus feed message -->
+	<element name="feed" type="f:Feed"/>
+
+	<!--=====================================================================-->
+	<!-- f:Fabric                                                            -->
+	<!--                                                                     -->
+	<!-- The base type for a Fabric bus message.                             -->
+	<!--=====================================================================-->
+
+	<complexType name="Fabric" abstract="true">
+		<sequence>
+			<!-- Message properties -->
+			<element name="props" type="f:Properties"
+					minOccurs="0" maxOccurs="1"/>
+			<!-- Message payload -->
+			<element name="payload" type="f:Payload"
+					minOccurs="0" maxOccurs="1"/>
+		</sequence>
+
+		<!-- The unique ID (UID) of the message -->
+		<attribute name="uid" type="f:UID" use="required"/>
+		
+		<!-- The type of the message -->
+		<attribute name="type" type="f:Type" use="required"/>
+		
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:Service                                                           -->
+	<!--                                                                     -->
+	<!-- The base type for a Fabric bus service message.                     -->
+	<!--=====================================================================-->
+
+	<complexType name="Service" abstract="false">
+		<complexContent>
+			<extension base="f:Fabric">
+	
+				<sequence>
+
+					<!-- Message routing information -->
+					<element name="routing" type="f:Routing"
+							minOccurs="1" maxOccurs="1"/>
+
+					<!-- Fabric service list -->
+					<element name="services" type="f:Services"
+							minOccurs="0" maxOccurs="1"/>
+					
+				</sequence>
+		
+				<!-- Flag indicating if the message is to be actioned at
+					each node en route to the final destination, or just
+					at the final destination -->
+				<attribute name="actionEnRoute" type="boolean" use="optional"
+						default="false"/>
+			
+				<!-- The correlation ID (CID) of the message -->
+				<attribute name="cid" type="f:UID" use="optional"/>
+		
+				<!-- The family of plugins to which the target service
+					belongs -->
+				<attribute name="family" type="f:Type" use="required"/>
+		
+				<!-- Flag indicating if a response notification is required
+					(true) or not (false) -->
+				<attribute name="notify" type="boolean" use="optional"
+						default="false"/>
+		
+				<!-- Value of maximum time (in seconds) to wait for a response
+					notification -->
+				<attribute name="notifyTimeout" type="integer" use="optional"
+						default="0"/>
+		
+				<!-- The name of the service to invoke to handle this
+					message -->
+				<attribute name="name" type="f:Type" use="required"/>
+
+			</extension>
+		</complexContent>	
+	</complexType>
+	
+	<!--=====================================================================-->
+	<!-- f:Feed                                                              -->
+	<!--                                                                     -->
+	<!-- The base type for a Fabric bus feed message.                        -->
+	<!--=====================================================================-->
+
+	<complexType name="Feed" abstract="false">
+		<complexContent>
+			<extension base="f:Fabric"/>
+		</complexContent>	
+	</complexType>
+
+	<!--*********************************************************************-->
+	<!--* Message Body Parts                                                *-->
+	<!--*********************************************************************-->
+
+	<!--=====================================================================-->
+	<!-- f:Node                                                              -->
+	<!--                                                                     -->
+	<!-- A Fabric node name.                                                 -->
+	<!--=====================================================================-->
+
+	<complexType name="Node" abstract="false">
+		<!-- Node name -->
+		<attribute name="id" type="f:Name" use="required"/>
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:NodeList                                                          -->
+	<!--                                                                     -->
+	<!-- A list of Fabric nodes.                                             -->
+	<!--=====================================================================-->
+
+	<complexType name="NodeList" abstract="false">
+		<sequence>
+			<!-- Node ID -->
+			<element name="node" type="f:Node"
+					minOccurs="1" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:Routing                                                           -->
+	<!--                                                                     -->
+	<!-- Routing information for a Fabric service message. This element is   -->
+	<!-- used to indicate which routing algorithm is to be applied to the    -->
+	<!-- message.                                                            -->
+	<!--=====================================================================-->
+
+	<complexType name="Routing" abstract="false">
+	
+		<sequence>
+		
+			<!-- Routing properties -->
+			<element name="props" type="f:Properties"
+					minOccurs="0" maxOccurs="1"/>
+			
+			<!-- Route nodes -->
+			<element name="nodes" type="f:NodeList"
+					minOccurs="0" maxOccurs="1"/>
+			
+		</sequence>
+		
+		<!-- The name of the routing algorithm for this message -->
+		<attribute name="type" type="f:Type" use="required"/>
+		
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:Services                                                          -->
+	<!--                                                                     -->
+	<!-- A list of service descriptors. The use of this information is       -->
+	<!-- service-type specific.                                              -->
+	<!--=====================================================================-->
+
+	<complexType name="Services" abstract="false">
+	
+		<sequence>
+		
+			<!-- A service descriptor -->
+			<element name="service" type="f:ServiceDescriptor"
+					minOccurs="1" maxOccurs="unbounded"/>
+			
+		</sequence>
+		
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:Service                                                           -->
+	<!--                                                                     -->
+	<!-- An individual service descriptor consisting of the platform, system,-->
+	<!-- and service IDs, and optionally the task ID (i.e. the task with     -->
+	<!-- which the service is associated).                                   -->
+	<!--=====================================================================-->
+
+	<complexType name="ServiceDescriptor" abstract="false">
+		
+		<!-- The name of the task -->
+		<attribute name="task" type="f:Name" use="optional" default="DEFAULT"/>
+		
+		<!-- The name of the platform -->
+		<attribute name="platform" type="f:Name" use="required"/>
+		
+		<!-- The name of the system -->
+		<attribute name="system" type="f:Name" use="required"/>
+		
+		<!-- The name of the service -->
+		<attribute name="service" type="f:Name" use="required"/>
+		
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:Payload                                                           -->
+	<!--                                                                     -->
+	<!-- The payload section of a message. The payload content is message-   -->
+	<!-- type specific, and can take the form of one of the supported message-->
+	<!-- encodings (see f:Encoding).                                           -->
+	<!--=====================================================================-->
+
+	<complexType name="Payload" abstract="false">
+		<simpleContent>
+			<extension base="string">
+				<!-- Payload encoding -->
+				<attribute name="enc" type="f:Encoding" use="optional"
+						default="text"/>
+			</extension>
+		</simpleContent>
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:Properties                                                        -->
+	<!--                                                                     -->
+	<!-- The properties section of a message. The use of properties is       -->
+	<!-- message-type specific.                                              -->
+	<!--=====================================================================-->
+
+	<complexType name="Properties" abstract="false">
+		<sequence>
+			<!-- Message properties -->
+			<element name="prop" type="f:Property"
+					minOccurs="1" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+
+	<!--=====================================================================-->
+	<!-- f:Property                                                          -->
+	<!--                                                                     -->
+	<!-- An individual message property. Properties are name/value pairs,    -->
+	<!-- where the name is an attribute of the element, and the value is the -->
+	<!-- element body.                                                       -->
+	<!--=====================================================================-->
+
+	<complexType name="Property" abstract="false">
+		<!-- Property name -->
+		<attribute name="name" type="f:Name" use="required"/>
+	</complexType>
+
+	<!--*********************************************************************-->
+	<!--* Common Base Types                                                 *-->
+	<!--*********************************************************************-->
+
+	<!--=====================================================================-->
+	<!-- f:Encoding                                                          -->
+	<!--                                                                     -->
+	<!-- A payload encoding. Currently supported encodings are: text, bin    -->
+	<!-- (base64 encoded byte array), and XML. Note that XML can also be     -->
+	<!-- embedded as plain text, as long as special characters are escaped.  -->
+	<!--=====================================================================-->
+
+	<simpleType name="Encoding">
+		<restriction base="string">
+              <enumeration value="text"/>
+              <enumeration value="binary"/>
+              <enumeration value="xml"/>
+		</restriction>
+	</simpleType>
+
+	<!--=====================================================================-->
+	<!-- f:Name                                                              -->
+	<!--                                                                     -->
+	<!-- A name string.                                                      -->
+	<!--=====================================================================-->
+
+	<simpleType name="Name">
+		<restriction base="NMTOKEN"/>
+	</simpleType>
+
+	<!--=====================================================================-->
+	<!-- f:Type                                                              -->
+	<!--                                                                     -->
+	<!-- A type name, constrained by a regular expression ensuring names of  -->
+	<!-- the form a.b.c.d..., where a, b, c, d and so on are valid Java      -->
+	<!-- Java identifiers.                                                   -->
+	<!--=====================================================================-->
+
+	<simpleType name="Type">
+		<restriction base="string">
+			<pattern value="[$\w]+(\.[$\w]+)*"/>
+		</restriction>
+	</simpleType>
+
+	<!--=====================================================================-->
+	<!-- f:UID                                                               -->
+	<!--                                                                     -->
+	<!-- A message UID, constrained by a regular expression ensuring names   -->
+	<!-- of the form a:b:c:d, where a, b, c, and d are hex strings.          -->
+	<!--=====================================================================-->
+
+	<simpleType name="UID">
+		<restriction base="string">
+			<pattern value="[0-9a-zA-Z]+:[0-9a-zA-Z]+:[0-9a-zA-Z]+:[0-9a-zA-Z]+"/>
+		</restriction>
+	</simpleType>
+	
+</schema>
