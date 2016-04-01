@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -13,201 +11,171 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fabric.registry.FabricRegistry;
+import fabric.registry.QueryScope;
 import fabric.registry.Type;
 import fabric.registry.TypeFactory;
 import fabric.services.json.JSON;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
-import fabric.services.jsonclient.utilities.JsonUtils;
 
 /**
  * Class that handles JSON commands that deal with Platform Types.
  */
-public class PlatformTypes {
+public class PlatformTypes extends Article {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Inserts a Platform Type into the registry
-	 * 
-	 * @param jsonOpObject
-	 *            the full JSON operation object.
-	 * 
-	 * @param correlId
-	 *            the operation correlation ID.
-	 * 
-	 * @return the status of the operation.
-	 */
-	public static JSON register(JSON jsonOpObject, String correlId) {
+    /**
+     * Inserts a Platform Type into the registry
+     *
+     * @param op
+     *            the full JSON operation object.
+     *
+     * @param correlId
+     *            the operation correlation ID.
+     *
+     * @return the status of the operation.
+     */
+    public static JSON register(JSON op, String correlId) {
 
-		AdapterStatus status = new AdapterStatus(correlId);
+        AdapterStatus status = new AdapterStatus(correlId);
 
-		try {
+        try {
 
-			String typeId = jsonOpObject.getString(AdapterConstants.FIELD_TYPE);
+            String typeId = op.getString(AdapterConstants.FIELD_TYPE);
 
-			if (typeId == null) {
+            if (typeId == null) {
 
-				status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_REGISTER,
-						AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_MISSING_FIELDS, correlId);
+                status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_REGISTER,
+                        AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_FIELD_ERROR, correlId);
 
-			} else {
+            } else {
 
-				TypeFactory typeFactory = FabricRegistry.getTypeFactory();
-				Type type = typeFactory.createPlatformType(typeId, jsonOpObject
-						.getString(AdapterConstants.FIELD_DESCRIPTION), jsonOpObject
-						.getString(AdapterConstants.FIELD_ATTRIBUTES), null); // attributesURI;
-				boolean success = typeFactory.save(type);
+                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
 
-				if (!success) {
+                TypeFactory typeFactory = FabricRegistry.getTypeFactory();
+                Type type = typeFactory.createPlatformType(typeId, op.getString(AdapterConstants.FIELD_DESCRIPTION),
+                        attributes, null);
+                boolean success = typeFactory.save(type);
 
-					status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
-							AdapterConstants.ARTICLE_PLATFORM_TYPE,
-							"Insert/update of platform type into the Registry failed", correlId);
+                if (!success) {
 
-				}
-			}
+                    status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
+                            AdapterConstants.ARTICLE_PLATFORM_TYPE,
+                            "Insert/update of platform type into the Registry failed", correlId);
 
-		} catch (Exception e) {
+                }
+            }
 
-			String message = e.getClass().getName() + ": " + e.getMessage();
-			status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
-					AdapterConstants.ARTICLE_PLATFORM_TYPE, message, correlId);
+        } catch (Exception e) {
 
-		}
+            String message = e.getClass().getName() + ": " + e.getMessage();
+            status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
+                    AdapterConstants.ARTICLE_PLATFORM_TYPE, message, correlId);
 
-		return status.toJsonObject();
-	}
+        }
 
-	/**
-	 * Deletes a Platform Type from the registry.
-	 * 
-	 * @param platformTypeId
-	 *            The ID of the platform type to be deleted.
-	 * 
-	 * @param correlId
-	 *            The correlation ID for the status message.
-	 * 
-	 * @return the status of the operation.
-	 */
-	public static JSON deregister(final String platformTypeId, final String correlId) {
+        return status.toJsonObject();
+    }
 
-		AdapterStatus status = new AdapterStatus(correlId);
+    /**
+     * Deletes a Platform Type from the registry.
+     *
+     * @param platformTypeId
+     *            The ID of the platform type to be deleted.
+     *
+     * @param correlId
+     *            The correlation ID for the status message.
+     *
+     * @return the status of the operation.
+     */
+    public static JSON deregister(final String platformTypeId, final String correlId) {
 
-		if (platformTypeId == null) {
+        AdapterStatus status = new AdapterStatus(correlId);
 
-			status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_DEREGISTER,
-					AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_MISSING_FIELDS, correlId);
+        if (platformTypeId == null) {
 
-		} else {
+            status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_DEREGISTER,
+                    AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_FIELD_ERROR, correlId);
 
-			TypeFactory typeFactory = FabricRegistry.getTypeFactory(true);
-			Type platformType = typeFactory.getPlatformType(platformTypeId);
-			boolean success = typeFactory.delete(platformType);
+        } else {
 
-			if (success == false) {
-				status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_DEREGISTER,
-						AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_FAILED_DELETE, correlId);
-			}
-		}
+            TypeFactory typeFactory = FabricRegistry.getTypeFactory(QueryScope.LOCAL);
+            Type platformType = typeFactory.getPlatformType(platformTypeId);
+            boolean success = typeFactory.delete(platformType);
 
-		return status.toJsonObject();
-	}
+            if (success == false) {
+                status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_DEREGISTER,
+                        AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_FAILED_DELETE, correlId);
+            }
+        }
 
-	/**
-	 * Queries the database for platform types.
-	 * 
-	 * @param jsonOpObject
-	 * @param correlId
-	 * @return The result of the query.
-	 */
-	public static JSON query(final JSON jsonOpObject, final String correlId) {
+        return status.toJsonObject();
+    }
 
-		JSON platformTypesQueryResult = new JSON();
-		AdapterStatus status = new AdapterStatus(correlId);
-		List<JSON> jsonList = new ArrayList<>();
+    /**
+     * Queries the database for platform types.
+     *
+     * @param op
+     * @param correlId
+     * @return The result of the query.
+     */
+    public static JSON query(final JSON op, final String correlId) {
 
-		try {
-			TypeFactory typeFactory = FabricRegistry.getTypeFactory();
-			String querySQL = queryPlatformTypesSQL(jsonOpObject);
-			if (querySQL == null) {
-				status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_QUERY,
-						AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_BAD_SQL, correlId);
-				platformTypesQueryResult = status.toJsonObject();
-			} else {
+        JSON queryResult = new JSON();
+        AdapterStatus status = new AdapterStatus(correlId);
+        List<JSON> jsonList = new ArrayList<>();
 
-				Type[] resultArray = null;
+        try {
 
-				if ("".equals(querySQL)) {
-					resultArray = typeFactory.getAllPlatformTypes();
-				} else {
-					resultArray = typeFactory.getPlatformTypes(querySQL);
-				}
+            TypeFactory typeFactory = FabricRegistry.getTypeFactory();
 
-				platformTypesQueryResult.putString(AdapterConstants.FIELD_OPERATION,
-						AdapterConstants.OP_QUERY_RESPONSE_PLATFORM_TYPES);
-				platformTypesQueryResult.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
+            String querySQL = generatePredicate(AdapterConstants.FIELD_ID, "TYPE_ID", QUERY_ATTRIBUTES, op);
 
-				for (int i = 0; i < resultArray.length; i++) {
+            if (querySQL == null) {
 
-					JSON type = new JSON();
+                status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_QUERY,
+                        AdapterConstants.ARTICLE_PLATFORM_TYPE, AdapterConstants.STATUS_MSG_BAD_SQL, correlId);
+                queryResult = status.toJsonObject();
 
-					type.putString(AdapterConstants.FIELD_TYPE, resultArray[i].getId());
-					type.putString(AdapterConstants.FIELD_DESCRIPTION, resultArray[i].getDescription());
+            } else {
 
-					String attributes = resultArray[i].getAttributes();
-					if (attributes != null && !attributes.equals("null")) {
-						JSON attributesJson = JsonUtils.stringTOJSON(attributes,
-								"Attribute value is not a valid JSON object");
-						type.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
-					}
+                Type[] resultArray = null;
 
-					jsonList.add(type);
-				}
-				platformTypesQueryResult = platformTypesQueryResult.putArray(AdapterConstants.FIELD_PLATFORM_TYPES,
-						jsonList);
-			}
-		} catch (Exception e) {
-			String message = e.getClass().getName() + ": " + e.getMessage();
-			status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_QUERY,
-					AdapterConstants.ARTICLE_PLATFORM_TYPE, message, correlId);
-			platformTypesQueryResult = status.toJsonObject();
-		}
-		return platformTypesQueryResult;
-	}
+                if ("".equals(querySQL)) {
+                    resultArray = typeFactory.getAllPlatformTypes();
+                } else {
+                    resultArray = typeFactory.getPlatformTypes(querySQL);
+                }
 
-	/**
-	 * Returns the SQL relevant to the Platform Type query.
-	 * 
-	 * @param jsonOpObject
-	 *            The JSON object that needs converting to SQL.
-	 * @return The SQL for the query.
-	 */
-	private static String queryPlatformTypesSQL(JSON jsonOpObject) {
+                queryResult.putString(AdapterConstants.FIELD_OPERATION,
+                        AdapterConstants.OP_QUERY_RESPONSE_PLATFORM_TYPES);
+                queryResult.putString(AdapterConstants.FIELD_CORRELATION_ID, correlId);
 
-		String querySQL = "";
-		StringBuilder s = new StringBuilder();
-		try {
-			if (jsonOpObject.getString(AdapterConstants.FIELD_TYPE) != null) {
-				s.append("TYPE_ID='");
-				s.append(jsonOpObject.getString(AdapterConstants.FIELD_TYPE));
-				s.append("' AND ");
-			}
-			s.append(JsonUtils.generateSQLLogic(jsonOpObject));
-			querySQL = s.toString();
+                for (int i = 0; i < resultArray.length; i++) {
 
-			/* Removes trailing AND in SQL query */
-			if (querySQL.endsWith(" AND ")) {
-				querySQL = querySQL.substring(0, querySQL.length() - 5);
-			}
-		} catch (Exception e) {
-			querySQL = null;
-		}
-		return querySQL;
-	}
+                    JSON type = new JSON();
+                    type.putString(AdapterConstants.FIELD_TYPE, resultArray[i].getId());
+                    addOptionalFields(type, resultArray[i].getDescription(), resultArray[i].getAttributes());
+                    jsonList.add(type);
+
+                }
+                queryResult = queryResult.putArray(AdapterConstants.FIELD_PLATFORM_TYPES, jsonList);
+            }
+
+        } catch (Exception e) {
+
+            String message = e.getClass().getName() + ": " + e.getMessage();
+            status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_QUERY,
+                    AdapterConstants.ARTICLE_PLATFORM_TYPE, message, correlId);
+            queryResult = status.toJsonObject();
+
+        }
+        return queryResult;
+    }
 }
