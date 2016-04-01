@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -22,7 +20,7 @@ public class BearerImpl extends AbstractRegistryObject implements Bearer {
 
 	private String id = null;
 
-	private String availability = null;
+	private String available = null;
 
 	private String description = null;
 
@@ -34,16 +32,16 @@ public class BearerImpl extends AbstractRegistryObject implements Bearer {
 
 	}
 
-	protected BearerImpl(String id, String availability) {
+	protected BearerImpl(String id, String available) {
 
 		this.id = id;
-		this.availability = availability;
+		this.available = available;
 	}
 
-	protected BearerImpl(String id, String availability, String description, String attributes, String attributesURI) {
+	protected BearerImpl(String id, String available, String description, String attributes, String attributesURI) {
 
 		this.id = id;
-		this.availability = availability;
+		this.available = available;
 		this.description = description;
 		this.attributes = attributes;
 		this.attributesUri = attributesURI;
@@ -62,15 +60,15 @@ public class BearerImpl extends AbstractRegistryObject implements Bearer {
 	}
 
 	@Override
-	public String getAvailability() {
+	public String getAvailable() {
 
-		return availability;
+		return available;
 	}
 
 	@Override
-	public void setAvailability(String availability) {
+	public void setAvailable(String available) {
 
-		this.availability = availability;
+		this.available = available;
 	}
 
 	@Override
@@ -112,7 +110,7 @@ public class BearerImpl extends AbstractRegistryObject implements Bearer {
 	@Override
 	public void validate() throws IncompleteObjectException {
 
-		if (id == null || id.length() == 0 || availability == null || availability.length() == 0) {
+		if (id == null || id.length() == 0 || available == null || available.length() == 0) {
 			throw new IncompleteObjectException("Id or availability not specified.");
 		}
 	}
@@ -122,7 +120,7 @@ public class BearerImpl extends AbstractRegistryObject implements Bearer {
 
 		StringBuffer buffy = new StringBuffer("Bearer::");
 		buffy.append(" Bearer ID: ").append(id);
-		buffy.append(", Availability: ").append(availability);
+		buffy.append(", Available: ").append(available);
 		buffy.append(", Description: ").append(description);
 		buffy.append(", Attributes: ").append(attributes);
 		buffy.append(", AttributesURI: ").append(attributesUri);
@@ -135,8 +133,8 @@ public class BearerImpl extends AbstractRegistryObject implements Bearer {
 		boolean equal = false;
 		if (obj instanceof BearerImpl) {
 			BearerImpl n = (BearerImpl) obj;
-			if (n.getId().equals(id) && n.getAvailability() == null ? availability == null : n.getAvailability()
-					.equals(availability)
+			if (n.getId().equals(id) && n.getAvailable() == null ? available == null : n.getAvailable().equals(
+					available)
 					&& n.getDescription() == null ? description == null : n.getDescription().equals(description)
 					&& n.getAttributes() == null ? attributes == null : n.getAttributes().equals(attributes)
 					&& n.getAttributesURI() == null ? attributesUri == null : n.getAttributesURI()
