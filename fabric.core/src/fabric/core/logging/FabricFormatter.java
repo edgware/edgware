@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -18,103 +16,118 @@ import java.util.logging.LogRecord;
 
 public class FabricFormatter extends Formatter {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	private String title = "unknown";
+    private String title = "unknown";
 
-	private boolean longMessages = false;
+    private boolean longMessages = false;
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	public FabricFormatter() {
+    public FabricFormatter() {
 
-		super();
-	}
+        super();
+    }
 
-	public FabricFormatter(boolean longMessages) {
+    public FabricFormatter(boolean longMessages) {
 
-		super();
-		this.longMessages = longMessages;
+        super();
+        this.longMessages = longMessages;
 
-	}
+    }
 
-	public void setTitle(String title) {
+    public void setTitle(String title) {
 
-		this.title = title;
-	}
+        this.title = title;
+    }
 
-	@Override
-	public String format(LogRecord r) {
+    private StringBuilder pad(String string, int padTo) {
+        StringBuilder buf = new StringBuilder();
+        for (int p = padTo - string.length(); p > 0; p--) {
+            buf.append(' ');
+        }
+        return buf;
+    }
 
-		StringBuilder logMessage = new StringBuilder();
+    @Override
+    public String format(LogRecord r) {
 
-		/* Add a timestamp */
-		Date d = new Date(r.getMillis());
-		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy HH:mm:ss.SSS ");
-		String date = sdf.format(new Date(r.getMillis()));
-		logMessage.append(date);
+        StringBuilder logMessage = new StringBuilder();
 
-		/* Add the title of the logging component */
-		logMessage.append('[').append(this.title).append("] ");
+        /* Add a timestamp */
+        Date d = new Date(r.getMillis());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy HH:mm:ss.SSS ");
+        String date = sdf.format(new Date(r.getMillis()));
+        logMessage.append(date);
 
-		/* Add the name of the log level */
-		logMessage.append('[' + r.getLevel().getName());
-		for (int i = 7 - r.getLevel().getName().length(); i > 0; i--) {
-			logMessage.append(' ');
-		}
-		logMessage.append("] ");
+        /* Add the title of the logging component */
+        logMessage.append('[').append(this.title).append("] ");
 
-		if (longMessages) {
+        /* Add the thread ID */
+        logMessage.append('[');
+        logMessage.append(Thread.currentThread().getName());
+        logMessage.append(pad(Thread.currentThread().getName(), 20));
+        logMessage.append(']');
+        logMessage.append(' ');
 
-			/* Add the name of the logger */
-			logMessage.append('[').append(r.getLoggerName()).append("] ");
+        /* Add the name of the log level */
+        logMessage.append('[');
+        logMessage.append(r.getLevel().getName());
+        logMessage.append(pad(r.getLevel().getName(), 7));
+        logMessage.append(']');
+        logMessage.append(' ');
 
-			/* Add the short name of the source class */
-			String className = r.getSourceClassName();
-			className = className.substring(className.lastIndexOf('.')+1, className.length());;
-			logMessage.append('[').append(className).append(" ");
-			logMessage.append(r.getSourceMethodName());
-			logMessage.append("] ");
-			
-			
-		}
+        if (longMessages) {
 
-		/* Add the body of the message */
-		logMessage.append(": ");
-		logMessage.append(formatMessage(r));
+            /* Add the name of the logger */
+            logMessage.append('[').append(r.getLoggerName()).append("] ");
 
-		/* If an exception is involved... */
-		if (r.getThrown() != null) {
+            /* Add the short name of the source class */
+            String className = r.getSourceClassName();
+            className = className.substring(className.lastIndexOf('.') + 1, className.length());
+            ;
+            logMessage.append('[').append(className).append(" ");
+            logMessage.append(r.getSourceMethodName());
+            logMessage.append("] ");
 
-			logMessage.append("Throwable: ");
-			Throwable t = r.getThrown();
-			PrintWriter pw = null;
+        }
 
-			try {
+        /* Add the body of the message */
+        logMessage.append(": ");
+        logMessage.append(formatMessage(r));
 
-				StringWriter sw = new StringWriter();
-				pw = new PrintWriter(sw);
-				t.printStackTrace(pw);
-				logMessage.append(sw.toString());
+        /* If an exception is involved... */
+        if (r.getThrown() != null) {
 
-			} finally {
+            logMessage.append("Throwable: ");
+            Throwable t = r.getThrown();
+            PrintWriter pw = null;
 
-				if (pw != null) {
-					try {
-						pw.close();
-					} catch (Exception e) {
-					}
-				}
-			}
-		}
+            try {
 
-		return logMessage.toString() + "\n";
-	}
+                StringWriter sw = new StringWriter();
+                pw = new PrintWriter(sw);
+                t.printStackTrace(pw);
+                logMessage.append(sw.toString());
+
+            } finally {
+
+                if (pw != null) {
+                    try {
+                        pw.close();
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
+
+        return logMessage.toString() + "\n";
+    }
 }
