@@ -1,6 +1,4 @@
 --------------------------------------------------------------------------------
--- Licensed Materials - Property of IBM
---
 -- (C) Copyright IBM Corp. 2006, 2014
 --
 -- LICENSE: Eclipse Public License v1.0
@@ -251,7 +249,7 @@ insert into fabric.default_config values ('mqtt.ip.port.local', '1884');
 insert into fabric.default_config values ('mqtt.qos', 'QOS_2');
 
 -- Broker connection client ID prefix
-insert into fabric.default_config values ('mqtt.clientId', 'FAB_');
+insert into fabric.default_config values ('mqtt.clientId', 'EF');
 
 -- The number of times to try re-establishing a connection. (-1 is forever) 
 insert into fabric.default_config values ('mqtt.connectRetries', '3');
@@ -307,10 +305,10 @@ insert into fabric.fablet_plugins values ('*', 'fabric.fablets.autodiscovery.Aut
 insert into fabric.fablet_plugins values ('*', 'fabric.fablets.heartbeat.HeartbeatFablet', 'DEFAULT_FABLETS', 'Heartbeat data feed used by assets to determine node availability.', null);
 
 -------------------------------------------------------------------------------
--- F a b r i c    M Q T T    A d a p t e r
+-- F a b r i c    J S O N    A d a p t e r
 --
 -- This section defines a number of variables used to configure the Fabric
--- MQTT adapter.
+-- JSON adapter.
 -------------------------------------------------------------------------------
 
 -- The base topic on which the adapter listens for JSON operations, where:
@@ -319,7 +317,7 @@ insert into fabric.fablet_plugins values ('*', 'fabric.fablets.heartbeat.Heartbe
 --
 -- Note that at run-time adapter clients must further qualify this topic with
 -- a sub-topic corresponding to their MQTT client ID.
-insert into fabric.default_config values ('fabric.adapters.mqtt.intopic','$fabric/{0}/$adapters/$mqtt/$in');
+insert into fabric.default_config values ('fabric.adapters.mqtt.intopic', '$fabric/{0}/$adapters/$mqtt/$in');
 
 -- The base topic on which the adapter sends responses in reply to JSON
 -- operations, where:
@@ -329,7 +327,21 @@ insert into fabric.default_config values ('fabric.adapters.mqtt.intopic','$fabri
 -- Note that at run-time this topic will be further qualified with a sub-topic
 -- corresponding to the MQTT client ID upon which the corresponding op message
 -- was received.
-insert into fabric.default_config values ('fabric.adapters.mqtt.outtopic','$fabric/{0}/$adapters/$mqtt/$out');
+insert into fabric.default_config values ('fabric.adapters.mqtt.outtopic', '$fabric/{0}/$adapters/$mqtt/$out');
+
+-- The interval at which feed subscriptions are updated, namely the acquisition
+-- of new feeds that match existing subscription requests, and the clean-up of
+-- feeds broken due to the loss of node connectivity.
+--
+-- The value is in seconds, and a value of -1 indicates that periodic refresh
+-- is disabled.
+insert into fabric.default_config values ('fabric.runtimeManager.refreshInterval', '30');
+
+-- Flag indicating if Registry topology update messages are to be actioned:
+--
+--     true: action topology updates
+--     false: do not action topology updates
+insert into fabric.default_config values ('fabric.runtimeManager.actionTopologyUpdates', 'true');
 
 -------------------------------------------------------------------------------
 
