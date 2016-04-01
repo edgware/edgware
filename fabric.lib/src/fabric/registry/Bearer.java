@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -36,18 +34,18 @@ public interface Bearer extends RegistryObject {
 	/**
 	 * Get the availability status of the bearer.
 	 * 
-	 * @return the availability status, one of "available" or "unavailable".
+	 * @return the availability status, one of "true" or "false".
 	 */
-	public String getAvailability();
+	public String getAvailable();
 
 	/**
 	 * Set the availability status of the bearer - this attribute must always be specified. Without it, the object
 	 * cannot be saved to the Fabric Registry and will generate an IncompleteObjectException.
 	 * 
-	 * @param availability
-	 *            the availability status, one of "available" or "unavailable". Cannot be <code>null</code>.
+	 * @param available
+	 *            the availability status, one of "true" or "false". Cannot be <code>null</code>.
 	 */
-	public void setAvailability(String availability);
+	public void setAvailable(String available);
 
 	/**
 	 * Get the custom attributes for the bearer.
