@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -35,11 +33,19 @@ public class AdapterStatus extends AdapterConstants {
 			"\"" + FIELD_MESSAGE + "\":\"%s\"" + // Status message
 			"}";
 
+	private static final String STATUS_JSON_WITH_SOURCE = "{" + //
+			"\"" + FIELD_OPERATION + "\":\"" + FIELD_STATUS + "\"," + // Operation
+			"\"" + FIELD_CORRELATION_ID + "\":\"%s\"," + // Correlation ID
+			"\"" + FIELD_STATUS + "\":\"%s\"," + // Status code
+			"\"" + FIELD_MESSAGE + "\":\"%s\"," + // Status message
+			"\"" + FIELD_SOURCE_JSON + "\":\"%s\"" + // Source JSON
+			"}";
+
 	/*
 	 * Class fields
 	 */
 
-	// public static final AdapterConstants STATUS_OK = new AdapterStatus();
+	// public static final AdapterStatus STATUS_OK = new AdapterStatus();
 
 	/**
 	 * The code indicating the type of error that has occurred (one of the <code>ERROR_</code> constants in this class).
@@ -64,12 +70,16 @@ public class AdapterStatus extends AdapterConstants {
 	/** The JSON form of the object. */
 	private JSON toJson = null;
 
+	/** The JSON string that caused this adapter status message to be generated. */
+	private String sourceJSON = null;
+
 	/*
 	 * Class methods
 	 */
 
 	/**
-	 * Constructor method for the AdapterConstants object. It sets the four variables such that the status is OK.
+	 * Constructor method for the <code>AdapterStatus</code> object. It sets the four variables such that the status is
+	 * OK.
 	 */
 	private AdapterStatus() {
 
@@ -81,7 +91,7 @@ public class AdapterStatus extends AdapterConstants {
 	}
 
 	/**
-	 * Constructor method for the AdapterConstants object.
+	 * Constructor method for the <code>AdapterStatus</code> object.
 	 * 
 	 * @param statusCode
 	 *            Code indicating the type of error that has occurred (one of the <code>STATUS_</code> constants in this
@@ -108,7 +118,7 @@ public class AdapterStatus extends AdapterConstants {
 	}
 
 	/**
-	 * Constructor method for the AdapterConstants object.
+	 * Constructor method for the <code>AdapterStatus</code> object.
 	 * 
 	 * @param statusCode
 	 *            Code indicating the type of error that has occurred (one of the <code>STATUS_</code> constants in this
@@ -138,13 +148,48 @@ public class AdapterStatus extends AdapterConstants {
 	}
 
 	/**
-	 * Constructor method for the AdapterConstants object.
+	 * Constructor method for the <code>AdapterStatus</code> object.
+	 * 
+	 * @param statusCode
+	 *            Code indicating the type of error that has occurred (one of the <code>STATUS_</code> constants in this
+	 *            class).
+	 * 
+	 * @param opCode
+	 *            Code indicating the operation being performed (one of the <code>OP_CODE_</code> constants in this
+	 *            class).
+	 * 
+	 * @param articleCode
+	 *            Code indicating the article being referenced (one of the <code>ARTICLE_</code> constants in this
+	 *            class).
+	 * 
+	 * @param message
+	 *            The message to be set.
+	 * 
+	 * @param correlationID
+	 *            the message correlation ID.
+	 * 
+	 * @param sourceJSON
+	 *            the JSON string that led to this adapter status.
+	 */
+	public AdapterStatus(int statusCode, int opCode, int articleCode, String message, String correlationID,
+			String sourceJSON) {
+
+		this.errorCode = statusCode;
+		this.opCode = opCode;
+		this.articleCode = articleCode;
+		this.message = message;
+		this.correlationID = correlationID;
+		this.sourceJSON = sourceJSON;
+	}
+
+	/**
+	 * Constructor method for the <code>AdapterStatus</code> object.
 	 * 
 	 * @param status
 	 *            Source status.
 	 * 
 	 * @param correlationID
-	 *            the message correlation ID (overwrites the correlation ID in the source <code>AdapterConstants</code>
+	 *            the message correlation ID (overwrites the correlation ID in the source <code>AdapterStatus</code>
 	 *            object).
 	 */
 	public AdapterStatus(String correlationID) {
@@ -263,11 +308,20 @@ public class AdapterStatus extends AdapterConstants {
 
 			String statusCode = formatStatus();
 
-			/* Make sure that the message is properly escaped */
 			JsonStringEncoder jse = JsonStringEncoder.getInstance();
 			String escapedMessage = new String(jse.quoteAsString(message));
 
-			toString = String.format(STATUS_JSON, correlationID, statusCode, escapedMessage);
+			if (sourceJSON == null) {
+
+				toString = String.format(STATUS_JSON, correlationID, statusCode, escapedMessage);
+
+			} else {
+
+				String escapedSourceJSON = new String(jse.quoteAsString(sourceJSON));
+				toString = String.format(STATUS_JSON_WITH_SOURCE, correlationID, statusCode, escapedMessage,
+						escapedSourceJSON);
+
+			}
 
 		}
 
