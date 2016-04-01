@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -18,6 +16,7 @@ import fabric.services.jsonclient.articles.PlatformTypes;
 import fabric.services.jsonclient.articles.Platforms;
 import fabric.services.jsonclient.articles.Registry;
 import fabric.services.jsonclient.articles.ServiceTypes;
+import fabric.services.jsonclient.articles.ServiceWiring;
 import fabric.services.jsonclient.articles.SystemTypes;
 import fabric.services.jsonclient.articles.Systems;
 import fabric.services.jsonclient.articles.UserTypes;
@@ -102,6 +101,11 @@ public class OperationDispatcher extends FabricBus {
 		case AdapterConstants.OP_QUERY_PLATFORM_TYPES:
 
 			response = PlatformTypes.query(op, correlId);
+			break;
+			
+		case AdapterConstants.OP_QUERY_SERVICE_WIRING:
+
+			response = ServiceWiring.query(op, correlId);
 			break;
 
 		case AdapterConstants.OP_QUERY_USERS:
