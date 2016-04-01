@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 
 <!--****************************************************************************-->
-<!-- Licensed Materials - Property of IBM                                       -->
-<!--                                                                            -->
 <!-- (C) Copyright IBM Corp. 2006, 2014. All Rights Reserved.                   -->
 <!--                                                                            -->
 <!-- US Government Users Restricted Rights - Use, duplication or                -->
@@ -36,11 +34,11 @@
 	<property name="distribution.tstamp" value="${fulltimestamp}" />
 
 	<!-- Build Javadocs -->
-	<!--property name="generate.fabric.javadoc" value="true" /-->
+	<property name="generate.fabric.javadoc" value="true" />
 
 	<!-- Java version -->
-	<property name="fabric.javacSource.version" value="1.7" />
-	<property name="fabric.javacTarget.version" value="1.7" />
+	<property name="fabric.javacSource.version" value="1.8" />
+	<property name="fabric.javacTarget.version" value="1.8" />
 	
 	<!-- OSGi version -->
 	<property name="osgi.version" value="3.6" />
@@ -48,7 +46,7 @@
 	<!-- Version number -->
 	<property name="release.major" value="0" />
 	<property name="release.minor" value="4" />
-	<property name="release.mod" value="0" />
+	<property name="release.mod" value="1" />
 	<property name="release.id" value="edgware-${release.major}.${release.minor}.${release.mod}" />
 
 	<!-- The branch to build -->
@@ -137,7 +135,7 @@
 
 	<!-- Staging area: fabric/lib/db-derby -->
 	<property name="staging.fabric.lib.derby" value="${staging.fabric.lib}/db-derby" />
-
+	
 	<!-- Staging area: fabric/lib/gaian -->
 	<property name="staging.fabric.lib.gaian" value="${staging.fabric.lib}/gaiandb" />
 
@@ -180,6 +178,9 @@
 	<!-- Project: bundle.apache.derby -->
 	<property name="project-src.bundle.apache.derby" value="${project.dir}/bundle.apache.derby" />
 
+	<!-- Project: gaian -->
+	<property name="project-src.gaian" value="${project.dir}/gaian" />
+	
 	<!-- Project: bundle.jackson -->
 	<property name="project-src.bundle.jackson" value="${project.dir}/bundle.jackson" />
 	<property name="project-bin.bundle.jackson" value="${work.dir}/bundle.jackson" />
@@ -240,6 +241,11 @@
 	<property name="project-bin.fabric.tools.rest" value="${work.dir}/fabric.tools.rest" />
 	<property name="project-bundle.fabric.tools.rest" value="${staging.fabric.web}/fabric.tools.rest_${fabric.jar.version}.jar" />
 
+	<!-- Project: fabric.tools.script -->
+	<property name="project-src.fabric.tools.script" value="${project.dir}/fabric.tools.script" />
+	<property name="project-bin.fabric.tools.script" value="${work.dir}/fabric.tools.script" />
+	<property name="project-bundle.fabric.tools.script" value="${staging.fabric.lib.fabric}/fabric.tools.script_${fabric.jar.version}.jar" />
+	
 	<!-- Project: fabric.registry.monitor -->
 	<property name="project-src.fabric.registry.monitor" value="${project.dir}/fabric.registry.monitor" />
 	<property name="project-bin.fabric.registry.monitor" value="${work.dir}/fabric.registry.monitor" />
@@ -405,7 +411,7 @@
 		<antcall target="buildJar">
 			<param name="src.dir" value="${project-src.fabric.lib}" />
 			<param name="bin.dir" value="${project-bin.fabric.lib}" />
-			<param name="classpath" value="${project-bundle.fabric.core};${jar.jackson.core};${jar.jackson.databind};${jar.apache.commons.cli}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${jar.apache.commons.cli};${jar.paho.mqtt.java};${classpath.json}" />
 			<param name="jar.file" value="${project-bundle.fabric.lib}" />
 			<param name="debug" value="true" />
 			<param name="debuglevel" value="lines,vars,source" />
@@ -487,7 +493,7 @@
 		<antcall target="buildJar">
 			<param name="src.dir" value="${project-src.fabric.services.interfaces.json}" />
 			<param name="bin.dir" value="${project-bin.fabric.services.interfaces.json}" />
-			<param name="classpath" value="${jar.jackson.annotations};${jar.jackson.core};${jar.jackson.databind};${project-bundle.fabric.core};${project-bundle.fabric.lib};${jar.paho.mqtt.java};${jar.eclipse.jetty.websockets};${jar.apache.commons.codec};${jar.eclipse.osgi.core};${classpath.json}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${project-bundle.fabric.lib};${jar.paho.mqtt.java};${jar.eclipse.jetty.websockets};${jar.apache.commons.codec};${jar.eclipse.osgi.core};${classpath.json}" />
 			<param name="jar.file" value="${project-bundle.fabric.services.interfaces.json}" />
 		</antcall>
 
@@ -499,6 +505,14 @@
 			<param name="jar.file" value="${project-bundle.fabric.server}" />
 		</antcall>
 
+		<!-- Project: fabric.tools.script -->
+		<antcall target="buildJar">
+			<param name="src.dir" value="${project-src.fabric.tools.script}" />
+			<param name="bin.dir" value="${project-bin.fabric.tools.script}" />
+			<param name="classpath" value="${project-bundle.fabric.services.interfaces.json};${jar.paho.mqtt.java};${classpath.json}" />
+			<param name="jar.file" value="${project-bundle.fabric.tools.script}" />
+		</antcall>
+		
 		<!-- Generate Javadoc -->
 		<antcall target="generate.javadoc" />
 
@@ -517,12 +531,12 @@
 		<!-- Copy OSGi files into place -->
 		<antcall target="copy.osgi" />
 
-		<!-- Copy the Gaian database into place -->
-		<!--antcall target="copy.gaian" /-->
-
 		<!-- Copy Derby into place -->
 		<antcall target="copy.derby" />
 
+		<!-- Copy Gaian into place -->
+		<antcall target="copy.gaian" />
+		
 		<!-- Copy other open source libraries into place -->
 		<antcall target="copy.oslibs" />
 
@@ -562,10 +576,10 @@
 		<mkdir dir="${staging.fabric.db}" />
 		<mkdir dir="${staging.fabric.db}/REGISTRY" />
 		<mkdir dir="${staging.fabric.lib.derby}" />
+		<mkdir dir="${staging.fabric.lib.gaian}" />
 		<mkdir dir="${staging.fabric.docs}" />
 		<mkdir dir="${staging.fabric.lib}" />
 		<mkdir dir="${staging.fabric.lib.fabric}" />
-		<mkdir dir="${staging.fabric.lib.gaian}" />
 		<mkdir dir="${staging.fabric.lib.oslib}" />
 		<mkdir dir="${staging.fabric.lib.plugins}" />
 		<mkdir dir="${staging.fabric.lib.sql}" />
@@ -727,7 +741,7 @@
 				<![CDATA[<h1>Edgware Fabric</h1>]]></doctitle>
 
 		<bottom>
-			<![CDATA[<i>&#169; Copyright IBM Corp. 2008-2011</i>]]></bottom>
+			<![CDATA[<i>&#169; Copyright IBM Corp. 2006-2016</i>]]></bottom>
 
 		</javadoc>
 
@@ -756,17 +770,6 @@
 	</target>
 
 	<!--============================================================================-->
-	<!-- Target: copy.gaian                                                         -->
-	<!--                                                                            -->
-	<!-- Copy the GaianDB files into place.                                         -->
-	<!--============================================================================-->
-	<target name="copy.gaian" description="Copy the GaianDB into place">
-		<copy todir="${staging.fabric.lib.gaian}">
-			<fileset dir="${project-src.fabric.prereqs}/gaiandb" />
-		</copy>
-	</target>
-
-	<!--============================================================================-->
 	<!-- Target: copy.derby                                                         -->
 	<!--                                                                            -->
 	<!-- Copy Apache Derby files into place.                                        -->
@@ -789,6 +792,43 @@
 		</copy>
 	</target>
 
+	<!--============================================================================-->
+	<!-- Target: copy.gaian                                                         -->
+	<!--                                                                            -->
+	<!-- Copy Gaian Database files into place.                                      -->
+	<!--============================================================================-->
+	<target name="copy.gaian" description="Copy Gaian Database files into place">
+		<copy todir="${staging.fabric.lib.gaian}">
+			<fileset dir="${project-src.gaian}/GAIANDB_V2.1.7_20160201">
+				<include name="csvtestfiles/*" />
+				<include name="dashboard.bat" />
+				<include name="dashboard.sh" />
+				<include name="derby.properties" />
+				<include name="doc/*" />
+				<include name="exceltestfiles/*" />
+				<include name="FileImportControls/*" />
+				<include name="gaiandb/*" />
+				<include name="gaiandb_config.properties" />
+				<include name="gaiandb_config2.properties" />
+				<include name="gaiandb_config3.properties" />
+				<include name="killGaianServers.bat" />
+				<include name="killGaianServers.sh" />
+				<include name="launchGaianServer.bat" />
+				<include name="launchGaianServer.sh" />
+				<include name="launchMultipleNodes.bat" />
+				<include name="launchMultipleNodes.sh" />
+				<include name="lib/*" />
+				<include name="license/*" />
+				<include name="queryDerby.bat" />
+				<include name="queryDerby.sh" />
+				<include name="resources/*" />
+				<include name="testGaianDB.bat" />
+				<include name="testGaianDB.sh" />
+				<include name="tools" />
+			</fileset>
+		</copy>
+	</target>
+	
 	<!--============================================================================-->
 	<!-- Target: copy.oslibs                                                        -->
 	<!--                                                                            -->
