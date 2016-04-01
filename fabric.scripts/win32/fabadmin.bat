@@ -1,7 +1,5 @@
 @echo off
 rem **************************************************************************
-rem Licensed Materials - Property of IBM
-rem
 rem (C) Copyright IBM Corp. 2012, 2014
 rem
 rem LICENSE: Eclipse Public License v1.0
@@ -55,7 +53,7 @@ rem **************************************************************************
 	for %%F in (!FABRIC_HOME!\lib\fabric\*.jar) do set CLASSPATH=!CLASSPATH!;%%F
 	for %%F in (!FABRIC_HOME!\lib\oslib\*.jar) do set CLASSPATH=!CLASSPATH!;%%F
    
-	cd !REGISTRY_HOME!
+	cd /d !REGISTRY_HOME!
 
  	if "!DBTYPE!"=="gaian" (
  	
@@ -107,7 +105,7 @@ rem **************************************************************************
 	call:debug [waitForRegistry] enter: %*
 	set retval=
 
-	echo - Waiting for Registry to start
+	echo - Registry starting...
 
 	:regStartLoop
 
@@ -203,7 +201,7 @@ rem **************************************************************************
 		)
 	)
 	
-	cd !NODE_HOME!
+	cd /d !NODE_HOME!
 	
 	for %%F in (org.eclipse.osgi_*.jar) do set OSGI_JAR=%%F
 	
@@ -236,7 +234,7 @@ rem **************************************************************************
 	
 	echo. >!WEBSERVER_PID_FILE! 2>&1
 	
-	cd !FABRIC_HOME!\web
+	cd /d !FABRIC_HOME!\web
 	
 	if "!DAEMON!"=="0" (
 		title Fabric WebServer : !JETTY_PORT!
@@ -256,7 +254,7 @@ rem **************************************************************************
 	call:debug [stopWeb] enter: %*
 	set retval=
 
-	cd !FABRIC_HOME!\web
+	cd /d !FABRIC_HOME!\web
 	
 	cmd /C java -DSTOP.PORT=!PORT! -DSTOP.KEY=stop_jetty -jar start.jar --stop
 	

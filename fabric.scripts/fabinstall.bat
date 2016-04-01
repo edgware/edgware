@@ -1,7 +1,5 @@
 @echo off
 rem **************************************************************************
-rem Licensed Materials - Property of IBM
-rem
 rem (C) Copyright IBM Corp. 2006, 2014
 rem
 rem LICENSE: Eclipse Public License v1.0
@@ -97,7 +95,7 @@ if "%2" NEQ "" (
 		call:usage
 	)
 ) else (
-	set DBTYPE=distributed
+	set DBTYPE=gaian
 )
 
 echo.
