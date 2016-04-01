@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2009, 2012
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -18,7 +16,7 @@ import fabric.core.xml.XML;
 /**
  * Base interface for all Fabric message types.
  */
-public interface IFabricMessage extends IEmbeddedXML {
+public interface IFabricMessage extends IEmbeddedXML, IWireXML {
 
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2012";
