@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -13,9 +11,10 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 import fabric.core.properties.Properties;
 import fabric.registry.FabricRegistry;
+import fabric.registry.QueryScope;
 import fabric.registry.exception.PersistenceException;
 
 /**
@@ -33,246 +32,250 @@ import fabric.registry.exception.PersistenceException;
  */
 public class LocalConfig extends Properties implements IConfig {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
-
-	/** To hold a local cache of properties loaded from an external source (file or the Fabric Registry). */
-	private HashMap<String, String> cachedProperties = new HashMap<String, String>();
-
-	/** Flag indicating local or remote (distributed) queries */
-	protected boolean localQuery = true;
-
-	/*
-	 * Class methods
-	 */
-
-	/**
-	 * Constructs a new instance, initialized from the specified properties file.
-	 * 
-	 * @param configFile
-	 *            Fabric properties file name/path.
-	 */
-	public LocalConfig(String configFile) {
-
-		super(configFile, Logger.getLogger("fabric.config"));
-
-	}
-
-	/**
-	 * Constructs a new instance, initialized from the specified properties file.
-	 * 
-	 * @param configFile
-	 *            Fabric properties file name/path.
-	 * 
-	 * @param logger
-	 *            the class logger.
-	 */
-	public LocalConfig(String configFile, Logger logger) {
-
-		super(configFile, logger);
-
-	}
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
+
+    /** To hold a local cache of properties loaded from an external source (file or the Fabric Registry). */
+    private HashMap<String, String> cachedProperties = new HashMap<String, String>();
+
+    /** Flag indicating local or remote (distributed) queries */
+    protected QueryScope queryScope = QueryScope.LOCAL;
+
+    /*
+     * Class methods
+     */
+
+    /**
+     * Constructs a new instance, initialized from the specified properties file.
+     *
+     * @param configFile
+     *            Fabric properties file name/path.
+     */
+    public LocalConfig(String configFile) {
+
+        super(configFile, Logger.getLogger("fabric.config"));
+
+    }
+
+    /**
+     * Constructs a new instance, initialized from the specified properties file.
+     *
+     * @param configFile
+     *            Fabric properties file name/path.
+     *
+     * @param logger
+     *            the class logger.
+     */
+    public LocalConfig(String configFile, Logger logger) {
+
+        super(configFile, logger);
+
+    }
 
-	/**
-	 * Constructs a new instance, initialized from an existing properties object.
-	 * 
-	 * @param source
-	 *            The source properties.
-	 */
-	public LocalConfig(Properties source) {
+    /**
+     * Constructs a new instance, initialized from an existing properties object.
+     *
+     * @param source
+     *            The source properties.
+     */
+    public LocalConfig(Properties source) {
 
-		this(source, Logger.getLogger("fabric"));
-	}
+        this(source, Logger.getLogger("fabric"));
+    }
 
-	/**
-	 * Constructs a new instance, initialized from an existing properties object.
-	 * 
-	 * @param source
-	 *            The source properties.
-	 * 
-	 * @param logger
-	 *            the class logger.
-	 */
-	public LocalConfig(Properties source, Logger logger) {
+    /**
+     * Constructs a new instance, initialized from an existing properties object.
+     *
+     * @param source
+     *            The source properties.
+     *
+     * @param logger
+     *            the class logger.
+     */
+    public LocalConfig(Properties source, Logger logger) {
 
-		super(source, logger);
+        super(source, logger);
 
-		if (source instanceof LocalConfig) {
-			this.cachedProperties = (HashMap<String, String>) ((LocalConfig) source).cachedProperties.clone();
-		} else {
-			cachedProperties = new HashMap<String, String>();
-		}
-	}
+        if (source instanceof LocalConfig) {
+            this.cachedProperties = (HashMap<String, String>) ((LocalConfig) source).cachedProperties.clone();
+        } else {
+            cachedProperties = new HashMap<String, String>();
+        }
+    }
 
-	/**
-	 * @see fabric.IConfig#getLocalProperty(java.lang.String)
-	 */
-	@Override
-	public String getLocalProperty(String key) {
+    /**
+     * @see fabric.IConfig#getLocalProperty(java.lang.String)
+     */
+    @Override
+    public String getLocalProperty(String key) {
 
-		return super.getProperty(key);
+        return super.getProperty(key);
 
-	}
+    }
 
-	/**
-	 * @see fabric.IConfig#getLocalProperty(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public String getLocalProperty(String key, String propertyDefault) {
+    /**
+     * @see fabric.IConfig#getLocalProperty(java.lang.String, java.lang.String)
+     */
+    @Override
+    public String getLocalProperty(String key, String propertyDefault) {
 
-		return super.getProperty(key, propertyDefault);
+        return super.getProperty(key, propertyDefault);
 
-	}
+    }
 
-	/**
-	 * @see fabric.IConfig#getLocalProperty(java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public String getLocalProperty(String key, Object... inserts) {
+    /**
+     * @see fabric.IConfig#getLocalProperty(java.lang.String, java.lang.Object)
+     */
+    @Override
+    public String getLocalProperty(String key, Object... inserts) {
 
-		return super.getProperty(key, inserts);
+        return super.getProperty(key, inserts);
 
-	}
+    }
 
-	/**
-	 * @see fabric.IConfig#getLocalProperty(java.lang.String, java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public String getLocalProperty(String key, String propertyDefault, Object... inserts) {
+    /**
+     * @see fabric.IConfig#getLocalProperty(java.lang.String, java.lang.String, java.lang.Object)
+     */
+    @Override
+    public String getLocalProperty(String key, String propertyDefault, Object... inserts) {
 
-		return super.getProperty(key, propertyDefault, inserts);
+        return super.getProperty(key, propertyDefault, inserts);
 
-	}
+    }
 
-	/**
-	 * @see fabric.IConfig#getProperty(java.lang.String)
-	 */
-	@Override
-	public String getProperty(String key) {
+    /**
+     * @see fabric.IConfig#getProperty(java.lang.String)
+     */
+    @Override
+    public String getProperty(String key) {
 
-		return getProperty(key, null, (Object[]) null);
+        return getProperty(key, null, (Object[]) null);
 
-	}
+    }
 
-	/**
-	 * @see fabric.IConfig#getProperty(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public String getProperty(String key, String propertyDefault) {
+    /**
+     * @see fabric.IConfig#getProperty(java.lang.String, java.lang.String)
+     */
+    @Override
+    public String getProperty(String key, String propertyDefault) {
 
-		return getProperty(key, propertyDefault, (Object[]) null);
+        return getProperty(key, propertyDefault, (Object[]) null);
 
-	}
+    }
 
-	/**
-	 * @see fabric.IConfig#getProperty(java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public String getProperty(String key, Object... inserts) {
+    /**
+     * @see fabric.IConfig#getProperty(java.lang.String, java.lang.Object)
+     */
+    @Override
+    public String getProperty(String key, Object... inserts) {
 
-		return getProperty(key, null, inserts);
+        return getProperty(key, null, inserts);
 
-	}
+    }
 
-	/**
-	 * @see fabric.IConfig#getProperty(java.lang.String, java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public String getProperty(String key, String propertyDefault, Object... inserts) {
+    /**
+     * @see fabric.IConfig#getProperty(java.lang.String, java.lang.String, java.lang.Object)
+     */
+    @Override
+    public String getProperty(String key, String propertyDefault, Object... inserts) {
 
-		String propertyValue = null;
+        String propertyValue = null;
 
-		/* If the property value is in the local cache... */
-		if (cachedProperties.containsKey(key)) {
+        /* If the property value is in the local cache... */
+        if (cachedProperties.containsKey(key)) {
 
-			propertyValue = cachedProperties.get(key);
-			logger.log(Level.FINEST, "Cache hit for key: \"{0}={1}\" (default was \"{2}\")", new Object[] {key,
-					propertyValue, propertyDefault});
+            propertyValue = cachedProperties.get(key);
+            logger.log(Level.FINEST, "Property lookup: using cache value [{0}] = [{1}]", new Object[] {key,
+                    propertyValue, propertyDefault});
 
-		} else {
+        } else {
 
-			logger.log(Level.FINEST, "Looking up key \"{0}\" (default is \"{1}\")", new Object[] {key, propertyDefault});
+            logger.log(Level.FINEST, "Looking up key [{0}] (default value is [{1}])", new Object[] {key,
+                    propertyDefault});
 
-			/* Try and get the property value from a local source */
-			propertyValue = getLocalProperty(key);
+            /* Try and get the property value from a local source */
+            propertyValue = getLocalProperty(key);
 
-			/* If we didn't find it... */
-			if (propertyValue == null) {
+            /* If we didn't find it... */
+            if (propertyValue == null) {
 
-				/* Check the registry */
-				propertyValue = lookupRegistryProperty(key);
+                /* Check the registry */
+                propertyValue = lookupRegistryProperty(key);
 
-				/* If we still haven't found a value... */
-				if (propertyValue == null) {
+                /* If we still haven't found a value... */
+                if (propertyValue == null) {
 
-					/* Use the default */
-					logger.log(Level.FINER, "Using default: \"{0}={1}\"", new Object[] {key, propertyDefault});
-					propertyValue = propertyDefault;
+                    /* Use the default */
+                    logger.log(Level.FINER, "Property lookup: using default value [{0}] = [{1}]", new Object[] {key,
+                            propertyDefault});
+                    propertyValue = propertyDefault;
 
-				} else {
+                } else {
 
-					logger.log(Level.FINER, "Got value from Registry: \"{0}={1}\"", new Object[] {key, propertyValue});
+                    logger.log(Level.FINER, "Property lookup: using Registry value [{0}] = [{1}]", new Object[] {key,
+                            propertyValue});
 
-				}
+                }
 
-			} else {
+            } else {
 
-				logger.log(Level.FINER, "Got value from local source: \"{0}={1}\"", new Object[] {key, propertyValue});
+                logger.log(Level.FINER, "Property lookup: using properties file value [{0}] = [{1}]", new Object[] {
+                        key, propertyValue});
 
-			}
+            }
 
-			/* If we have a value from any source... */
-			if (propertyValue != null) {
+            /* If we have a value from any source... */
+            if (propertyValue != null) {
 
-				/* Cache it for later */
-				cachedProperties.put(key, propertyValue);
+                /* Cache it for later */
+                cachedProperties.put(key, propertyValue);
 
-			}
-		}
+            }
+        }
 
-		/* If we've got a configuration property value and a set of inserts... */
-		if (propertyValue != null && inserts != null && inserts.length > 0) {
+        /* If we've got a configuration property value and a set of inserts... */
+        if (propertyValue != null && inserts != null && inserts.length > 0) {
 
-			/* Merge the inserts */
-			propertyValue = mergeInserts(propertyValue, inserts);
+            /* Merge the inserts */
+            propertyValue = mergeInserts(propertyValue, inserts);
 
-		}
+        }
 
-		return propertyValue;
-	}
+        return propertyValue;
+    }
 
-	/**
-	 * Answers the value of the specified configuration property from the default look-up table in the Fabric Registry.
-	 * 
-	 * @param key
-	 *            the name of the configuration property.
-	 * 
-	 * @return the configuration property value, or <code>null</code> if it has not been set.
-	 */
-	protected String lookupRegistryProperty(String key) {
+    /**
+     * Answers the value of the specified configuration property from the default look-up table in the Fabric Registry.
+     *
+     * @param key
+     *            the name of the configuration property.
+     *
+     * @return the configuration property value, or <code>null</code> if it has not been set.
+     */
+    protected String lookupRegistryProperty(String key) {
 
-		String propertyValue = null;
+        String propertyValue = null;
 
-		try {
+        try {
 
-			if (FabricRegistry.isConnected()) {
+            if (FabricRegistry.isConnected()) {
 
-				/* Query the default configuration properties table in the Registry */
-				propertyValue = FabricRegistry.runStringQuery("select VALUE from " + FabricRegistry.DEFAULT_CONFIG
-						+ " where NAME='" + key + "'", localQuery);
-				logger.log(Level.FINEST, "Registry lookup for key \"{0}\" returned \"{1}\"", new Object[] {key,
-						propertyValue});
+                /* Query the default configuration properties table in the Registry */
+                propertyValue = FabricRegistry.runStringQuery("select VALUE from " + FabricRegistry.DEFAULT_CONFIG
+                        + " where NAME='" + key + "'", queryScope);
+                logger.log(Level.FINEST, "Registry lookup for key \"{0}\" returned \"{1}\"", new Object[] {key,
+                        propertyValue});
 
-			}
+            }
 
-		} catch (PersistenceException e) {
+        } catch (PersistenceException e) {
 
-			logger.log(Level.WARNING, "Exception looking up configuration property \"{0}\": {1}", new Object[] {key,
-					LogUtil.stackTrace(e)});
+            logger.log(Level.WARNING, "Exception looking up configuration property \"{0}\": {1}", new Object[] {key,
+                    FLog.stackTrace(e)});
 
-		}
+        }
 
-		return propertyValue;
-	}
+        return propertyValue;
+    }
 
 }
