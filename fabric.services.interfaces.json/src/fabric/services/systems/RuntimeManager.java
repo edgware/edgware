@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2010, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -11,7 +9,6 @@ package fabric.services.systems;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,8 +24,11 @@ import fabric.bus.feeds.impl.Subscription;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.client.FabricPlatform;
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 import fabric.registry.FabricRegistry;
+import fabric.registry.Node;
+import fabric.registry.NodeFactory;
+import fabric.registry.QueryScope;
 import fabric.registry.Service;
 import fabric.registry.ServiceFactory;
 import fabric.registry.System;
@@ -43,1030 +43,1326 @@ import fabric.services.jsonclient.JSONAdapter;
  */
 public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
 
-	/*
-	 * Class static fields
-	 */
+    /*
+     * Class static fields
+     */
 
-	/** The descriptor for the Registry update notification service. */
-	private static final TaskServiceDescriptor registryUpdatesDescriptor = new TaskServiceDescriptor("DEFAULT",
-			"$fabric", "$registry", "$registry_updates");
+    /** The descriptor for the Registry update notification service. */
+    private static final TaskServiceDescriptor registryUpdatesDescriptor = new TaskServiceDescriptor("DEFAULT",
+            "$fabric", "$registry", "$registry_updates");
 
-	/** Fabric class instance used to access utility methods only. */
-	private static final Fabric fabric = new Fabric();
+    /** Fabric class instance used to access utility methods only. */
+    private static final Fabric fabric = new Fabric();
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/**
-	 * To hold the list of active systems, including both those in the running and stopped states.
-	 */
-	private final HashMap<SystemDescriptor, SystemRuntime> activeSystems = new HashMap<SystemDescriptor, SystemRuntime>();
+    /**
+     * To hold the list of active systems, including both those in the running and stopped states.
+     */
+    private final HashMap<SystemDescriptor, SystemRuntime> activeSystems = new HashMap<SystemDescriptor, SystemRuntime>();
 
-	/** To hold the list of subscription requests for active systems. */
-	private final HashMap<ServiceDescriptor, List<ServiceDescriptor>> systemSubscriptionRequests = new HashMap<ServiceDescriptor, List<ServiceDescriptor>>();
+    /** To hold the list of subscription requests for active systems. */
+    private final HashMap<ServiceDescriptor, List<ServiceDescriptor>> systemSubscriptionRequests = new HashMap<ServiceDescriptor, List<ServiceDescriptor>>();
 
-	/** Flag indicating if Registry queries should be local or distributed. */
-	private boolean doQueryLocal = false;
+    /** Flag indicating if Registry queries should be local or distributed. */
+    private QueryScope queryScope = QueryScope.DISTRIBUTED;
 
-	/** The connection to the Fabric. */
-	private FabricPlatform fabricClient = null;
+    /** The connection to the Fabric. */
+    private FabricPlatform fabricClient = null;
 
-	/** The subscription to Registry update notifications. */
-	private ISubscription registryUpdates = null;
+    /** The subscription to Registry update notifications. */
+    private ISubscription registryUpdates = null;
 
-	/*
-	 * Class methods
-	 */
+    /** Flag indicating if Registry updates should be actioned. */
+    private boolean actionTopologyUpdates = true;
 
-	public RuntimeManager() {
+    /** Object used to protect access to wiring code. */
+    private Object wiringLock = new Object();
 
-		this(Logger.getLogger("fabric.services.systems"));
-	}
+    /** Object used to protect access to refresh thread control flag. */
+    private Object refreshLock = new Object();
 
-	public RuntimeManager(Logger logger) {
+    /** Flag indicating if the refresh thread should exit. */
+    private boolean doRefresh = true;
 
-		this.logger = logger;
-	}
+    /*
+     * Inner classes
+     */
 
-	/**
-	 * Creates a new instance.
-	 * 
-	 * @param fabricClient
-	 *            the connection to the Fabric.
-	 */
-	public RuntimeManager(FabricPlatform fabricClient) {
+    /**
+     * Class implementing a periodic-refresh thread.
+     */
+    private class Refresh implements Runnable {
 
-		this.fabricClient = fabricClient;
+        /**
+         * @see java.lang.Runnable#run()
+         */
+        @Override
+        public void run() {
 
-		/* Determine if Registry queries should be local or distributed */
-		doQueryLocal = Boolean.parseBoolean(config("fabric.composition.queryLocal", "false"));
+            String action = "prune";
+            String intervalConfig = null;
+            int interval = 0;
 
-	}
+            try {
+                intervalConfig = fabric.config("fabric.runtimeManager.refreshInterval", "-1");
+                interval = Integer.parseInt(intervalConfig);
+            } catch (Exception e) {
+                interval = 6;
+                logger.log(
+                        Level.WARNING,
+                        "Invalid value configured for Runtime Manager refresh interval ([{0}]); using default value ({1})",
+                        new Object[] {intervalConfig, interval});
+            }
 
-	/**
-	 * Initialises this instance.
-	 */
-	public void init() {
+            logger.log(Level.INFO, "Runtime Manager refresh thread starting");
 
-		try {
+            while (interval != -1) {
 
-			/* Subscribe to Registry update notifications */
-			registryUpdates = new Subscription(fabricClient);
-			registryUpdates.subscribe(registryUpdatesDescriptor, this);
+                try {
+                    Thread.sleep(interval * 1000);
+                } catch (InterruptedException e) {
+                }
 
-		} catch (Exception e) {
+                synchronized (refreshLock) {
 
-			String message = Fabric.format(
-					"Cannot subscribe to service '%s'; active subscription functions will not be available: %s",
-					LogUtil.stackTrace(e), registryUpdatesDescriptor);
-			logger.log(Level.WARNING, message);
+                    if (doRefresh) {
 
-		}
-	}
+                        synchronized (wiringLock) {
 
-	/**
-	 * Stops this instance.
-	 */
-	public void stop() {
+                            switch (action) {
 
-		try {
+                                case "prune":
 
-			/* Unsubscribe from Registry update notifications */
-			registryUpdates.unsubscribe();
+                                    for (String n : missingRouteNodes()) {
 
-		} catch (Exception e) {
+                                        try {
 
-			String message = Fabric.format("Cannot unsubscribe from feed '%s': %s", LogUtil.stackTrace(e),
-					registryUpdatesDescriptor);
-			logger.log(Level.WARNING, message);
+                                            pruneSubscriptions(n);
 
-		}
-	}
+                                        } catch (Exception e) {
 
-	/**
-	 * Starts a system.
-	 * 
-	 * @param systemDescriptor
-	 *            the system to start.
-	 * 
-	 * @param client
-	 *            adapter-specific identifier for the client making the request.
-	 * 
-	 * @param adapterProxy
-	 *            the name of the class implementing the system adapter proxy for the JSON Fabric client.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus start(SystemDescriptor systemDescriptor, Object client, String adapterProxy) {
+                                            logger.log(
+                                                    Level.WARNING,
+                                                    "Exception cleaning up broken subscription using missing node [{0}]: {1}",
+                                                    new Object[] {n, e.getMessage()});
+                                            logger.log(Level.FINEST, "Full exception:", e);
 
-		RuntimeStatus status = null;
+                                        }
+                                    }
 
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+                                    action = "match";
+                                    break;
 
-		/* If there is already a running service instance with this name... */
-		if (systemRuntime != null && systemRuntime.isRunning()) {
+                                case "match":
 
-			String message = format("System already running: %s", systemDescriptor);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.ALREADY_RUNNING, message);
+                                    try {
 
-		} else {
+                                        matchSubscriptions();
 
-			/* Look up the system in the Registry */
-			SystemFactory systemFactory = FabricRegistry.getSystemFactory(doQueryLocal);
-			System system = systemFactory.getSystemsById(systemDescriptor.platform(), systemDescriptor.system());
+                                    } catch (Exception e) {
 
-			/* If no valid system was found... */
-			if (system == null || system.getTypeId() == null) {
+                                        logger.log(Level.WARNING, "Exception in subscription refresh: {0}", e
+                                                .getMessage());
+                                        logger.log(Level.FINEST, "Full exception:", e);
 
-				String message = format("System '%s' not found", systemDescriptor.toString());
-				logger.log(Level.WARNING, message);
-				status = new RuntimeStatus(RuntimeStatus.Status.NOT_FOUND, message);
+                                    }
 
-			} else {
+                                    action = "prune";
+                                    break;
+                            }
+                        }
 
-				try {
+                    } else {
 
-					if (systemRuntime == null) {
+                        break;
 
-						/* Create it */
-						systemRuntime = new SystemRuntime(systemDescriptor, client, adapterProxy, this);
+                    }
+                }
+            }
+            logger.log(Level.INFO, "Runtime Manager refresh thread stopping");
+        }
 
-					}
+        /**
+         * Determines the list of nodes that are used in an active subscription, but which are not currently visible (as
+         * determined by a distributed node query).
+         *
+         * @return the list of missing nodes.
+         */
+        protected List<String> missingRouteNodes() {
 
-					/* Instantiate the service */
-					systemRuntime.instantiate();
+            List<String> missingRouteNodes = new ArrayList<String>();
 
-					/* Initialize the new service instance */
-					systemRuntime.start();
+            if (!activeSystems.isEmpty()) {
 
-				} catch (Exception e) {
+                /* Get the list of nodes known to the Fabric */
+                NodeFactory nf = FabricRegistry.getNodeFactory(QueryScope.DISTRIBUTED);
+                Node[] visibleNodes = nf.getAllNodes();
+                List<String> visibleNodeList = new ArrayList<String>();
+                for (Node n : visibleNodes) {
+                    visibleNodeList.add(n.getId());
+                }
 
-					String message = format("Failed to start system '%s': %s", systemDescriptor.toString(), LogUtil
-							.stackTrace(e));
-					logger.log(Level.SEVERE, message);
-					status = new RuntimeStatus(RuntimeStatus.Status.START_FAILED, message);
+                /* For each active system... */
+                for (SystemRuntime sys : activeSystems.values()) {
 
-				}
-			}
-		}
+                    /* Get the list of feed subscriptions for this system */
+                    HashMap<ServiceDescriptor, ISubscription> wif = sys.wiredInputFeeds();
 
-		if (status == null) {
-			/* The system was started OK */
-			activeSystems.put(systemDescriptor, systemRuntime);
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
-
-		return status;
-	}
-
-	/**
-	 * Stops a running instance of this service.
-	 * 
-	 * @param systemDescriptor
-	 *            the service to stop.
-	 * 
-	 * @param response
-	 *            the result of the operation.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus stop(SystemDescriptor systemDescriptor) {
-
-		RuntimeStatus status = null;
+                    /* For each subscription... */
+                    for (ISubscription sub : wif.values()) {
 
-		/* Get the service instance */
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+                        /* For each node used in the route for this subscription... */
+                        for (String routeNode : sub.route()) {
 
-		/* If there is not a running service instance with this name... */
-		if (systemRuntime == null || !systemRuntime.isRunning()) {
+                            /* If the node is not visible and hasn't been recorded already... */
+                            if (!visibleNodeList.contains(routeNode) && !missingRouteNodes.contains(routeNode)) {
+                                missingRouteNodes.add(routeNode);
+                            }
+                        }
+                    }
+                }
+            }
+            return missingRouteNodes;
+        }
+    }
 
-			/* Make sure that this is reflected in the Registry */
-			updateAvailability(systemDescriptor, "UNAVAILABLE");
+    /*
+     * Class methods
+     */
 
-			String message = format("System not running: %s", systemDescriptor);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
+    public RuntimeManager() {
+
+        this(Logger.getLogger("fabric.services.systems"));
+    }
+
+    public RuntimeManager(Logger logger) {
 
-		} else {
+        this.logger = logger;
+    }
 
-			/* Stop the instance */
-			systemRuntime.stop();
+    /**
+     * Creates a new instance.
+     *
+     * @param fabricClient
+     *            the connection to the Fabric.
+     */
+    public RuntimeManager(FabricPlatform fabricClient) {
 
-			/* Remove it from the manager */
-			activeSystems.remove(systemDescriptor);
+        this.fabricClient = fabricClient;
 
-		}
+        /* Determine if Registry queries should be local or distributed */
+        boolean doQueryLocal = Boolean.parseBoolean(config("fabric.runtimeManager.queryLocal", "true"));
+        this.queryScope = doQueryLocal ? QueryScope.LOCAL : QueryScope.DISTRIBUTED;
 
-		if (status == null) {
-			/* The system was started OK */
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
+    }
 
-		return status;
+    /**
+     * Initialises this instance.
+     */
+    public void init() {
 
-	}
+        try {
 
-	/**
-	 * Update the availability status of the service in the Registry.
-	 * 
-	 * @param systemDescriptor
-	 *            the service for which status is being changed.
-	 * 
-	 * @param availability
-	 *            the new availability status.
-	 */
-	private void updateAvailability(SystemDescriptor systemDescriptor, String availability) {
-
-		/* Lookup the service record in the Registry */
-		SystemFactory systemFactory = FabricRegistry.getSystemFactory(doQueryLocal);
-		System system = systemFactory.getSystemsById(systemDescriptor.platform(), systemDescriptor.system());
-
-		try {
-
-			/* Update the availability and commit */
-			system.setAvailability(availability);
-			systemFactory.update(system);
-
-		} catch (Exception e) {
-
-			logger.log(Level.SEVERE, "Cannot set availability to \"{0}\" on service \"{1}/{2}\": {3}", new Object[] {
-					system.getAvailability(), system.getPlatformId(), system.getId(), LogUtil.stackTrace(e)});
-
-		}
-	}
-
-	/**
-	 * Sends a request to a request-response service.
-	 * 
-	 * @param requestResponseService
-	 *            the target for the request.
-	 * 
-	 * @param solicitResponseService
-	 *            to reply-to service.
-	 * 
-	 * @param msg
-	 *            the message payload.
-	 * 
-	 * @param encoding
-	 *            the payload encoding.
-	 * 
-	 * @param correlId
-	 *            the correlation ID for the request.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus request(ServiceDescriptor requestResponseService,
-			ServiceDescriptor solicitResponseService, String msg, String encoding, String correlId) {
+            /* Subscribe to Registry update notifications */
+            registryUpdates = new Subscription(fabricClient);
+            registryUpdates.subscribe(registryUpdatesDescriptor, this);
 
-		RuntimeStatus status = null;
+            /* Determine if topology updates should be actioned */
+            String config = null;
+            try {
+                config = fabric.config("fabric.runtimeManager.actionTopologyUpdates", "true");
+                actionTopologyUpdates = Boolean.parseBoolean(config);
+            } catch (Exception e) {
+                actionTopologyUpdates = true;
+                logger.log(
+                        Level.WARNING,
+                        "Invalid value configured for Runtime Manager Registry update monitor ([{0}]); using default value ({1})",
+                        new Object[] {config, actionTopologyUpdates});
+            }
 
-		SystemDescriptor systemDescriptor = solicitResponseService.toSystemDescriptor();
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+        } catch (Exception e) {
 
-		/* If there is a running service instance... */
-		if (systemRuntime != null && systemRuntime.isRunning()) {
+            String message = Fabric.format(
+                    "Cannot subscribe to service '%s'; active subscription functions will not be available: %s", FLog
+                            .stackTrace(e), registryUpdatesDescriptor);
+            logger.log(Level.WARNING, message);
 
-			try {
+        }
 
-				/* Send the request message */
-				systemRuntime.request(correlId, requestResponseService, solicitResponseService, msg.getBytes(),
-						encoding);
+        /* Start periodic subscription refreshes */
+        (new Thread(new Refresh())).start();
+    }
 
-			} catch (Exception e) {
+    /**
+     * Stops this instance.
+     */
+    public void stop() {
 
-				String message = format("Error sending request message to request/response service \"%s\":\n%s",
-						requestResponseService, LogUtil.stackTrace(e));
-				logger.log(Level.WARNING, message);
-				status = new RuntimeStatus(RuntimeStatus.Status.SEND_REQUEST_FAILED, message);
-
-			}
-
-		} else {
-
-			String message = format("System is not running: %s", systemDescriptor);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
-
-		}
-
-		if (status == null) {
-			/* The system was started OK */
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
-
-		return status;
-	}
-
-	/**
-	 * Sends a response to a solicit-response service.
-	 * 
-	 * @param sendTo
-	 *            the target for the request.
-	 * 
-	 * @param producer
-	 *            to producer of the result.
-	 * 
-	 * @param msg
-	 *            the message payload.
-	 * 
-	 * @param encoding
-	 *            the payload encoding.
-	 * 
-	 * @param correlId
-	 *            the correlation ID for the request.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus response(ServiceDescriptor sendTo, ServiceDescriptor producer, String msg,
-			String encoding, String correlId) {
-
-		RuntimeStatus status = null;
-
-		SystemDescriptor systemDescriptor = producer.toSystemDescriptor();
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
-
-		/* If there is a running service instance... */
-		if (systemRuntime != null && systemRuntime.isRunning()) {
-
-			try {
-
-				/* Send the response message */
-				systemRuntime.respond(correlId, sendTo, producer, msg.getBytes());
-
-			} catch (Exception e) {
-
-				String message = format("Error sending response message to requesting service \"%s\":\n%s", sendTo,
-						LogUtil.stackTrace(e));
-				logger.log(Level.WARNING, message);
-				status = new RuntimeStatus(RuntimeStatus.Status.SEND_REQUEST_FAILED, message);
-
-			}
-
-		} else {
-
-			String message = format("System is not running: %s", (SystemDescriptor) producer);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
-
-		}
-
-		if (status == null) {
-			/* The system was started OK */
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
-
-		return status;
-	}
-
-	/**
-	 * Answers the Fabric client associated with this instance.
-	 * 
-	 * @return the Fabric client instance.
-	 */
-	public FabricPlatform fabricClient() {
-
-		return fabricClient;
-
-	}
-
-	/**
-	 * Sends a notification to a listener service.
-	 * 
-	 * @param listenerService
-	 *            the target for the notification.
-	 * 
-	 * @param notificationService
-	 *            the notifying service.
-	 * 
-	 * @param msg
-	 *            the message payload.
-	 * 
-	 * @param encoding
-	 *            the payload encoding.
-	 * 
-	 * @param correlId
-	 *            the correlation ID for the request.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus notify(ServiceDescriptor listenerService, ServiceDescriptor notificationService,
-			String msg, String encoding, String correlId) {
-
-		RuntimeStatus status = null;
-
-		SystemDescriptor systemDescriptor = notificationService.toSystemDescriptor();
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
-
-		/* If there is a running service instance... */
-		if (systemRuntime != null && systemRuntime.isRunning()) {
-
-			try {
-
-				/* Send the request message */
-				systemRuntime.notify(listenerService, notificationService, msg.getBytes(), encoding, correlId);
-
-			} catch (Exception e) {
-
-				String message = format("Error sending notification message to listener service \"%s\":\n%s",
-						listenerService, LogUtil.stackTrace(e));
-				logger.log(Level.WARNING, message);
-				status = new RuntimeStatus(RuntimeStatus.Status.SEND_NOTIFICATION_FAILED, message);
-
-			}
-
-		} else {
-
-			String message = format("System is not running: %s", systemDescriptor);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
-
-		}
-
-		if (status == null) {
-			/* The system was started OK */
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
-
-		return status;
-	}
-
-	/**
-	 * Publishes an output feed message.
-	 * 
-	 * @param outputFeedService
-	 *            the publishing service.
-	 * 
-	 * @param msg
-	 *            the message payload.
-	 * 
-	 * @param encoding
-	 *            the payload encoding.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus publish(ServiceDescriptor outputFeedService, String msg, String encoding) {
-
-		RuntimeStatus status = null;
-
-		SystemDescriptor systemDescriptor = outputFeedService.toSystemDescriptor();
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
-
-		/* If there is a running service instance... */
-		if (systemRuntime != null && systemRuntime.isRunning()) {
-
-			try {
-
-				/* Publish the message */
-				systemRuntime.publish(outputFeedService, msg.getBytes(), encoding);
-
-			} catch (Exception e) {
-
-				String message = format("Error publishing message to output-feed service \"%s\":\n%s",
-						outputFeedService, LogUtil.stackTrace(e));
-				logger.log(Level.WARNING, message);
-				status = new RuntimeStatus(RuntimeStatus.Status.PUBLISH_FAILED, message);
-
-			}
-
-		} else {
-
-			String message = format("System is not running: %s", systemDescriptor);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
-
-		}
-
-		if (status == null) {
-			/* The system was started OK */
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
-
-		return status;
-	}
-
-	/**
-	 * Subscribes to a list of output feeds.
-	 * 
-	 * @param outputFeedPatterns
-	 *            the list of output feeds (which may include wildcards) to which subscriptions are to be made.
-	 * 
-	 * @param inputFeed
-	 *            the local service to which feed messages will be delivered.
-	 * 
-	 * @param subscribedList
-	 *            to hold the list of actual subscriptions made.
-	 */
-	public synchronized RuntimeStatus subscribe(ServiceDescriptor[] outputFeedPatterns, ServiceDescriptor inputFeed,
-			List<ServiceDescriptor> subscribedList) throws Exception {
-
-		RuntimeStatus subscribeStatus = RuntimeStatus.STATUS_OK;
-
-		/* For each output feed pattern... */
-		for (int sf = 0; sf < outputFeedPatterns.length; sf++) {
-
-			/* Record this subscription request */
-			@SuppressWarnings("unchecked")
-			List<ServiceDescriptor> subscriptionList = fabric.lookupSublist(inputFeed, systemSubscriptionRequests);
-			if (!subscriptionList.contains(outputFeedPatterns[sf])) {
-				subscriptionList.add(outputFeedPatterns[sf]);
-			}
-
-			/* Get the list of feeds that match the requested feed pattern (it may contain wildcards) */
-			ServiceDescriptor[] feedsMatchingPattern = queryMatchingFeeds(outputFeedPatterns[sf]);
-
-			/* While there are more feeds and no errors... */
-			for (int f = 0; f < feedsMatchingPattern.length; f++) {
-
-				/* Subscribe to the feed */
-				subscribeStatus = subscribe(feedsMatchingPattern[f], inputFeed);
-
-				if (subscribeStatus.isOK()) {
-					subscribedList.add(feedsMatchingPattern[f]);
-				}
-			}
-		}
-
-		return subscribeStatus;
-	}
-
-	/**
-	 * Find the list of feeds in the Registry matching the specified pattern.
-	 * 
-	 * @param feedPattern
-	 *            the pattern to match.
-	 * 
-	 * @return the list of matching feeds.
-	 * 
-	 * @throws RegistryQueryException
-	 */
-	private static ServiceDescriptor[] queryMatchingFeeds(ServiceDescriptor feedPattern) throws RegistryQueryException {
-
-		/* To hold the results */
-		ServiceDescriptor[] matchingFeeds = null;
-
-		/* To hold the predicate required to find matching feeds in the Registry */
-		String queryPredicate = null;
-
-		/* If the feed descriptor does not contain any wildcards... */
-		if (!feedPattern.toString().contains("*")) {
-
-			matchingFeeds = new ServiceDescriptor[] {feedPattern};
-
-		} else {
-
-			/* Generate the SQL predicate required to identify the matching feeds */
-
-			String platform = feedPattern.platform();
-			String platformPredicate = null;
+        try {
 
-			if (platform.contains("*")) {
-				platformPredicate = String.format("platform_id like '%s'", platform.replace('*', '%'));
-			} else {
-				platformPredicate = String.format("platform_id = '%s'", platform);
-			}
+            /* Stop periodic subscription refreshes */
+            synchronized (refreshLock) {
+                doRefresh = false;
+            }
 
-			String service = feedPattern.system();
-			String servicePredicate = null;
-
-			if (service.contains("*")) {
-				servicePredicate = String.format("service_id like '%s'", service.replace('*', '%'));
-			} else {
-				servicePredicate = String.format("service_id = '%s'", service);
-			}
-
-			String feed = feedPattern.service();
-			String feedPredicate = null;
-
-			if (feed.contains("*")) {
-				feedPredicate = String.format("id like '%s'", feed.replace('*', '%'));
-			} else {
-				feedPredicate = String.format("id = '%s'", feed);
-			}
-
-			queryPredicate = String.format("direction = 'output' and %s and %s and %s", platformPredicate,
-					servicePredicate, feedPredicate);
-
-			/* Generate the list of matching feeds */
-			ServiceFactory sf = FabricRegistry.getServiceFactory();
-			Service[] registryFeedList = sf.getServices(queryPredicate);
-			matchingFeeds = new ServiceDescriptor[registryFeedList.length];
-
-			/* For each matching feed... */
-			for (int f = 0; f < matchingFeeds.length; f++) {
-
-				/* Create a feed descriptor */
-				matchingFeeds[f] = new ServiceDescriptor(registryFeedList[f].getPlatformId(), registryFeedList[f]
-						.getSystemId(), registryFeedList[f].getId());
-
-			}
-		}
-
-		return matchingFeeds;
-	}
-
-	/**
-	 * Subscribes to an output feed.
-	 * 
-	 * @param outputFeedService
-	 *            the publishing service.
-	 * 
-	 * @param inputFeedService
-	 *            the local service to which feed messages will be delivered.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus subscribe(ServiceDescriptor outputFeedService, ServiceDescriptor inputFeedService) {
+            /* Unsubscribe from Registry update notifications */
+            registryUpdates.unsubscribe();
 
-		RuntimeStatus status = null;
+        } catch (Exception e) {
 
-		SystemDescriptor systemDescriptor = inputFeedService.toSystemDescriptor();
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+            String message = Fabric.format("Cannot unsubscribe from feed '%s': %s", FLog.stackTrace(e),
+                    registryUpdatesDescriptor);
+            logger.log(Level.WARNING, message);
 
-		/* If there is a running system instance... */
-		if (systemRuntime != null && systemRuntime.isRunning()) {
+        }
+    }
 
-			try {
+    /**
+     * Starts a system.
+     *
+     * @param systemDescriptor
+     *            the system to start.
+     *
+     * @param client
+     *            adapter-specific identifier for the client making the request.
+     *
+     * @param adapterProxy
+     *            the name of the class implementing the system adapter proxy for the JSON Fabric client.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus start(SystemDescriptor systemDescriptor, Object client, String adapterProxy) {
 
-				/* Subscribe */
-				boolean isNewSubscription = systemRuntime.subscribe(outputFeedService, inputFeedService);
+        RuntimeStatus status = null;
 
-				if (!isNewSubscription) {
+        SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
 
-					String message = format("Already subscribed to output-feed service \"%s\" (input-feed \"%s\")",
-							outputFeedService, inputFeedService);
-					logger.log(Level.FINEST, message);
-					status = new RuntimeStatus(RuntimeStatus.Status.ALREADY_SUBSCRIBED, message);
+        /* If there is already a running service instance with this name... */
+        if (systemRuntime != null && systemRuntime.isRunning()) {
 
-				}
+            String message = format("System already running: %s", systemDescriptor);
+            logger.log(Level.WARNING, message);
+            status = new RuntimeStatus(RuntimeStatus.Status.ALREADY_RUNNING, message);
 
-			} catch (Exception e) {
+        } else {
 
-				String message = format("Error subscribing to output-feed service \"%s\" (input-feed \"%s\"):\n%s",
-						outputFeedService, inputFeedService, LogUtil.stackTrace(e));
-				logger.log(Level.WARNING, message);
-				status = new RuntimeStatus(RuntimeStatus.Status.SUBSCRIBE_FAILED, message);
+            /* Look up the system in the Registry */
+            SystemFactory systemFactory = FabricRegistry.getSystemFactory(QueryScope.LOCAL);
+            System system = systemFactory.getSystemsById(systemDescriptor.platform(), systemDescriptor.system());
 
-			}
+            /* If no valid system was found... */
+            if (system == null || system.getTypeId() == null) {
 
-		} else {
+                String message = format("System '%s' not found", systemDescriptor.toString());
+                logger.log(Level.WARNING, message);
+                status = new RuntimeStatus(RuntimeStatus.Status.NOT_FOUND, message);
 
-			String message = format("System is not running: %s", systemDescriptor);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
+            } else {
 
-		}
+                try {
 
-		if (status == null) {
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
+                    if (systemRuntime == null) {
 
-		return status;
-	}
+                        /* Create it */
+                        systemRuntime = new SystemRuntime(systemDescriptor, client, adapterProxy, this);
 
-	/**
-	 * Unsubscribes from one or more output feeds.
-	 * 
-	 * @param outputFeedServices
-	 *            the list of output feed services. If <code>null</code> then all feeds associated with the specified
-	 *            input feed service are unsubscribed.
-	 * 
-	 * @param inputFeedService
-	 *            the local service to which feed messages are being delivered.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized RuntimeStatus unsubscribe(ServiceDescriptor[] outputFeedServices,
-			ServiceDescriptor inputFeedService) {
+                    }
 
-		RuntimeStatus status = null;
+                    /* Instantiate the service */
+                    systemRuntime.instantiate();
 
-		SystemDescriptor systemDescriptor = inputFeedService.toSystemDescriptor();
-		SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+                    /* Initialize the new service instance */
+                    systemRuntime.start();
 
-		/* If there is a running system instance... */
-		if (systemRuntime != null && systemRuntime.isRunning()) {
+                } catch (Exception e) {
 
-			try {
+                    String message = format("Failed to start system '%s': %s", systemDescriptor.toString(), FLog
+                            .stackTrace(e));
+                    logger.log(Level.SEVERE, message);
+                    status = new RuntimeStatus(RuntimeStatus.Status.START_FAILED, message);
 
-				/* Get the list of subscription requests for this input feed */
-				@SuppressWarnings("unchecked")
-				List<ServiceDescriptor> subscriptionList = fabric.lookupSublist(inputFeedService,
-						systemSubscriptionRequests);
+                }
+            }
+        }
 
-				/* If a list of output feeds was provided... */
-				if (outputFeedServices != null && outputFeedServices.length > 0) {
+        if (status == null) {
+            /* The system was started OK */
+            activeSystems.put(systemDescriptor, systemRuntime);
+            status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+        }
 
-					/* Forget this subscription request */
-					for (ServiceDescriptor nextDescriptor : outputFeedServices) {
-						subscriptionList.remove(nextDescriptor);
-					}
+        return status;
+    }
 
-				} else {
+    /**
+     * Stops a running instance of this service.
+     *
+     * @param systemDescriptor
+     *            the service to stop.
+     *
+     * @param response
+     *            the result of the operation.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus stop(SystemDescriptor systemDescriptor) {
 
-					/* Forget all subscriptions */
-					subscriptionList.clear();
+        RuntimeStatus status = null;
 
-				}
+        /* Get the service instance */
+        SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
 
-				/* Unsubscribe */
-				systemRuntime.unsubscribe(outputFeedServices, inputFeedService);
+        /* If there is not a running service instance with this name... */
+        if (systemRuntime == null || !systemRuntime.isRunning()) {
 
-			} catch (Exception e) {
+            /* Make sure that this is reflected in the Registry */
+            updateAvailability(systemDescriptor, "UNAVAILABLE");
 
-				String message = format("Error unsubscribing from output-feed services (input-feed \"%s\"):\n%s",
-						inputFeedService, LogUtil.stackTrace(e));
-				logger.log(Level.WARNING, message);
-				status = new RuntimeStatus(RuntimeStatus.Status.UNSUBSCRIBE_FAILED, message);
+            String message = format("System not running: %s", systemDescriptor);
+            logger.log(Level.WARNING, message);
+            status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
 
-			}
+        } else {
 
-		} else {
+            /* Stop the instance */
+            systemRuntime.stop();
 
-			String message = format("System is not running: %s", systemDescriptor);
-			logger.log(Level.WARNING, message);
-			status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
+            /* Remove it from the manager */
+            activeSystems.remove(systemDescriptor);
 
-		}
+        }
 
-		if (status == null) {
-			/* The unsubscribe completed OK */
-			status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
-		}
+        if (status == null) {
+            /* The system was started OK */
+            status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+        }
 
-		return status;
-	}
+        return status;
 
-	/**
-	 * Actions a notification of a new system on the bus to fulfill any outstanding subscriptions that might now be
-	 * satisfied.
-	 * 
-	 * @param systemNotification
-	 *            a JSON message containing details of the new system.
-	 * 
-	 * @throws Exception
-	 */
-	private void updateSubscriptions(JSON systemNotification) throws Exception {
+    }
 
-		/* Build the list of the new services that have become available */
+    /**
+     * Update the availability status of the service in the Registry.
+     *
+     * @param systemDescriptor
+     *            the service for which status is being changed.
+     *
+     * @param availability
+     *            the new availability status.
+     */
+    private void updateAvailability(SystemDescriptor systemDescriptor, String availability) {
+
+        /* Lookup the service record in the Registry */
+        SystemFactory systemFactory = FabricRegistry.getSystemFactory(queryScope);
+        System system = systemFactory.getSystemsById(systemDescriptor.platform(), systemDescriptor.system());
+
+        try {
 
-		JSONArray servicesJSON = systemNotification.getJSONArray("services");
-		List<ServiceDescriptor> newServiceList = new ArrayList<ServiceDescriptor>();
+            /* Update the availability and commit */
+            system.setAvailability(availability);
+            systemFactory.update(system);
 
-		for (Iterator<JSON> serviceIterator = servicesJSON.iterator(); serviceIterator.hasNext();) {
+        } catch (Exception e) {
 
-			/* Build a descriptor for the next service */
-			JSON serviceJSON = serviceIterator.next();
-			ServiceDescriptor nextService = new ServiceDescriptor(serviceJSON.getString("id"));
-			newServiceList.add(nextService);
+            logger.log(Level.SEVERE, "Cannot set availability to \"{0}\" on service \"{1}/{2}\": {3}", new Object[] {
+                    system.getAvailability(), system.getPlatformId(), system.getId(), FLog.stackTrace(e)});
 
-		}
+        }
+    }
 
-		/* For each input feed that has subscription requests associated with it... */
-		for (ServiceDescriptor nextInputFeed : systemSubscriptionRequests.keySet()) {
+    /**
+     * Sends a request to a request-response service.
+     *
+     * @param requestResponseService
+     *            the target for the request.
+     *
+     * @param solicitResponseService
+     *            to reply-to service.
+     *
+     * @param msg
+     *            the message payload.
+     *
+     * @param encoding
+     *            the payload encoding.
+     *
+     * @param correlId
+     *            the correlation ID for the request.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus request(ServiceDescriptor requestResponseService,
+            ServiceDescriptor solicitResponseService, String msg, String encoding, String correlId) {
 
-			/* To hold the list of new subscriptions that we make */
-			List<ServiceDescriptor> subscribedList = new ArrayList<ServiceDescriptor>();
+        RuntimeStatus status = null;
 
-			/* Get the current list of subscription requests for the input feed */
-			List<ServiceDescriptor> subscriptionRequests = fabric.lookupSublist(nextInputFeed,
-					systemSubscriptionRequests);
+        SystemDescriptor systemDescriptor = solicitResponseService.toSystemDescriptor();
+        SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
 
-			/* For each subscription request... */
-			for (ServiceDescriptor nextDescriptor : subscriptionRequests) {
+        /* If there is a running service instance... */
+        if (systemRuntime != null && systemRuntime.isRunning()) {
 
-				/* Get the set of new feeds that match the request */
-				List<ServiceDescriptor> matchingServices = matchDescriptors(nextDescriptor, newServiceList);
+            try {
 
-				/* For each matching feed... */
-				for (ServiceDescriptor matchingService : matchingServices) {
+                /* Send the request message */
+                systemRuntime.request(correlId, requestResponseService, solicitResponseService, msg.getBytes(),
+                        encoding);
 
-					/* Subscribe */
-					RuntimeStatus subscribeStatus = subscribe(matchingService, nextInputFeed);
+            } catch (Exception e) {
 
-					if (subscribeStatus.isOK()) {
-						subscribedList.add(matchingService);
-					}
-				}
-			}
+                String message = format("Error sending request message to request/response service \"%s\":\n%s",
+                        requestResponseService, FLog.stackTrace(e));
+                logger.log(Level.WARNING, message);
+                status = new RuntimeStatus(RuntimeStatus.Status.SEND_REQUEST_FAILED, message);
 
-			/* If any new subscriptions were made... */
-			if (subscribedList.size() > 0) {
+            }
 
-				/* Get the system instance that owns the input feed */
-				SystemRuntime systemRuntime = activeSystems.get(nextInputFeed.toSystemDescriptor());
+        } else {
 
-				/* Build the response */
-				JSON response = JSONAdapter.buildSubscriptionResponse(subscribedList, nextInputFeed, null);
+            String message = format("System is not running: %s", systemDescriptor);
+            logger.log(Level.WARNING, message);
+            status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
+
+        }
+
+        if (status == null) {
+            /* The system was started OK */
+            status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+        }
+
+        return status;
+    }
+
+    /**
+     * Sends a response to a solicit-response service.
+     *
+     * @param sendTo
+     *            the target for the request.
+     *
+     * @param producer
+     *            to producer of the result.
+     *
+     * @param msg
+     *            the message payload.
+     *
+     * @param encoding
+     *            the payload encoding.
+     *
+     * @param correlId
+     *            the correlation ID for the request.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus response(ServiceDescriptor sendTo, ServiceDescriptor producer, String msg,
+            String encoding, String correlId) {
 
-				/* Send to the client */
-				systemRuntime.system().sendToClient(response.toString());
+        RuntimeStatus status = null;
 
-			}
-		}
-	}
+        SystemDescriptor systemDescriptor = producer.toSystemDescriptor();
+        SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
 
-	/**
-	 * Actions a notification of a new node on the bus, attempting to fulfill any outstanding subscriptions that might
-	 * now be satisfied.
-	 * 
-	 * @throws Exception
-	 */
-	private void updateSubscriptions() throws Exception {
+        /* If there is a running service instance... */
+        if (systemRuntime != null && systemRuntime.isRunning()) {
 
-		/*
-		 * For each input feed that has subscription requests associated with it...
-		 */
-		for (ServiceDescriptor nextInputFeed : systemSubscriptionRequests.keySet()) {
+            try {
 
-			/* To hold the list of new subscriptions that we make */
-			List<ServiceDescriptor> subscribedList = new ArrayList<ServiceDescriptor>();
+                /* Send the response message */
+                systemRuntime.respond(correlId, sendTo, producer, msg.getBytes());
 
-			/* Get the current list of subscription requests for the input feed */
-			List<ServiceDescriptor> patternList = fabric.lookupSublist(nextInputFeed, systemSubscriptionRequests);
-
-			if (patternList != null && patternList.size() > 0) {
+            } catch (Exception e) {
 
-				/* Attempt to subscribe */
-				ServiceDescriptor[] patternArray = patternList.toArray(new ServiceDescriptor[0]);
-				subscribe(patternArray, nextInputFeed, subscribedList);
+                String message = format("Error sending response message to requesting service \"%s\":\n%s", sendTo,
+                        FLog.stackTrace(e));
+                logger.log(Level.WARNING, message);
+                status = new RuntimeStatus(RuntimeStatus.Status.SEND_REQUEST_FAILED, message);
+
+            }
+
+        } else {
+
+            String message = format("System is not running: %s", (SystemDescriptor) producer);
+            logger.log(Level.WARNING, message);
+            status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
+
+        }
+
+        if (status == null) {
+            /* The system was started OK */
+            status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+        }
 
-				/* If any new subscriptions were made... */
-				if (subscribedList.size() > 0) {
+        return status;
+    }
 
-					/* Get the system instance that owns the input feed */
-					SystemRuntime systemRuntime = activeSystems.get(nextInputFeed.toSystemDescriptor());
+    /**
+     * Answers the Fabric client associated with this instance.
+     *
+     * @return the Fabric client instance.
+     */
+    public FabricPlatform fabricClient() {
 
-					/* Build the response */
-					JSON response = JSONAdapter.buildSubscriptionResponse(subscribedList, nextInputFeed, null);
+        return fabricClient;
 
-					/* Send to the client */
-					systemRuntime.system().sendToClient(response.toString());
+    }
 
-				}
-			}
-		}
-	}
+    /**
+     * Sends a notification to a listener service.
+     *
+     * @param listenerService
+     *            the target for the notification.
+     *
+     * @param notificationService
+     *            the notifying service.
+     *
+     * @param msg
+     *            the message payload.
+     *
+     * @param encoding
+     *            the payload encoding.
+     *
+     * @param correlId
+     *            the correlation ID for the request.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus notify(ServiceDescriptor listenerService, ServiceDescriptor notificationService,
+            String msg, String encoding, String correlId) {
 
-	/**
-	 * Searches a list of service descriptors for those matching the specified pattern and returns the matching subset.
-	 * 
-	 * @param descriptorPattern
-	 *            the pattern to match.
-	 * 
-	 * @param descriptorList
-	 *            the list of descriptors to check.
-	 * 
-	 * @return the list of matching descriptors.
-	 * 
-	 * @throws RegistryQueryException
-	 */
-	private List<ServiceDescriptor> matchDescriptors(ServiceDescriptor descriptorPattern,
-			List<ServiceDescriptor> descriptorList) {
+        RuntimeStatus status = null;
 
-		/* To hold the results */
-		List<ServiceDescriptor> matchingDescriptors = new ArrayList<ServiceDescriptor>();
+        SystemDescriptor systemDescriptor = notificationService.toSystemDescriptor();
+        SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+
+        /* If there is a running service instance... */
+        if (systemRuntime != null && systemRuntime.isRunning()) {
+
+            try {
 
-		/* Convert the pattern to its equivalent regular expression */
-		String descriptorPatternString = descriptorPattern.toString().replace("*", ".*");
+                /* Send the request message */
+                systemRuntime.notify(listenerService, notificationService, msg.getBytes(), encoding, correlId);
 
-		/* For each descriptor... */
-		for (ServiceDescriptor nextDescriptor : descriptorList) {
+            } catch (Exception e) {
 
-			/* If we have a match... */
-			if (nextDescriptor.toString().matches(descriptorPatternString)) {
-				matchingDescriptors.add(nextDescriptor);
-			}
-		}
+                String message = format("Error sending notification message to listener service \"%s\":\n%s",
+                        listenerService, FLog.stackTrace(e));
+                logger.log(Level.WARNING, message);
+                status = new RuntimeStatus(RuntimeStatus.Status.SEND_NOTIFICATION_FAILED, message);
+
+            }
 
-		return matchingDescriptors;
-	}
+        } else {
+
+            String message = format("System is not running: %s", systemDescriptor);
+            logger.log(Level.WARNING, message);
+            status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
 
-	/**
-	 * Cleans up any running systems associated with the specified client.
-	 * 
-	 * @param client
-	 *            adapter-specific identifier for the client making the request.
-	 * 
-	 * @return the status.
-	 */
-	public synchronized void cleanup(Object client) {
+        }
 
-		HashMap<SystemDescriptor, SystemRuntime> activeSystemsCopy = (HashMap<SystemDescriptor, SystemRuntime>) activeSystems
-				.clone();
+        if (status == null) {
+            /* The system was started OK */
+            status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+        }
 
-		/* For each active system... */
-		for (SystemDescriptor nextSystem : activeSystemsCopy.keySet()) {
+        return status;
+    }
 
-			/* Get the record for the next system */
-			SystemRuntime nextRuntime = activeSystemsCopy.get(nextSystem);
-			Object nextClient = nextRuntime.getClient();
+    /**
+     * Publishes an output feed message.
+     *
+     * @param outputFeedService
+     *            the publishing service.
+     *
+     * @param msg
+     *            the message payload.
+     *
+     * @param encoding
+     *            the payload encoding.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus publish(ServiceDescriptor outputFeedService, String msg, String encoding) {
+
+        RuntimeStatus status = null;
+
+        SystemDescriptor systemDescriptor = outputFeedService.toSystemDescriptor();
+        SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+
+        /* If there is a running service instance... */
+        if (systemRuntime != null && systemRuntime.isRunning()) {
+
+            try {
+
+                /* Publish the message */
+                systemRuntime.publish(outputFeedService, msg.getBytes(), encoding);
 
-			/* If the record is associated with the specified client... */
-			if (nextClient != null && nextClient.equals(client)) {
+            } catch (Exception e) {
 
-				/* Stop the system */
-				stop(nextSystem);
+                String message = format("Error publishing message to output-feed service \"%s\":\n%s",
+                        outputFeedService, FLog.stackTrace(e));
+                logger.log(Level.WARNING, message);
+                status = new RuntimeStatus(RuntimeStatus.Status.PUBLISH_FAILED, message);
 
-			}
-		}
-	}
+            }
+
+        } else {
 
-	/**
-	 * @see fabric.bus.feeds.ISubscriptionCallback#startSubscriptionCallback()
-	 */
-	@Override
-	public void startSubscriptionCallback() {
-	}
+            String message = format("System is not running: %s", systemDescriptor);
+            logger.log(Level.WARNING, message);
+            status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
 
-	/**
-	 * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionMessage(fabric.bus.messages.IFeedMessage)
-	 */
-	@Override
-	public synchronized void handleSubscriptionMessage(IFeedMessage message) {
+        }
+
+        if (status == null) {
+            /* The system was started OK */
+            status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+        }
 
-		/* Get the target service of this message */
-		String serviceDescriptor = message.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED);
+        return status;
+    }
+
+    /**
+     * Subscribes to a list of output feeds.
+     *
+     * @param outputFeedPatterns
+     *            the list of output feeds (which may include wildcards) to which subscriptions are to be made.
+     *
+     * @param inputFeed
+     *            the local service to which feed messages will be delivered.
+     *
+     * @param subscribedList
+     *            to hold the list of actual subscriptions made.
+     */
+    public synchronized RuntimeStatus subscribe(ServiceDescriptor[] outputFeedPatterns, ServiceDescriptor inputFeed,
+            List<ServiceDescriptor> subscribedList) throws Exception {
 
-		if (serviceDescriptor != null) {
+        RuntimeStatus subscribeStatus = RuntimeStatus.STATUS_OK;
+
+        synchronized (wiringLock) {
 
-			String payload = null;
+            /* For each output feed pattern... */
+            for (int sf = 0; sf < outputFeedPatterns.length; sf++) {
 
-			try {
+                /* Record this subscription request */
+                @SuppressWarnings("unchecked")
+                List<ServiceDescriptor> subscriptionList = fabric.lookupSublist(inputFeed, systemSubscriptionRequests);
+                if (!subscriptionList.contains(outputFeedPatterns[sf])) {
+                    subscriptionList.add(outputFeedPatterns[sf]);
+                }
+
+                /* Get the list of feeds that match the requested feed pattern (it may contain wildcards) */
+                ServiceDescriptor[] feedsMatchingPattern = queryMatchingFeeds(outputFeedPatterns[sf]);
+
+                /* While there are more feeds... */
+                for (int f = 0; f < feedsMatchingPattern.length; f++) {
+
+                    /* Subscribe to the feed */
+                    subscribeStatus = subscribe(feedsMatchingPattern[f], inputFeed);
+
+                    if (subscribeStatus.isOK()) {
+                        subscribedList.add(feedsMatchingPattern[f]);
+                    }
+                }
+            }
+        }
+
+        return subscribeStatus;
+    }
+
+    /**
+     * Find the list of feeds in the Registry matching the specified pattern.
+     *
+     * @param feedPattern
+     *            the pattern to match.
+     *
+     * @return the list of matching feeds.
+     *
+     * @throws RegistryQueryException
+     */
+    private static ServiceDescriptor[] queryMatchingFeeds(ServiceDescriptor feedPattern) throws RegistryQueryException {
 
-				/* Get the message payload */
-				byte[] payloadBytes = message.getPayload().getPayload();
-				payload = (payloadBytes != null) ? new String(payloadBytes) : null;
+        /* To hold the results */
+        ServiceDescriptor[] matchingFeeds = null;
 
-				if (serviceDescriptor.equals("$fabric/$registry/$registry_updates")) {
+        /* To hold the predicate required to find matching feeds in the Registry */
+        String queryPredicate = null;
 
-					/* The payload is a JSON structure containing details of a Registry update */
-					JSON triggerJSON = new JSON(payload);
-					String table = triggerJSON.getString("table");
+        /* If the feed descriptor does not contain any wildcards... */
+        if (!feedPattern.toString().contains("*")) {
 
-					if (table != null) {
+            matchingFeeds = new ServiceDescriptor[] {feedPattern};
 
-						String action = triggerJSON.getString("action");
+        } else {
 
-						if (action != null) {
+            /* Generate the SQL predicate required to identify the matching feeds */
 
-							table = table.toUpperCase();
-							action = action.toUpperCase();
+            String platform = feedPattern.platform();
+            String platformPredicate = null;
 
-							switch (table) {
+            if (platform.contains("*")) {
+                platformPredicate = String.format("platform_id like '%s'", platform.replace('*', '%'));
+            } else {
+                platformPredicate = String.format("platform_id = '%s'", platform);
+            }
 
-							case "SYSTEMS":
+            String service = feedPattern.system();
+            String servicePredicate = null;
 
-								switch (action) {
-								case "INSERT":
-								case "UPDATE":
-									updateSubscriptions(triggerJSON);
-									break;
-								}
-								break;
+            if (service.contains("*")) {
+                servicePredicate = String.format("service_id like '%s'", service.replace('*', '%'));
+            } else {
+                servicePredicate = String.format("service_id = '%s'", service);
+            }
 
-							case "NODE_NEIGHBOURS":
+            String feed = feedPattern.service();
+            String feedPredicate = null;
 
-								switch (action) {
-								case "INSERT":
-								case "UPDATE":
-									updateSubscriptions();
-									break;
-								case "DELETE":
-									// updateRouteCache(triggerJSON);
-									break;
-								}
-								break;
-							}
-						}
-					}
-				}
+            if (feed.contains("*")) {
+                feedPredicate = String.format("id like '%s'", feed.replace('*', '%'));
+            } else {
+                feedPredicate = String.format("id = '%s'", feed);
+            }
 
-			} catch (Exception e) {
+            queryPredicate = String.format("direction = 'output' and %s and %s and %s", platformPredicate,
+                    servicePredicate, feedPredicate);
 
-				logger.log(Level.WARNING, "Error handling Registry update notification: \n{0}\n{1}", new Object[] {
-						payload, LogUtil.stackTrace(e)});
+            /* Generate the list of matching feeds */
+            ServiceFactory sf = FabricRegistry.getServiceFactory();
+            Service[] registryFeedList = sf.getServices(queryPredicate);
+            matchingFeeds = new ServiceDescriptor[registryFeedList.length];
 
-			}
-		}
-	}
+            /* For each matching feed... */
+            for (int f = 0; f < matchingFeeds.length; f++) {
 
-	/**
-	 * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription, int,
-	 *      fabric.bus.messages.IServiceMessage)
-	 */
-	@Override
-	public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
-	}
+                /* Create a feed descriptor */
+                matchingFeeds[f] = new ServiceDescriptor(registryFeedList[f].getPlatformId(), registryFeedList[f]
+                        .getSystemId(), registryFeedList[f].getId());
 
-	/**
-	 * @see fabric.bus.feeds.ISubscriptionCallback#cancelSubscriptionCallback()
-	 */
-	@Override
-	public void cancelSubscriptionCallback() {
-	}
+            }
+        }
+
+        return matchingFeeds;
+    }
+
+    /**
+     * Subscribes to an output feed.
+     *
+     * @param outputFeedService
+     *            the publishing service.
+     *
+     * @param inputFeedService
+     *            the local service to which feed messages will be delivered.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus subscribe(ServiceDescriptor outputFeedService, ServiceDescriptor inputFeedService) {
+
+        RuntimeStatus status = null;
+
+        synchronized (wiringLock) {
+
+            SystemDescriptor systemDescriptor = inputFeedService.toSystemDescriptor();
+            SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+
+            /* If there is a running system instance... */
+            if (systemRuntime != null && systemRuntime.isRunning()) {
+
+                try {
+
+                    /* Subscribe */
+                    boolean isNewSubscription = systemRuntime.subscribe(outputFeedService, inputFeedService);
+
+                    if (!isNewSubscription) {
+
+                        String message = format("Already subscribed to output-feed service \"%s\" (input-feed \"%s\")",
+                                outputFeedService, inputFeedService);
+                        logger.log(Level.FINEST, message);
+                        status = new RuntimeStatus(RuntimeStatus.Status.ALREADY_SUBSCRIBED, message);
+
+                    }
+
+                } catch (Exception e) {
+
+                    String message = format("Error subscribing to output-feed service \"%s\" (input-feed \"%s\"):\n%s",
+                            outputFeedService, inputFeedService, FLog.stackTrace(e));
+                    logger.log(Level.WARNING, message);
+                    status = new RuntimeStatus(RuntimeStatus.Status.SUBSCRIBE_FAILED, message);
+
+                }
+
+            } else {
+
+                String message = format("System is not running: %s", systemDescriptor);
+                logger.log(Level.WARNING, message);
+                status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
+
+            }
+
+            if (status == null) {
+                status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+            }
+        }
+
+        return status;
+    }
+
+    /**
+     * Unsubscribes from one or more output feeds.
+     *
+     * @param outputFeedServices
+     *            the list of output feed services. If <code>null</code> then all feeds associated with the specified
+     *            input feed service are unsubscribed.
+     *
+     * @param inputFeedService
+     *            the local service to which feed messages are being delivered.
+     *
+     * @return the status.
+     */
+    public synchronized RuntimeStatus unsubscribe(ServiceDescriptor[] outputFeedServices,
+            ServiceDescriptor inputFeedService) {
+
+        RuntimeStatus status = null;
+
+        synchronized (wiringLock) {
+
+            SystemDescriptor systemDescriptor = inputFeedService.toSystemDescriptor();
+            SystemRuntime systemRuntime = activeSystems.get(systemDescriptor);
+
+            /* If there is a running system instance... */
+            if (systemRuntime != null && systemRuntime.isRunning()) {
+
+                try {
+
+                    /* Get the list of subscription requests for this input feed */
+                    @SuppressWarnings("unchecked")
+                    List<ServiceDescriptor> subscriptionList = fabric.lookupSublist(inputFeedService,
+                            systemSubscriptionRequests);
+
+                    /* If a list of output feeds was provided... */
+                    if (outputFeedServices != null && outputFeedServices.length > 0) {
+
+                        /* Forget this subscription request */
+                        for (ServiceDescriptor nextDescriptor : outputFeedServices) {
+                            subscriptionList.remove(nextDescriptor);
+                        }
+
+                    } else {
+
+                        /* Forget all subscriptions */
+                        subscriptionList.clear();
+
+                    }
+
+                    /* Unsubscribe */
+                    systemRuntime.unsubscribe(outputFeedServices, inputFeedService);
+
+                } catch (Exception e) {
+
+                    String message = format("Error unsubscribing from output-feed services (input-feed \"%s\"):\n%s",
+                            inputFeedService, FLog.stackTrace(e));
+                    logger.log(Level.WARNING, message);
+                    status = new RuntimeStatus(RuntimeStatus.Status.UNSUBSCRIBE_FAILED, message);
+
+                }
+
+            } else {
+
+                String message = format("System is not running: %s", systemDescriptor);
+                logger.log(Level.WARNING, message);
+                status = new RuntimeStatus(RuntimeStatus.Status.NOT_RUNNING, message);
+
+            }
+
+            if (status == null) {
+                /* The unsubscribe completed OK */
+                status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
+            }
+        }
+
+        return status;
+    }
+
+    /**
+     * Actions a notification of a new system on the bus, attempting to fulfill any outstanding subscriptions that might
+     * now be satisfied.
+     *
+     * @param systemNotification
+     *            a JSON message containing details of the new system.
+     *
+     * @throws Exception
+     */
+    private void matchSubscriptions(JSON systemNotification) throws Exception {
+
+        /* Get the list of new services */
+
+        JSONArray servicesJSON = systemNotification.getJSONArray("services");
+        List<ServiceDescriptor> newServices = new ArrayList<ServiceDescriptor>();
+
+        for (JSON serviceJSON : servicesJSON) {
+
+            /* Build a descriptor for the next new service */
+            ServiceDescriptor nextService = new ServiceDescriptor(serviceJSON.getString("id"));
+            newServices.add(nextService);
+
+        }
+
+        /* For each input feed that has subscription requests associated with it... */
+        for (ServiceDescriptor nextInputFeed : systemSubscriptionRequests.keySet()) {
+
+            /* To hold the list of new subscriptions that we make (if any) */
+            List<ServiceDescriptor> newSubscriptions = new ArrayList<ServiceDescriptor>();
+
+            /* Get the current list of subscription requests for the input feed */
+            List<ServiceDescriptor> subscriptionRequests = fabric.lookupSublist(nextInputFeed,
+                    systemSubscriptionRequests);
+
+            /* For each subscription request... */
+            for (ServiceDescriptor nextRequest : subscriptionRequests) {
+
+                /* Get the set of new services that match the request */
+                List<ServiceDescriptor> matchingServices = matchDescriptors(nextRequest, newServices);
+
+                /* For each matching service... */
+                for (ServiceDescriptor matchingService : matchingServices) {
+
+                    /* Subscribe */
+                    RuntimeStatus subscribeStatus = subscribe(matchingService, nextInputFeed);
+
+                    if (subscribeStatus.isOK()) {
+                        newSubscriptions.add(matchingService);
+                    }
+                }
+            }
+
+            /* If any new subscriptions were made... */
+            if (newSubscriptions.size() > 0) {
+
+                /* Get the system instance that owns the input feed */
+                SystemRuntime systemRuntime = activeSystems.get(nextInputFeed.toSystemDescriptor());
+
+                /* Build the response */
+                JSON response = JSONAdapter.buildSubscriptionResponse(newSubscriptions, nextInputFeed, null);
+
+                /* Send to the client */
+                systemRuntime.system().sendToClient(response.toString());
+
+            }
+        }
+    }
+
+    /**
+     * Actions a notification of a lost system on the bus, cleaning up any existing subscriptions that are now broken.
+     *
+     * @param systemNotification
+     *            a JSON message containing details of the new system.
+     *
+     * @throws Exception
+     */
+    private void pruneSubscriptions(JSON systemNotification) throws Exception {
+
+        /* Get the list of services that have been lost */
+
+        JSONArray servicesJSON = systemNotification.getJSONArray("services");
+        ServiceDescriptor[] lostServices = new ServiceDescriptor[servicesJSON.size()];
+        int s = 0;
+
+        for (JSON serviceJSON : servicesJSON) {
+            /* Build a descriptor for the next new service */
+            lostServices[s++] = new ServiceDescriptor(serviceJSON.getString("id"));
+        }
+
+        synchronized (wiringLock) {
+
+            /* For each active system... */
+            for (SystemRuntime system : activeSystems.values()) {
+
+                HashMap<ServiceDescriptor, List<ServiceDescriptor>> pruned = null;
+
+                /* Prune subscriptions */
+                pruned = system.unsubscribe(lostServices);
+
+                /* If any subscriptions were pruned... */
+                if (pruned.size() > 0) {
+
+                    /* For each input feed... */
+                    for (ServiceDescriptor inputFeed : pruned.keySet()) {
+
+                        /* Build the response */
+                        JSON response = JSONAdapter.buildLostSubscriptionMessage(pruned.get(inputFeed), inputFeed);
+
+                        /* Send to the client */
+                        system.system().sendToClient(response.toString());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Actions a notification of a new node on the bus, attempting to fulfill any outstanding subscriptions that might
+     * now be satisfied.
+     *
+     * @throws Exception
+     */
+    private void matchSubscriptions() throws Exception {
+
+        /* For each input feed that has subscription requests associated with it... */
+        for (ServiceDescriptor nextInputFeed : systemSubscriptionRequests.keySet()) {
+
+            /* To hold the list of new subscriptions that we make */
+            List<ServiceDescriptor> subscribedList = new ArrayList<ServiceDescriptor>();
+
+            /* Get the current list of subscription requests for the input feed */
+            List<ServiceDescriptor> patternList = fabric.lookupSublist(nextInputFeed, systemSubscriptionRequests);
+
+            if (patternList != null && patternList.size() > 0) {
+
+                /* Attempt to subscribe */
+                ServiceDescriptor[] patternArray = patternList.toArray(new ServiceDescriptor[0]);
+                subscribe(patternArray, nextInputFeed, subscribedList);
+
+                /* If any new subscriptions were made... */
+                if (subscribedList.size() > 0) {
+
+                    /* Get the system instance that owns the input feed */
+                    SystemRuntime systemRuntime = activeSystems.get(nextInputFeed.toSystemDescriptor());
+
+                    /* Build the response */
+                    JSON response = JSONAdapter.buildSubscriptionResponse(subscribedList, nextInputFeed, null);
+
+                    /* Send to the client */
+                    systemRuntime.system().sendToClient(response.toString());
+
+                }
+            }
+        }
+    }
+
+    /**
+     * Actions a notification of a lost node on the bus, cleaning up any existing subscriptions that are now broken.
+     *
+     * @param node
+     *            the ID of the lost node.
+     *
+     * @throws Exception
+     */
+    public void pruneSubscriptions(String node) throws Exception {
+
+        synchronized (wiringLock) {
+
+            /* For each active system... */
+            for (SystemRuntime system : activeSystems.values()) {
+
+                HashMap<ServiceDescriptor, List<ServiceDescriptor>> pruned = null;
+
+                /* Prune subscriptions */
+                pruned = system.unsubscribe(node);
+
+                /* If any subscriptions were pruned... */
+                if (pruned.size() > 0) {
+
+                    /* For each input feed... */
+                    for (ServiceDescriptor inputFeed : pruned.keySet()) {
+
+                        /* Build the response */
+                        JSON response = JSONAdapter.buildLostSubscriptionMessage(pruned.get(inputFeed), inputFeed);
+
+                        /* Send to the client */
+                        system.system().sendToClient(response.toString());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Searches a list of service descriptors for those matching the specified pattern and returns the matching subset.
+     *
+     * @param descriptorPattern
+     *            the pattern to match.
+     *
+     * @param descriptorList
+     *            the list of descriptors to check.
+     *
+     * @return the list of matching descriptors.
+     *
+     * @throws RegistryQueryException
+     */
+    private List<ServiceDescriptor> matchDescriptors(ServiceDescriptor descriptorPattern,
+            List<ServiceDescriptor> descriptorList) {
+
+        /* To hold the results */
+        List<ServiceDescriptor> matchingDescriptors = new ArrayList<ServiceDescriptor>();
+
+        /* Convert the pattern to its equivalent regular expression */
+        String descriptorPatternString = descriptorPattern.toString().replace("*", ".*");
+
+        /* For each descriptor... */
+        for (ServiceDescriptor nextDescriptor : descriptorList) {
+
+            /* If we have a match... */
+            if (nextDescriptor.toString().matches(descriptorPatternString)) {
+                matchingDescriptors.add(nextDescriptor);
+            }
+        }
+
+        return matchingDescriptors;
+    }
+
+    /**
+     * Cleans up any running systems associated with the specified client.
+     *
+     * @param client
+     *            adapter-specific identifier for the client making the request.
+     *
+     * @return the status.
+     */
+    public synchronized void cleanup(Object client) {
+
+        HashMap<SystemDescriptor, SystemRuntime> activeSystemsCopy = (HashMap<SystemDescriptor, SystemRuntime>) activeSystems
+                .clone();
+
+        /* For each active system... */
+        for (SystemDescriptor nextSystem : activeSystemsCopy.keySet()) {
+
+            /* Get the record for the next system */
+            SystemRuntime nextRuntime = activeSystemsCopy.get(nextSystem);
+            Object nextClient = nextRuntime.getClient();
+
+            /* If the record is associated with the specified client... */
+            if (nextClient != null && nextClient.equals(client)) {
+
+                /* Stop the system */
+                stop(nextSystem);
+
+            }
+        }
+    }
+
+    /**
+     * @see fabric.bus.feeds.ISubscriptionCallback#startSubscriptionCallback()
+     */
+    @Override
+    public void startSubscriptionCallback() {
+    }
+
+    /**
+     * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionMessage(fabric.bus.messages.IFeedMessage)
+     */
+    @Override
+    public synchronized void handleSubscriptionMessage(IFeedMessage message) {
+
+        /* Get the target service of this message */
+        String serviceDescriptor = message.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED);
+
+        if (serviceDescriptor != null) {
+
+            String payload = null;
+
+            try {
+
+                /* Get the message payload */
+                byte[] payloadBytes = message.getPayload().getPayload();
+                payload = (payloadBytes != null) ? new String(payloadBytes) : null;
+
+                if (serviceDescriptor.equals("$fabric/$registry/$registry_updates")) {
+
+                    /* The payload is a JSON structure containing details of a Registry update */
+                    JSON triggerJSON = new JSON(payload);
+                    String table = triggerJSON.getString("table");
+                    String availability = triggerJSON.getString("availability");
+
+                    if (table != null) {
+
+                        String action = triggerJSON.getString("action");
+
+                        if (action != null) {
+
+                            if (availability != null) {
+
+                                table = table.toUpperCase();
+                                action = action.toUpperCase();
+                                availability = availability.toUpperCase();
+
+                                switch (table) {
+
+                                    case "SYSTEMS":
+
+                                        if (actionTopologyUpdates) {
+                                            switch (action) {
+                                                case "INSERT":
+                                                case "UPDATE":
+                                                    if (availability.equals("AVAILABLE")) {
+                                                        matchSubscriptions(triggerJSON);
+                                                    }
+                                                    break;
+                                                case "DELETE":
+                                                    pruneSubscriptions(triggerJSON);
+                                                    break;
+                                            }
+                                        }
+                                        break;
+
+                                    case "NODE_NEIGHBOURS":
+
+                                        if (actionTopologyUpdates) {
+                                            switch (action) {
+                                                case "INSERT":
+                                                case "UPDATE":
+                                                    if (availability.equals("AVAILABLE")) {
+                                                        matchSubscriptions();
+                                                    }
+                                                    break;
+                                                case "DELETE":
+                                                    String id = triggerJSON.getString("id");
+                                                    String[] nodes = id.split("/");
+                                                    pruneSubscriptions(nodes[1]);
+                                                    // updateRouteCache(triggerJSON);
+                                                    break;
+                                            }
+                                        }
+                                        break;
+                                }
+                            } else {
+                                logger.log(Level.WARNING,
+                                        "Unrecognised 'availability' value in registry update message: \n{0}",
+                                        triggerJSON.toString());
+                            }
+                        } else {
+                            logger.log(Level.WARNING, "Unrecognised 'action' value in registry update message: \n{0}",
+                                    triggerJSON.toString());
+                        }
+                    } else {
+                        logger.log(Level.WARNING, "Unrecognised 'table' value in registry update message: \n{0}",
+                                triggerJSON.toString());
+                    }
+                }
+
+            } catch (Exception e) {
+
+                logger.log(Level.WARNING, "Error handling Registry update notification: \n{0}\n{1}", new Object[] {
+                        payload, FLog.stackTrace(e)});
+
+            }
+        }
+    }
+
+    /**
+     * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription, int,
+     *      fabric.bus.messages.IServiceMessage)
+     */
+    @Override
+    public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
+    }
+
+    /**
+     * @see fabric.bus.feeds.ISubscriptionCallback#cancelSubscriptionCallback()
+     */
+    @Override
+    public void cancelSubscriptionCallback() {
+    }
 }
