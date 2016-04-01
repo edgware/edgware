@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2012
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -11,7 +9,7 @@ package fabric;
 
 import java.util.logging.Level;
 
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 import fabric.core.properties.ConfigProperties;
 import fabric.core.properties.Properties;
 import fabric.registry.FabricRegistry;
@@ -113,7 +111,7 @@ public class NodeConfig extends LocalConfig {
 
 			/* Query the node configuration properties table in the Registry */
 			propertyValue = FabricRegistry.runStringQuery("select VALUE from " + FabricRegistry.NODE_CONFIG
-					+ " where NODE_ID='" + node + "' and NAME='" + key + "'", localQuery);
+					+ " where NODE_ID='" + node + "' and NAME='" + key + "'", queryScope);
 			logger.log(Level.FINEST, "Registry lookup for key \"{0}\" returned \"{1}\"", new Object[] {key,
 					propertyValue});
 
@@ -128,7 +126,7 @@ public class NodeConfig extends LocalConfig {
 		} catch (PersistenceException e) {
 
 			logger.log(Level.WARNING, "Exception looking up configuration property \"{0}\": {1}", new Object[] {key,
-					LogUtil.stackTrace(e)});
+					FLog.stackTrace(e)});
 
 		}
 

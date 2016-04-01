@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2009, 2012
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -14,7 +12,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 
 /**
  * Shutdown hook for Fabric applications.
@@ -107,7 +105,7 @@ public class FabricShutdownHook extends Thread {
 						+ Integer.toHexString(nextAction.hashCode());
 
 				logger.log(Level.WARNING, "Shutdown action \"{0}\" failed with exception: {1}", new Object[] {
-						actionInstance, LogUtil.stackTrace(e)});
+						actionInstance, FLog.stackTrace(e)});
 
 			}
 		}

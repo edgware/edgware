@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2012
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -11,7 +9,7 @@ package fabric;
 
 import java.util.logging.Level;
 
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 import fabric.registry.FabricRegistry;
 import fabric.registry.exception.PersistenceException;
 
@@ -93,7 +91,7 @@ public class PlatformConfig extends NodeConfig {
 
 			/* Query the platform configuration properties table in the Registry */
 			propertyValue = FabricRegistry.runStringQuery("select VALUE from " + FabricRegistry.PLATFORM_CONFIG
-					+ " where PLATFORM_ID='" + platform + "' and NAME='" + key + "'", localQuery);
+					+ " where PLATFORM_ID='" + platform + "' and NAME='" + key + "'", queryScope);
 			logger.log(Level.FINEST, "Registry lookup for key \"{0}\" returned \"{1}\"", new Object[] {key,
 					propertyValue});
 
@@ -108,7 +106,7 @@ public class PlatformConfig extends NodeConfig {
 		} catch (PersistenceException e) {
 
 			logger.log(Level.WARNING, "Exception looking up configuration property \"{0}\": {1}", new Object[] {key,
-					LogUtil.stackTrace(e)});
+					FLog.stackTrace(e)});
 
 		}
 

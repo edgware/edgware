@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2009, 2012
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -17,7 +15,7 @@ import java.util.logging.Logger;
 import fabric.bus.messages.IFabricMessage;
 import fabric.bus.plugins.IFamily;
 import fabric.bus.plugins.IPlugin;
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 
 /**
  * Class providing thread-safe access to the family management object for a single family.
@@ -138,7 +136,7 @@ public class Family implements IFamily {
 				} catch (Exception e) {
 
 					logger.log(Level.WARNING, "Plug-in \"{0}\" failed to handle control message:\n{1}\n{2}",
-							new Object[] {key, message, LogUtil.stackTrace(e)});
+							new Object[] {key, message, FLog.stackTrace(e)});
 
 				}
 			}

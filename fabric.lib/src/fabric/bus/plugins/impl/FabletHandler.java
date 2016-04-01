@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2007, 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -16,110 +14,110 @@ import fabric.Fabric;
 import fabric.bus.plugins.IFabletConfig;
 import fabric.bus.plugins.IFabletHandler;
 import fabric.bus.plugins.IFabletPlugin;
-import fabric.core.logging.LogUtil;
+import fabric.core.logging.FLog;
 
 /**
  * Class representing the Fablet plug-ins.
- * 
+ *
  */
 public class FabletHandler extends PluginHandler implements IFabletHandler {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2007, 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2007, 2012";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	private Logger logger;
-	/** The configuration information for this plug-in */
-	private IFabletConfig pluginConfig = null;
+    private Logger logger;
+    /** The configuration information for this plug-in */
+    private IFabletConfig pluginConfig = null;
 
-	/** To hold the plug-in instance */
-	private IFabletPlugin fablet = null;
+    /** To hold the plug-in instance */
+    private IFabletPlugin fablet = null;
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Constructs a new instance.
-	 * 
-	 * @param pluginConfig
-	 *            the configuration information for this plug-in.
-	 */
-	public FabletHandler(IFabletConfig pluginConfig) {
+    /**
+     * Constructs a new instance.
+     *
+     * @param pluginConfig
+     *            the configuration information for this plug-in.
+     */
+    public FabletHandler(IFabletConfig pluginConfig) {
 
-		super(pluginConfig);
+        super(pluginConfig);
 
-		this.logger = Logger.getLogger("fabric.bus.plugins");
-		/* Record the configuration for use later */
-		this.pluginConfig = pluginConfig;
+        this.logger = Logger.getLogger("fabric.bus.plugins");
+        /* Record the configuration for use later */
+        this.pluginConfig = pluginConfig;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.plugins.IPluginHandler#start()
-	 */
-	@Override
-	public void start() {
+    /**
+     * @see fabric.bus.plugins.IPluginHandler#start()
+     */
+    @Override
+    public void start() {
 
-		try {
+        try {
 
-			logger.log(Level.FINE, "Starting fablet handler {0}", pluginConfig.getName());
+            logger.log(Level.FINE, "Starting fablet handler {0}", pluginConfig.getName());
 
-			/* Instantiate the class */
-			fablet = (IFabletPlugin) Fabric.instantiate(pluginConfig.getName());
+            /* Instantiate the class */
+            fablet = (IFabletPlugin) Fabric.instantiate(pluginConfig.getName());
 
-		} catch (Throwable t) {
+        } catch (Throwable t) {
 
-			logger.log(Level.WARNING, "Failed to create plugin:\n", t);
+            logger.log(Level.WARNING, "Failed to create plugin: ", t);
 
-		}
+        }
 
-		if (fablet != null) {
+        if (fablet != null) {
 
-			try {
-				/* Invoke the initialization method */
-				fablet.startPlugin(pluginConfig);
+            try {
+                /* Invoke the initialization method */
+                fablet.startPlugin(pluginConfig);
 
-				/* If the plug-in runs on its own thread... */
-				if (fablet instanceof Runnable) {
+                /* If the plug-in runs on its own thread... */
+                if (fablet instanceof Runnable) {
 
-					/* Start it now */
-					Thread pluginThread = new Thread(fablet);
-					pluginThread.start();
+                    /* Start it now */
+                    Thread pluginThread = new Thread(fablet);
+                    pluginThread.start();
 
-				}
+                }
 
-			} catch (Throwable t) {
+            } catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Plugin initialization failed for class {0}, arguments \"{1}\": {2}",
-						new Object[] {pluginConfig.getName(), pluginConfig.getArguments(), LogUtil.stackTrace(t)});
+                logger.log(Level.WARNING, "Plugin initialization failed for class {0}, arguments \"{1}\": {2}",
+                        new Object[] {pluginConfig.getName(), pluginConfig.getArguments(), FLog.stackTrace(t)});
 
-			}
-		}
-	}
+            }
+        }
+    }
 
-	/**
-	 * @see fabric.bus.plugins.IPluginHandler#stop()
-	 */
-	@Override
-	public void stop() {
+    /**
+     * @see fabric.bus.plugins.IPluginHandler#stop()
+     */
+    @Override
+    public void stop() {
 
-		if (fablet != null) {
-			/* Invoke the initialization method */
-			try {
+        if (fablet != null) {
+            /* Invoke the initialization method */
+            try {
 
-				/* Tell the plug-in instance to close */
-				fablet.stopPlugin();
+                /* Tell the plug-in instance to close */
+                fablet.stopPlugin();
 
-			} catch (Throwable t) {
+            } catch (Throwable t) {
 
-				logger.log(Level.WARNING, "Failed to stop plugin", t);
+                logger.log(Level.WARNING, "Failed to stop plugin: ", t);
 
-			}
-		}
-	}
+            }
+        }
+    }
 
 }

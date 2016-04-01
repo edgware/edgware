@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -29,113 +27,113 @@ import fabric.core.io.OutputTopic;
  */
 public class PlatformManagerService extends BusService implements IPersistentService, IPlatformManager {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
 
-	/*
-	 * Class static fields
-	 */
+    /*
+     * Class static fields
+     */
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/** A local copy of the interface to Fabric management functions. */
-	private IBusServices busServices = null;
+    /** A local copy of the interface to Fabric management functions. */
+    private IBusServices busServices = null;
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public PlatformManagerService() {
+    /**
+     * Constructs a new instance.
+     */
+    public PlatformManagerService() {
 
-		super(Logger.getLogger("fabric.bus.services"));
-	}
+        super(Logger.getLogger("fabric.bus.services"));
+    }
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public PlatformManagerService(Logger logger) {
+    /**
+     * Constructs a new instance.
+     */
+    public PlatformManagerService(Logger logger) {
 
-		super(logger);
-	}
+        super(logger);
+    }
 
-	/**
-	 * @see fabric.bus.services.impl.BusService#initService(fabric.bus.plugins.IPluginConfig)
-	 */
-	@Override
-	public void initService(IPluginConfig config) {
+    /**
+     * @see fabric.bus.services.impl.BusService#initService(fabric.bus.plugins.IPluginConfig)
+     */
+    @Override
+    public void initService(IPluginConfig config) {
 
-		super.initService(config);
+        super.initService(config);
 
-		/* Make a local copy of the accessor for Fabric management services */
-		busServices = ((IBusServiceConfig) config).getFabricServices();
+        /* Make a local copy of the accessor for Fabric management services */
+        busServices = ((IBusServiceConfig) config).getFabricServices();
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IService#handleServiceMessage(fabric.bus.messages.IServiceMessage,INotificationMessage,
-	 *      IClientNotificationMessage[])
-	 */
-	@Override
-	public IServiceMessage handleServiceMessage(IServiceMessage serviceMessage, INotificationMessage responseMessage,
-			IClientNotificationMessage[] clientResponses) throws Exception {
+    /**
+     * @see fabric.bus.services.IService#handleServiceMessage(fabric.bus.messages.IServiceMessage,INotificationMessage,
+     *      IClientNotificationMessage[])
+     */
+    @Override
+    public IServiceMessage handleServiceMessage(IServiceMessage serviceMessage, INotificationMessage responseMessage,
+            IClientNotificationMessage[] clientResponses) throws Exception {
 
-		IPlatformNotificationMessage message = (IPlatformNotificationMessage) serviceMessage;
+        IPlatformNotificationMessage message = (IPlatformNotificationMessage) serviceMessage;
 
-		/* Extract the message details */
-		String platform = message.getPlatform();
+        /* Extract the message details */
+        String platform = message.getPlatform();
 
-		/* Deliver the message */
-		notifyPlatform(platform, message);
+        /* Deliver the message */
+        notifyPlatform(platform, message);
 
-		return serviceMessage;
+        return serviceMessage;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IPersistentService#stopService()
-	 */
-	@Override
-	public void stopService() {
+    /**
+     * @see fabric.bus.services.IPersistentService#stopService()
+     */
+    @Override
+    public void stopService() {
 
-		logger.log(Level.FINE, "Service stopped: {0}", getClass().getName());
-	}
+        logger.log(Level.FINE, "Service [{0}] stopped", getClass().getName());
+    }
 
-	/**
-	 * @see fabric.bus.services.IPlatformManager#notifyPlatform(java.lang.String,
-	 *      fabric.bus.messages.IPlatformNotificationMessage)
-	 */
-	@Override
-	public void notifyPlatform(String platform, IPlatformNotificationMessage message) throws Exception {
+    /**
+     * @see fabric.bus.services.IPlatformManager#notifyPlatform(java.lang.String,
+     *      fabric.bus.messages.IPlatformNotificationMessage)
+     */
+    @Override
+    public void notifyPlatform(String platform, IPlatformNotificationMessage message) throws Exception {
 
-		String notificationTopic = config("fabric.commands.platforms", null, homeNode(), platform);
+        String notificationTopic = config("fabric.commands.platforms", null, homeNode(), platform);
 
-		logger.log(Level.FINEST, "Delivering message to platform \"{0}\" via topic \"{1}\":\n{2}", new Object[] {
-				platform, notificationTopic, message.toString()});
+        logger.log(Level.FINEST, "Delivering message to platform \"{0}\" via topic \"{1}\":\n{2}", new Object[] {
+                platform, notificationTopic, message.toString()});
 
-		SharedChannel clientChannel = busServices.ioChannels().sendPlatformCommandsChannel;
-		clientChannel.write(message.toWireBytes(), new OutputTopic(notificationTopic));
+        SharedChannel clientChannel = busServices.ioChannels().sendPlatformCommandsChannel;
+        clientChannel.write(message.toWireBytes(), new OutputTopic(notificationTopic));
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IPlatformManager#notifyService(java.lang.String, java.lang.String,
-	 *      fabric.bus.messages.IPlatformNotificationMessage)
-	 */
-	@Override
-	public void notifyService(String platform, String service, IPlatformNotificationMessage message) throws Exception {
+    /**
+     * @see fabric.bus.services.IPlatformManager#notifyService(java.lang.String, java.lang.String,
+     *      fabric.bus.messages.IPlatformNotificationMessage)
+     */
+    @Override
+    public void notifyService(String platform, String service, IPlatformNotificationMessage message) throws Exception {
 
-		OutputTopic notificationTopic = new OutputTopic(config("fabric.commands.services", null, homeNode(), platform,
-				service));
-		logger.log(Level.FINEST, "Delivering message to system \"{0}/{1}\" using topic \"{2}\":\n{3}", new Object[] {
-				platform, service, notificationTopic, message.toString()});
+        OutputTopic notificationTopic = new OutputTopic(config("fabric.commands.services", null, homeNode(), platform,
+                service));
+        logger.log(Level.FINEST, "Delivering message to system \"{0}/{1}\" using topic \"{2}\":\n{3}", new Object[] {
+                platform, service, notificationTopic, message.toString()});
 
-		SharedChannel clientChannel = busServices.ioChannels().sendServiceCommandsChannel;
-		clientChannel.write(message.toWireBytes(), notificationTopic);
+        SharedChannel clientChannel = busServices.ioChannels().sendServiceCommandsChannel;
+        clientChannel.write(message.toWireBytes(), notificationTopic);
 
-	}
+    }
 }

@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2010, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -27,312 +25,320 @@ import fabric.core.io.OutputTopic;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodeIpMapping;
+import fabric.registry.QueryScope;
 import fabric.session.NodeDescriptor;
 
 /**
  * Fablet class to listen on a UDP Socket for autodiscovery requests.
- * 
+ *
  * Bridge connections to external platform brokers requiring help or send config messages to the AutoDiscovery Fablet
  * for Node requests.
  */
 
 public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlugin {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
 
-	/*
-	 * Class constants
-	 */
+    /*
+     * Class constants
+     */
 
-	private final static String CLASS_NAME = AutoDiscoveryListenerFablet.class.getName();
-	private final static String PACKAGE_NAME = AutoDiscoveryListenerFablet.class.getPackage().getName();
+    private final static String CLASS_NAME = AutoDiscoveryListenerFablet.class.getName();
+    private final static String PACKAGE_NAME = AutoDiscoveryListenerFablet.class.getPackage().getName();
 
-	private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
+    private final static Logger logger = Logger.getLogger(PACKAGE_NAME);
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/** The configuration object for this instance */
-	@SuppressWarnings("unused")
-	private IFabletConfig fabletConfig = null;
+    /** The configuration object for this instance */
+    @SuppressWarnings("unused")
+    private IFabletConfig fabletConfig = null;
 
-	/** Object used to synchronize with the mapper main thread */
-	private final Object threadSync = new Object();
+    /** Object used to synchronize with the mapper main thread */
+    private final Object threadSync = new Object();
 
-	/** Home node name */
-	String myNodeName;
+    /** Home node name */
+    String myNodeName;
 
-	/** Topic on which discovered asset messages are published (needs to be node specific; load from config) */
-	private OutputTopic autodiscoveryTopic;
+    /** Topic on which discovered asset messages are published (needs to be node specific; load from config) */
+    private OutputTopic autodiscoveryTopic;
 
-	/** Flag used to indicate when the main thread should terminate */
-	private boolean isRunning = false;
+    /** Flag used to indicate when the main thread should terminate */
+    private boolean isRunning = false;
 
-	private boolean perfLoggingEnabled = false;
-	private long timeToProcessMessage = 0;
+    private boolean perfLoggingEnabled = false;
+    private long timeToProcessMessage = 0;
 
-	/** Indicates if listening to AutoDiscovery messages is enabled. */
-	private boolean autoDiscoveryListenerEnabled = false;
+    /** Indicates if listening to AutoDiscovery messages is enabled. */
+    private boolean autoDiscoveryListenerEnabled = false;
 
-	/** Listeners setup to listen on each interface/ */
-	private List<NetworkInterfaceListener> interfaceListeners = new ArrayList<NetworkInterfaceListener>();
+    /** Listeners setup to listen on each interface/ */
+    private List<NetworkInterfaceListener> interfaceListeners = new ArrayList<NetworkInterfaceListener>();
 
-	/** Queue used to hold discovery requests for processing */
-	private MulticastRequestQueue msgQueue = null;
+    /** Queue used to hold discovery requests for processing */
+    private MulticastRequestQueue msgQueue = null;
 
-	/** Thread used to monitor the node cache and remove neighbours that have not reported in */
-	private DiscoverySweeper sweeper = null;
+    /** Thread used to monitor the node cache and remove neighbours that have not reported in */
+    private DiscoverySweeper sweeper = null;
 
-	/** Store a table of time at which nodes have been discovered */
-	protected Hashtable<NodeDescriptor, Long> nodeLastSeen = new Hashtable<NodeDescriptor, Long>();
+    /** Store a table of time at which nodes have been discovered */
+    protected Hashtable<NodeDescriptor, Long> nodeLastSeen = new Hashtable<NodeDescriptor, Long>();
 
-	/** Hold the messages corresponding to discovery of each node */
-	protected Hashtable<NodeDescriptor, MulticastNodeMessage> nodeMessageCache = new Hashtable<NodeDescriptor, MulticastNodeMessage>();
+    /** Hold the messages corresponding to discovery of each node */
+    protected Hashtable<NodeDescriptor, MulticastNodeMessage> nodeMessageCache = new Hashtable<NodeDescriptor, MulticastNodeMessage>();
 
-	/** Discovery request queue depth */
-	static int queueDepth = 1;
+    /** Discovery request queue depth */
+    static int queueDepth = 1;
 
-	private StringBuffer seenBuffer = null;
+    private StringBuffer seenBuffer = null;
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	public AutoDiscoveryListenerFablet() {
-	}
+    public AutoDiscoveryListenerFablet() {
+    }
 
-	/**
-	 * @see fabric.services.fabricmanager.plugins.FabricPlugin#startPlugin(fabric.services.fabricmanager.plugins.PluginConfig)
-	 */
-	@Override
-	public void startPlugin(IPluginConfig pluginConfig) {
+    /**
+     * @see fabric.services.fabricmanager.plugins.FabricPlugin#startPlugin(fabric.services.fabricmanager.plugins.PluginConfig)
+     */
+    @Override
+    public void startPlugin(IPluginConfig pluginConfig) {
 
-		String METHOD_NAME = "startPlugin";
-		logger.entering(CLASS_NAME, METHOD_NAME);
+        fabletConfig = (IFabletConfig) pluginConfig;
+        myNodeName = homeNode();
+        perfLoggingEnabled = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_PERF_LOGGING));
+        queueDepth = Integer.parseInt(this.config(ConfigProperties.AUTO_DISCOVERY_QUEUE_DEPTH,
+                ConfigProperties.AUTO_DISCOVERY_QUEUE_DEPTH_DEFAULT));
+        String autoDiscoveryRequest = config(ConfigProperties.AUTO_DISCOVERY_LISTEN,
+                ConfigProperties.AUTO_DISCOVERY_LISTEN_DEFAULT);
+        if (autoDiscoveryRequest.equalsIgnoreCase("enabled")) {
+            autoDiscoveryListenerEnabled = true;
+        }
 
-		fabletConfig = (IFabletConfig) pluginConfig;
-		myNodeName = homeNode();
-		perfLoggingEnabled = new Boolean(this.config(ConfigProperties.REGISTRY_DISTRIBUTED_PERF_LOGGING));
-		queueDepth = Integer.parseInt(this.config(ConfigProperties.AUTO_DISCOVERY_QUEUE_DEPTH,
-				ConfigProperties.AUTO_DISCOVERY_QUEUE_DEPTH_DEFAULT));
-		String autoDiscoveryRequest = config(ConfigProperties.AUTO_DISCOVERY_LISTEN,
-				ConfigProperties.AUTO_DISCOVERY_LISTEN_DEFAULT);
-		if (autoDiscoveryRequest.equalsIgnoreCase("enabled")) {
-			autoDiscoveryListenerEnabled = true;
-		}
+        if (autoDiscoveryListenerEnabled) {
 
-		if (autoDiscoveryListenerEnabled) {
+            /* Create the request queue */
+            msgQueue = new MulticastRequestQueue(AutoDiscoveryListenerFablet.queueDepth);
 
-			/* Create the request queue */
-			msgQueue = new MulticastRequestQueue(AutoDiscoveryListenerFablet.queueDepth);
+            /* Get all the IP mappings for my node */
+            NodeIpMapping[] nodeIpMappings = FabricRegistry.getNodeIpMappingFactory(QueryScope.LOCAL)
+                    .getAllMappingsForNode(myNodeName);
 
-			/* Get all the IP mappings for my node */
-			NodeIpMapping[] nodeIpMappings = FabricRegistry.getNodeIpMappingFactory(true).getAllMappingsForNode(
-					myNodeName);
+            /* For each mapping... */
+            for (int i = 0; i < nodeIpMappings.length; i++) {
+                /* Listen */
+                NodeIpMapping nodeIpMapping = nodeIpMappings[i];
+                NetworkInterfaceListener interfaceListener = new NetworkInterfaceListener(nodeIpMapping, this, msgQueue);
+                interfaceListeners.add(interfaceListener);
+            }
 
-			/* For each mapping... */
-			for (int i = 0; i < nodeIpMappings.length; i++) {
-				/* Listen */
-				NodeIpMapping nodeIpMapping = nodeIpMappings[i];
-				NetworkInterfaceListener interfaceListener = new NetworkInterfaceListener(nodeIpMapping, this, msgQueue);
-				interfaceListeners.add(interfaceListener);
-			}
+            autodiscoveryTopic = new OutputTopic(config(ConfigProperties.AUTO_DISCOVERY_TOPIC,
+                    ConfigProperties.AUTO_DISCOVERY_TOPIC_DEFAULT, myNodeName));
 
-			autodiscoveryTopic = new OutputTopic(config(ConfigProperties.AUTO_DISCOVERY_TOPIC,
-					ConfigProperties.AUTO_DISCOVERY_TOPIC_DEFAULT, myNodeName));
+        } else {
 
-		} else {
+            logger.log(Level.INFO, "Auto discovery listener disabled");
 
-			logger.log(Level.INFO, "Auto discovery listener disabled");
+        }
+    }
 
-		}
+    /*
+     * (non-Javadoc)
+     * @see fabric.services.fabricmanager.plugins.FabricPlugin#stopPlugin()
+     */
+    @Override
+    public void stopPlugin() {
+        if (autoDiscoveryListenerEnabled) {
 
-		logger.exiting(CLASS_NAME, METHOD_NAME);
-	}
+            /* Close socket */
+            for (Iterator<NetworkInterfaceListener> iterator = interfaceListeners.iterator(); iterator.hasNext();) {
+                NetworkInterfaceListener interfaceListener = iterator.next();
+                interfaceListener.close();
+            }
+            if (sweeper != null) {
+                sweeper.stop();
+            }
+            /* Shutdown threads */
+            synchronized (msgQueue) {
+                msgQueue.notifyAll();
+            }
+            /* Tell the main thread to stop... */
+            isRunning = false;
 
-	/*
-	 * (non-Javadoc)
-	 * @see fabric.services.fabricmanager.plugins.FabricPlugin#stopPlugin()
-	 */
-	@Override
-	public void stopPlugin() {
-		String METHOD_NAME = "stopPlugin";
-		logger.entering(CLASS_NAME, METHOD_NAME);
-		if (autoDiscoveryListenerEnabled) {
+        } else {
 
-			/* Close socket */
-			for (Iterator<NetworkInterfaceListener> iterator = interfaceListeners.iterator(); iterator.hasNext();) {
-				NetworkInterfaceListener interfaceListener = iterator.next();
-				interfaceListener.close();
-			}
-			if (sweeper != null) {
-				sweeper.stop();
-			}
-			/* Shutdown threads */
-			synchronized (msgQueue) {
-				msgQueue.notifyAll();
-			}
-			/* Tell the main thread to stop... */
-			isRunning = false;
+            /* Tell the main thread to stop... */
+            isRunning = false;
+            /* ...and wake it up */
+            synchronized (threadSync) {
+                threadSync.notify();
+            }
+        }
+    }
 
-		} else {
+    /*
+     * (non-Javadoc)
+     * @see java.lang.Runnable#run()
+     */
+    @Override
+    public void run() {
 
-			/* Tell the main thread to stop... */
-			isRunning = false;
-			/* ...and wake it up */
-			synchronized (threadSync) {
-				threadSync.notify();
-			}
-		}
-		logger.exiting(CLASS_NAME, METHOD_NAME);
-	}
+        if (autoDiscoveryListenerEnabled) {
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	@Override
-	public void run() {
-		String METHOD_NAME = "run";
-		logger.entering(CLASS_NAME, METHOD_NAME);
-		if (autoDiscoveryListenerEnabled) {
+            /* Initialise the message queue and processor */
+            logger.log(Level.FINER, "Discovery enabled; initialising request queue and processor thread");
 
-			/* initialise the message queue and processor */
-			logger.log(Level.FINER, "Discovery enabled - initialising request queue and processor thread.");
-			/* Bring sweeper online */
-			if (sweeper == null) {
-				/**
-				 * Create and start the sweeper thread, used to remove node neighbours that have disappeared
-				 */
-				sweeper = new DiscoverySweeper(this);
-				new Thread(sweeper).start();
-			}
+            /* Bring sweeper online */
+            if (sweeper == null) {
+                /* Create and start the sweeper thread, used to remove node neighbours that have disappeared */
+                sweeper = new DiscoverySweeper(this);
+                new Thread(sweeper).start();
+            }
 
-			/** Start all the Multicast Listeners */
-			for (int i = 0; i < interfaceListeners.size(); i++) {
-				NetworkInterfaceListener interfaceListener = interfaceListeners.get(i);
-				new Thread(interfaceListener).start();
-			}
+            /* Start all the multicast Listeners */
+            for (int i = 0; i < interfaceListeners.size(); i++) {
+                NetworkInterfaceListener interfaceListener = interfaceListeners.get(i);
+                new Thread(interfaceListener).start();
+            }
 
-			isRunning = true;
-			// Enter loop waiting for messages.
-			while (isRunning) {
-				try {
-					synchronized (msgQueue) {
-						msgQueue.wait();
-					}
-				} catch (InterruptedException e) {
-					logger.log(Level.WARNING, "Error trying wait on DiscoveryRequestQueue: ", e);
-				}
+            isRunning = true;
 
-				logger.log(Level.FINE, "Discovery queue processor commencing message processing.");
-				while (msgQueue.isNotEmpty()) {
-					if (perfLoggingEnabled) {
-						timeToProcessMessage = System.currentTimeMillis();
-					}
-					MulticastMessage message = msgQueue.nextMessage();
-					processMessage(message);
-					if (perfLoggingEnabled) {
-						timeToProcessMessage = System.currentTimeMillis() - timeToProcessMessage;
-						logger.log(Level.FINE, "Time taken to process message {0} was {1} milliseconds", new Object[] {
-								message, timeToProcessMessage});
-					}
-				}
-			}
+            /* Loop waiting for messages... */
+            while (isRunning) {
 
-		} else {
-			/* autodiscovery is disabled so go dormant */
-			while (isRunning) {
-				try {
-					synchronized (threadSync) {
-						threadSync.wait();
-					}
-				} catch (InterruptedException e) {
-				}
-			}
-		}
-		logger.exiting(CLASS_NAME, METHOD_NAME);
-	}
+                try {
 
-	/**
-	 * Process a discovery request from clients, platforms and nodes.
-	 * 
-	 * 
-	 * @param message
-	 */
-	private void processMessage(MulticastMessage message) {
-		String METHOD_NAME = "processMessage";
-		logger.entering(CLASS_NAME, METHOD_NAME);
-		// Unpack the message , checking it is valid (we only handle Node messages)
-		if (message instanceof MulticastNodeMessage && ((MulticastNodeMessage) message).unpack()) {
-			MulticastNodeMessage nodeMessage = (MulticastNodeMessage) message;
-			logger.log(Level.FINE, "Detected an autodiscovery request from node \"{0}\" ", new Object[] {nodeMessage
-					.getNodeDescriptor()});
-			// update the node cache
-			synchronized (nodeLastSeen) {
-				/* only publish the discovery message if we've not heard from this node */
-				if (!nodeLastSeen.containsKey(nodeMessage.getNodeDescriptor())) {
-					publishMessage(nodeMessage.getDiscoveryMessage(MulticastNodeMessage.AVAILABLE));
-					nodeMessageCache.put(nodeMessage.getNodeDescriptor(), nodeMessage);
-				}
-				// always update last heard from timestamp
-				nodeLastSeen.put(nodeMessage.getNodeDescriptor(), new Date().getTime());
+                    synchronized (msgQueue) {
+                        msgQueue.wait();
+                    }
 
-				// log the complete list of nodes we've seen
-				if (logger.isLoggable(Level.FINEST)) {
-					seenBuffer = new StringBuffer();
-					Iterator<NodeDescriptor> nc_it = nodeLastSeen.keySet().iterator();
-					while (nc_it.hasNext()) {
-						if (seenBuffer.length() == 0) {
-							seenBuffer.append(nc_it.next());
-						} else {
-							seenBuffer.append(" ");
-							seenBuffer.append(nc_it.next());
-						}
-					}
-					logger.log(Level.FINEST, "Nodes Seen : {0}", new Object[] {seenBuffer.toString()});
-				}
-			}
-		} else {
-			logger.log(Level.FINE, "Unexpected message {0}", new Object[] {new String(message.getPacket().getData(), 0,
-					message.getPacket().getLength())});
-		}
-		logger.exiting(CLASS_NAME, METHOD_NAME);
-	}
+                } catch (InterruptedException e) {
+                    logger.log(Level.WARNING, "Error trying wait on DiscoveryRequestQueue: ", e);
+                }
 
-	/*
-	 * (non-Javadoc)
-	 * @see fabric.services.fabricmanager.FabletPlugin#handleControlMessage(fabric
-	 * .services.fabricmanager.FabricMessage)
-	 */
-	@Override
-	public void handleControlMessage(IFabricMessage message) {
+                logger.log(Level.FINEST, "Discovery queue processor commencing message processing");
 
-		/* Not supported */
-	}
+                while (msgQueue.isNotEmpty()) {
 
-	/**
-	 * Publish a message to the local broker.
-	 * 
-	 * @param msg
-	 */
-	public void publishMessage(String msg) {
-		logger.finest("About to publish to topic " + autodiscoveryTopic + " message " + msg);
-		try {
+                    if (perfLoggingEnabled) {
+                        timeToProcessMessage = System.currentTimeMillis();
+                    }
 
-			SharedChannel configChannel = homeNodeEndPoint().openOutputChannel(autodiscoveryTopic);
-			byte[] configMessageBuf = msg.getBytes();
-			configChannel.write(configMessageBuf);
-			homeNodeEndPoint().closeChannel(configChannel, false);
+                    MulticastMessage message = msgQueue.nextMessage();
+                    processMessage(message);
 
-		} catch (Exception e) {
+                    if (perfLoggingEnabled) {
+                        timeToProcessMessage = System.currentTimeMillis() - timeToProcessMessage;
+                        logger.log(Level.FINEST, "Time taken to process message {0} was {1} milliseconds",
+                                new Object[] {message, timeToProcessMessage});
+                    }
+                }
+            }
 
-			logger.log(Level.WARNING, "Could not write to topic \"{0}\" on local broker: {1}", new Object[] {
-					autodiscoveryTopic, e.getMessage()});
+        } else {
 
-		}
-	}
+            /* Autodiscovery is disabled so go dormant */
+            while (isRunning) {
+                try {
+                    synchronized (threadSync) {
+                        threadSync.wait();
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+    }
+
+    /**
+     * Process a discovery request from clients, platforms and nodes.
+     *
+     *
+     * @param message
+     */
+    private void processMessage(MulticastMessage message) {
+
+        /* Unpack the message , checking it is valid (we only handle Node messages) */
+        if (message instanceof MulticastNodeMessage && ((MulticastNodeMessage) message).unpack()) {
+
+            MulticastNodeMessage nodeMessage = (MulticastNodeMessage) message;
+            logger.log(Level.FINE, "Discovery message from [{0}]", new Object[] {nodeMessage.getNodeDescriptor()});
+
+            /* Update the node cache */
+            synchronized (nodeLastSeen) {
+
+                /* Only publish the discovery message if we've not heard from this node */
+                if (!nodeLastSeen.containsKey(nodeMessage.getNodeDescriptor())) {
+                    publishMessage(nodeMessage.getDiscoveryMessage(MulticastNodeMessage.AVAILABLE));
+                    nodeMessageCache.put(nodeMessage.getNodeDescriptor(), nodeMessage);
+                }
+
+                /* Always update last-heard-from timestamp */
+                nodeLastSeen.put(nodeMessage.getNodeDescriptor(), new Date().getTime());
+
+                /* Log the complete list of nodes we've seen */
+                if (logger.isLoggable(Level.FINEST)) {
+
+                    seenBuffer = new StringBuffer();
+                    Iterator<NodeDescriptor> nc_it = nodeLastSeen.keySet().iterator();
+
+                    while (nc_it.hasNext()) {
+
+                        if (seenBuffer.length() == 0) {
+                            seenBuffer.append(nc_it.next());
+                        } else {
+                            seenBuffer.append(" ");
+                            seenBuffer.append(nc_it.next());
+                        }
+                    }
+
+                    logger.log(Level.FINEST, "Nodes seen: {0}", new Object[] {seenBuffer.toString()});
+                }
+            }
+
+        } else {
+
+            logger.log(Level.FINE, "Unexpected message [0]", new Object[] {new String(message.getPacket().getData(), 0,
+                    message.getPacket().getLength())});
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see fabric.services.fabricmanager.FabletPlugin#handleControlMessage(fabric
+     * .services.fabricmanager.FabricMessage)
+     */
+    @Override
+    public void handleControlMessage(IFabricMessage message) {
+
+        /* Not supported */
+    }
+
+    /**
+     * Publish a message to the local broker.
+     *
+     * @param msg
+     */
+    public void publishMessage(String msg) {
+
+        logger.finest("About to publish to topic " + autodiscoveryTopic + " message " + msg);
+
+        try {
+
+            SharedChannel configChannel = homeNodeEndPoint().openOutputChannel(autodiscoveryTopic);
+            byte[] configMessageBuf = msg.getBytes();
+            configChannel.write(configMessageBuf);
+            homeNodeEndPoint().closeChannel(configChannel, false);
+
+        } catch (Exception e) {
+
+            logger.log(Level.WARNING, "Could not write to topic [{0}] on local broker: {1}", new Object[] {
+                    autodiscoveryTopic, e.getMessage()});
+
+        }
+    }
 
 }

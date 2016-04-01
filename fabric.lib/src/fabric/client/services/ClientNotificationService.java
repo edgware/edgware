@@ -1,8 +1,6 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2010, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -28,154 +26,154 @@ import fabric.client.FabricClient;
  * Handles notification messages sent from the Fabric to a fabricClient.
  */
 public class ClientNotificationService extends Fabric implements IClientService, IPersistentService,
-		IClientNotificationServices {
+IClientNotificationServices {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/** The service configuration. */
-	private IPluginConfig config = null;
+    /** The service configuration. */
+    private IPluginConfig config = null;
 
-	/** The Fabric client associated with this service. */
-	private FabricClient fabricClient = null;
+    /** The Fabric client associated with this service. */
+    private FabricClient fabricClient = null;
 
-	/** Channels used for Fabric I/O */
-	private BusIOChannels ioChannels = null;
+    /** Channels used for Fabric I/O */
+    private BusIOChannels ioChannels = null;
 
-	/** The client notification handlers registered for each correlation ID */
-	private final HashMap<String, IClientNotificationHandler> notificationHandlers = new HashMap<String, IClientNotificationHandler>();
+    /** The client notification handlers registered for each correlation ID */
+    private final HashMap<String, IClientNotificationHandler> notificationHandlers = new HashMap<String, IClientNotificationHandler>();
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public ClientNotificationService() {
+    /**
+     * Constructs a new instance.
+     */
+    public ClientNotificationService() {
 
-		super(Logger.getLogger("fabric.client.services"));
+        super(Logger.getLogger("fabric.client.services"));
 
-	}
+    }
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public ClientNotificationService(Logger logger) {
+    /**
+     * Constructs a new instance.
+     */
+    public ClientNotificationService(Logger logger) {
 
-		super(logger);
+        super(logger);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IService#serviceConfig()
-	 */
-	@Override
-	public IPluginConfig serviceConfig() {
+    /**
+     * @see fabric.bus.services.IService#serviceConfig()
+     */
+    @Override
+    public IPluginConfig serviceConfig() {
 
-		return config;
+        return config;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IClientService#setFabricClient(fabric.client.FabricClient)
-	 */
-	@Override
-	public void setFabricClient(FabricClient fabricClient) {
+    /**
+     * @see fabric.bus.services.IClientService#setFabricClient(fabric.client.FabricClient)
+     */
+    @Override
+    public void setFabricClient(FabricClient fabricClient) {
 
-		this.fabricClient = fabricClient;
+        this.fabricClient = fabricClient;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IClientService#setIOChannels(fabric.bus.BusIOChannels)
-	 */
-	@Override
-	public void setIOChannels(BusIOChannels ioChannels) {
+    /**
+     * @see fabric.bus.services.IClientService#setIOChannels(fabric.bus.BusIOChannels)
+     */
+    @Override
+    public void setIOChannels(BusIOChannels ioChannels) {
 
-		this.ioChannels = ioChannels;
+        this.ioChannels = ioChannels;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IService#initService(fabric.bus.plugins.IPluginConfig)
-	 */
-	@Override
-	public void initService(IPluginConfig config) {
+    /**
+     * @see fabric.bus.services.IService#initService(fabric.bus.plugins.IPluginConfig)
+     */
+    @Override
+    public void initService(IPluginConfig config) {
 
-		this.config = config;
+        this.config = config;
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IClientNotificationServices#registerNotificationHandler(java.lang.String,
-	 *      fabric.client.services.IClientNotificationHandler)
-	 */
-	@Override
-	public IClientNotificationHandler registerNotificationHandler(String correlationID,
-			IClientNotificationHandler handler) {
+    /**
+     * @see fabric.client.services.IClientNotificationServices#registerNotificationHandler(java.lang.String,
+     *      fabric.client.services.IClientNotificationHandler)
+     */
+    @Override
+    public IClientNotificationHandler registerNotificationHandler(String correlationID,
+            IClientNotificationHandler handler) {
 
-		logger.log(Level.FINEST, "Registering notification handler for correlation ID '" + correlationID + "': {"
-				+ handler + "}");
+        logger.log(Level.FINEST, "Registering notification handler for correlation ID '" + correlationID + "': {"
+                + handler + "}");
 
-		IClientNotificationHandler oldHandler = notificationHandlers.put(correlationID, handler);
-		return oldHandler;
+        IClientNotificationHandler oldHandler = notificationHandlers.put(correlationID, handler);
+        return oldHandler;
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IClientNotificationServices#deregisterNotificationHandler(java.lang.String)
-	 */
-	@Override
-	public IClientNotificationHandler deregisterNotificationHandler(String correlationID) {
+    /**
+     * @see fabric.client.services.IClientNotificationServices#deregisterNotificationHandler(java.lang.String)
+     */
+    @Override
+    public IClientNotificationHandler deregisterNotificationHandler(String correlationID) {
 
-		logger.log(Level.FINEST, "De-registering notification handler for correlation ID \"{0}\"", correlationID);
+        logger.log(Level.FINEST, "De-registering notification handler for correlation ID \"{0}\"", correlationID);
 
-		IClientNotificationHandler oldHandler = notificationHandlers.remove(correlationID);
-		return oldHandler;
+        IClientNotificationHandler oldHandler = notificationHandlers.remove(correlationID);
+        return oldHandler;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IService#handleServiceMessage(fabric.bus.messages.IServiceMessage, INotificationMessage,
-	 *      IClientNotificationMessage[])
-	 */
-	@Override
-	public IServiceMessage handleServiceMessage(IServiceMessage message, INotificationMessage response,
-			IClientNotificationMessage[] clientResponses) throws Exception {
+    /**
+     * @see fabric.bus.services.IService#handleServiceMessage(fabric.bus.messages.IServiceMessage, INotificationMessage,
+     *      IClientNotificationMessage[])
+     */
+    @Override
+    public IServiceMessage handleServiceMessage(IServiceMessage message, INotificationMessage response,
+            IClientNotificationMessage[] clientResponses) throws Exception {
 
-		ClientNotificationMessage notificationMessage = (ClientNotificationMessage) message;
+        ClientNotificationMessage notificationMessage = (ClientNotificationMessage) message;
 
-		/* Get the client notification handler registered for this correlation ID */
-		IClientNotificationHandler notificationHandler = notificationHandlers.get(message.getCorrelationID());
+        /* Get the client notification handler registered for this correlation ID */
+        IClientNotificationHandler notificationHandler = notificationHandlers.get(message.getCorrelationID());
 
-		/* If there is one... */
-		if (notificationHandler != null) {
+        /* If there is one... */
+        if (notificationHandler != null) {
 
-			/* Invoke it */
-			notificationHandler.handleNotification(notificationMessage);
+            /* Invoke it */
+            notificationHandler.handleNotification(notificationMessage);
 
-		} else {
+        } else {
 
-			logger.log(Level.FINE, "No handler registered for message {0} (correlation ID {1})", new Object[] {
-					message.getUID(), message.getCorrelationID()});
+            logger.log(Level.FINE, "No handler registered for message UID [{0}] (correlation ID [{1}])", new Object[] {
+                    message.getUID(), message.getCorrelationID()});
 
-		}
+        }
 
-		return message;
+        return message;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.services.IPersistentService#stopService()
-	 */
-	@Override
-	public void stopService() {
+    /**
+     * @see fabric.bus.services.IPersistentService#stopService()
+     */
+    @Override
+    public void stopService() {
 
-		logger.log(Level.FINE, "Service stopped: {0}", getClass().getName());
-	}
+        logger.log(Level.FINE, "Service [{0}] stopped", getClass().getName());
+    }
 }
