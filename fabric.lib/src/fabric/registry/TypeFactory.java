@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2009, 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -100,6 +98,12 @@ public interface TypeFactory extends Factory {
 	 * @return
 	 */
 	public Type[] getAllSystemTypes();
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Type[] getAllServiceWiring();
 
 	/**
 	 * 
