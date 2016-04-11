@@ -300,7 +300,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
         } catch (IOException e1) {
 
-            logger.log(Level.FINEST, "Cannot reconnect to the broker: ", e1);
+            logger.log(Level.FINER, "Cannot reconnect to the broker: ", e1.getMessage());
+            logger.log(Level.FINEST, "Full exception: ", e1);
             callback.endPointLost(this);
 
         }
@@ -482,16 +483,14 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
                     MqttConnectOptions connOpts = new MqttConnectOptions();
                     connOpts.setCleanSession(config.isCleanStart());
-                    // TODO: make this a configuration setting
-                    connOpts.setKeepAliveInterval(60);
+                    connOpts.setKeepAliveInterval(config.getKeepAliveInterval());
                     mqttClient.connect(connOpts);
 
                 } else {
 
                     MqttConnectOptions connOpts = new MqttConnectOptions();
                     connOpts.setCleanSession(config.isCleanStart());
-                    // TODO - Make this a configuration setting
-                    connOpts.setKeepAliveInterval(60);
+                    connOpts.setKeepAliveInterval(config.getKeepAliveInterval());
                     connOpts.setWill(mqttClient.getTopic(config.getConnectionMessageTopic()), config
                             .getDisconnectMessage().getBytes(), config.getMqttQos(), false);
                     mqttClient.connect(connOpts);
@@ -530,8 +529,9 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
                         throw new IOException(e);
 
                     } else {
+
                         /* Wait before retrying */
-                        logger.log(Level.FINER, "Retrying broker connection in {0} second(s)", retryInterval / 1000);
+                        logger.log(Level.FINE, "Retrying broker connection in {0} second(s)", retryInterval / 1000);
                         try {
                             Thread.sleep(retryInterval);
                         } catch (InterruptedException e1) {
