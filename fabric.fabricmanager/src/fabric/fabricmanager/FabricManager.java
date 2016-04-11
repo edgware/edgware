@@ -12,7 +12,9 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +22,7 @@ import fabric.Fabric;
 import fabric.FabricBus;
 import fabric.FabricShutdownHook;
 import fabric.IFabricShutdownHookAction;
+import fabric.SystemDescriptor;
 import fabric.bus.BusIOChannels;
 import fabric.bus.BusMessageHandler;
 import fabric.bus.IBusIO;
@@ -49,6 +52,9 @@ import fabric.registry.FabricRegistry;
 import fabric.registry.Node;
 import fabric.registry.NodeIpMapping;
 import fabric.registry.QueryScope;
+import fabric.registry.SystemFactory;
+import fabric.registry.TaskService;
+import fabric.registry.TaskServiceFactory;
 import fabric.registry.Type;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
@@ -312,16 +318,21 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
         if (config("fabric.node.cleanRegistry", "true").equals("true")) {
 
-            String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistence\":\"static\"%%'";
+            logger.info("Cleaning Registry");
+
+            String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistent\":\"true\"%%'";
 
             String[] updates = new String[] {String.format(template, "ACTORS", "ATTRIBUTES", "ATTRIBUTES"),
                     String.format(template, "BEARERS", "ATTRIBUTES", "ATTRIBUTES"),
                     String.format(template, "DATA_FEEDS", "ATTRIBUTES", "ATTRIBUTES"), "DELETE FROM NODE_IP_MAPPING",
+                    String.format(template, "FEED_TYPES", "ATTRIBUTES", "ATTRIBUTES"),
                     String.format(template, "NODES", "ATTRIBUTES", "ATTRIBUTES"),
+                    String.format(template, "NODE_TYPES", "ATTRIBUTES", "ATTRIBUTES"),
                     String.format(template, "PLATFORMS", "ATTRIBUTES", "ATTRIBUTES"),
+                    String.format(template, "PLATFORM_TYPES", "ATTRIBUTES", "ATTRIBUTES"),
                     String.format(template, "SERVICES", "ATTRIBUTES", "ATTRIBUTES"),
+                    String.format(template, "SERVICE_TYPES", "ATTRIBUTES", "ATTRIBUTES"),
                     String.format(template, "TASK_NODES", "CONFIGURATION", "CONFIGURATION"),
-                    String.format(template, "TASK_SERVICES", "CONFIGURATION", "CONFIGURATION"),
                     "DELETE FROM TASK_SUBSCRIPTIONS", String.format(template, "TASKS", "TASK_DETAIL", "TASK_DETAIL"),};
 
             try {
@@ -330,12 +341,38 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
                 logger.log(Level.WARNING, "Registry clean failed: ", e);
             }
 
+            /* Get the list of remaining systems */
+            SystemFactory sf = FabricRegistry.getSystemFactory(QueryScope.LOCAL);
+            fabric.registry.System[] systems = sf.getAll();
+            SystemDescriptor[] systemDescs = new SystemDescriptor[systems.length];
+            for (int s = 0; s < systems.length; s++) {
+                systemDescs[s] = new SystemDescriptor(systems[s].getPlatformId(), systems[s].getId());
+            }
+            List<SystemDescriptor> systemDescsList = Arrays.asList(systemDescs);
+
+            /* Get the list of task services from the Registry, and remove those that are no longer needed */
+            TaskServiceFactory tsf = FabricRegistry.getTaskServiceFactory(QueryScope.LOCAL);
+            TaskService[] taskServices = tsf.getAllTaskServices();
+            for (int ts = 0; ts < taskServices.length; ts++) {
+
+                if (taskServices[ts].getConfiguration() == null
+                        || !(taskServices[ts].getConfiguration().matches(".*\"persistent\":\"true\".*"))) {
+
+                    SystemDescriptor tsSystemDesc = new SystemDescriptor(taskServices[ts].getPlatformId(),
+                            taskServices[ts].getSystemId());
+
+                    if (!systemDescsList.contains(tsSystemDesc)) {
+                        logger.log(Level.FINEST, "Deleting task service record [{0}]", taskServices[ts]);
+                        tsf.delete(taskServices[ts]);
+                    }
+                }
+            }
+
         } else {
 
-            logger.fine("Registry clean not requested.");
+            logger.warning("Registry clean disabled");
 
         }
-
     }
 
     /**
@@ -577,7 +614,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
      */
     @Override
     public NeighbourChannels disconnectNeighbour(NodeDescriptor nodeDescriptor, boolean doRetry)
-        throws UnsupportedOperationException, IOException {
+            throws UnsupportedOperationException, IOException {
 
         return busIO.disconnectNeighbour(nodeDescriptor, doRetry);
     }
