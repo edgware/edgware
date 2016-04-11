@@ -334,7 +334,7 @@ rem **************************************************************************
 
 	rem - Invoke the Fabric launcher directly
 
-	set CLASSPATH=!FABRIC_HOME!\lib\db-derby\lib\derbyclient.jar;!FABRIC_HOME!\lib\oslib\commons-cli-1.2.jar
+	set CLASSPATH=!FABRIC_HOME!\lib\db-derby\lib\derbyclient.jar;!FABRIC_HOME!\lib\oslib\commons-cli-1.3.1.jar
 	for %%F in (!FABRIC_HOME!\lib\fabric\fabric*.jar) do set CLASSPATH=!CLASSPATH!;%%F
 
  	if "!DBTYPE!"=="gaian" (

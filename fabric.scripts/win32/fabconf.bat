@@ -20,7 +20,7 @@ if not exist "!FABRIC_HOME!" (
 REM Remove any spaces from the FABRIC_HOME path
 for %%H in ("!FABRIC_HOME!") do set FABRIC_HOME=%%~sH
 
-set CLASSPATH=!FABRIC_HOME!\lib\db-derby\lib\derbyclient.jar;!FABRIC_HOME!\lib\oslib\commons-cli-1.2.jar
+set CLASSPATH=!FABRIC_HOME!\lib\db-derby\lib\derbyclient.jar;!FABRIC_HOME!\lib\oslib\commons-cli-1.3.1.jar
 for %%F in (!FABRIC_HOME!\lib\fabric\fabric.admin_*.jar) DO set CLASSPATH=!CLASSPATH!;%%F
 
 java fabric.tools.FabricConfig %*

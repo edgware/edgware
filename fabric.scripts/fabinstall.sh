@@ -17,7 +17,7 @@ function configRegistryJars {
 	monitor_jar=`ls $FABRIC_HOME/lib/fabric/fabric.registry.monitor*.jar`
 	lib_jar=`ls $FABRIC_HOME/lib/fabric/fabric.lib*.jar`
 	core_jar=`ls $FABRIC_HOME/lib/fabric/fabric.core*.jar`
-	mqtt_jar=`ls $FABRIC_HOME/lib/oslib/mqtt-client-*.jar`
+	mqtt_jar=`ls $FABRIC_HOME/lib/oslib/org.eclipse.paho.client.mqtt*.jar`
 	derby_client_jar=`ls $FABRIC_HOME/lib/db-derby/lib/derbyclient.jar`
 
 	rm -f "$FABRIC_HOME/lib/sql/80_REGMON_JARS_ALL_LOAD.sql"

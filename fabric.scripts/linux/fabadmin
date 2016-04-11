@@ -299,7 +299,7 @@ function runLauncher {
 	# Invoke the Fabric launcher directly
 	debug "Running launcher with arguments: $*"
 
-	export CLASSPATH=$FABRIC_HOME/lib/db-derby/lib/derbyclient.jar:$FABRIC_HOME/lib/oslib/commons-cli-1.2.jar:$(echo $FABRIC_HOME/lib/fabric/*.jar | tr ' ' ':')
+	export CLASSPATH=$FABRIC_HOME/lib/db-derby/lib/derbyclient.jar:$FABRIC_HOME/lib/oslib/commons-cli-1.3.1.jar:$(echo $FABRIC_HOME/lib/fabric/*.jar | tr ' ' ':')
 	
 	if [ "$DBTYPE" == "gaian" ]
 	then

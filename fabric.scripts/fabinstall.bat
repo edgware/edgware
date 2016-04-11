@@ -20,7 +20,7 @@ goto :main
 	for %%F in ("!FABRIC_HOME!\lib\fabric\fabric.registry.monitor*.jar") do set monitor_jar=%%F
 	for %%F in ("!FABRIC_HOME!\lib\fabric\fabric.lib*.jar") do set lib_jar=%%F
 	for %%F in ("!FABRIC_HOME!\lib\fabric\fabric.core*.jar") do set core_jar=%%F
-	for %%F in ("!FABRIC_HOME!\lib\oslib\mqtt-client-*.jar") do set mqtt_jar=%%F
+	for %%F in ("!FABRIC_HOME!\lib\oslib\org.eclipse.paho.client.mqtt*.jar") do set mqtt_jar=%%F
 	for %%F in ("!FABRIC_HOME!\lib\db-derby\lib\derbyclient*.jar") do set derby_client_jar=%%F
 
 	if exist "!FABRIC_HOME!\lib\sql\80_REGMON_JARS_ALL_LOAD.sql" (
