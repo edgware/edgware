@@ -2,10 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="/bundle.paho.mqtt/jars/mqtt-client-0.4.0.jar"/>
-	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-annotations-2.2.3.jar"/>
-	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-core-2.2.3.jar"/>
-	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-databind-2.2.3.jar"/>
+	<classpathentry kind="lib" path="/bundle.paho.mqtt/jars/org.eclipse.paho.client.mqttv3_1.0.2.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-annotations-2.5.1.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-core-2.5.1.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-databind-2.5.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fabric.services.interfaces.json"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="output" path="bin"/>

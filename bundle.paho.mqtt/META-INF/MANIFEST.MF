@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Paho MQTT Java Client Plug-in
 Bundle-SymbolicName: bundle.paho.mqtt
-Bundle-Version: 0.4.0
-Bundle-ClassPath: jars/mqtt-client-0.4.0.jar,
+Bundle-Version: 0.4.1
+Bundle-ClassPath: jars/org.eclipse.paho.client.mqttv3_1.0.2.jar,
  .
 Export-Package: bundle.paho.mqtt,
  org.eclipse.paho.client.mqttv3,

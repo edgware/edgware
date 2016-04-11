@@ -8,31 +8,31 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-annotations-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-deploy-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-http-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-io-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-schemas-3.1.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-security-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-servlet-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-util-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-webapp-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/jetty-xml-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/servlet-api-3.1.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/javax-websocket-client-impl-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/javax-websocket-server-impl-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/javax.websocket-api-1.0.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/websocket-api-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/websocket-client-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/websocket-common-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/websocket-server-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.1.5.v20140505/lib/websocket/websocket-servlet-9.1.5.v20140505.jar"/>
-	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-annotations-2.2.3.jar"/>
-	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-core-2.2.3.jar"/>
-	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-databind-2.2.3.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-annotations-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-deploy-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-http-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-io-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-schemas-3.1.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-security-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-servlet-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-util-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-webapp-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/jetty-xml-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/servlet-api-3.1.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/javax-websocket-client-impl-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/javax-websocket-server-impl-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/javax.websocket-api-1.0.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/websocket-api-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/websocket-client-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/websocket-common-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/websocket-server-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/websocket-servlet-9.2.9.v20150224.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-annotations-2.5.1.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-core-2.5.1.jar"/>
+	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-databind-2.5.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fabric.services.interfaces.json"/>
-	<classpathentry kind="lib" path="/bundle.paho.mqtt/jars/mqtt-client-0.4.0.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/apache/commons/commons-cli-1.2.jar"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/apache/commons/commons-codec-1.8.jar"/>
+	<classpathentry kind="lib" path="/bundle.paho.mqtt/jars/org.eclipse.paho.client.mqttv3_1.0.2.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/apache/commons/commons-cli-1.3.1.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/apache/commons/commons-codec-1.10.jar"/>
 	<classpathentry kind="output" path="WebContent/WEB-INF/classes"/>
 </classpath>

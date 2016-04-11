@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fabric.core"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/fabric.lib"/>
-	<classpathentry kind="lib" path="/fabric.prereqs/apache/commons/commons-cli-1.2.jar"/>
+	<classpathentry kind="lib" path="/fabric.prereqs/apache/commons/commons-cli-1.3.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/bundle.paho.mqtt"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
