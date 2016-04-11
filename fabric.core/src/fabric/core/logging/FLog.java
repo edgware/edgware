@@ -30,6 +30,40 @@ public class FLog {
      */
 
     /**
+     * Answers the current log message indent level for the calling thread.
+     *
+     * @return the level.
+     */
+    protected static int indentLevel() {
+
+        int indentLevel = 0;
+
+        synchronized (nesting) {
+            Integer indent = nesting.get(Thread.currentThread().getName());
+            indentLevel = (indent == null) ? 0 : indent;
+        }
+
+        return indentLevel;
+    }
+
+    /**
+     * Answers a string indent matching the log message indent level for the calling thread.
+     *
+     * @return the indent.
+     */
+    protected static String indent() {
+
+        StringBuilder indent = new StringBuilder();
+        int indentLevel = indentLevel();
+
+        for (int i = 0; i < indentLevel; i++) {
+            indent.append('-');
+        }
+
+        return indent.toString();
+    }
+
+    /**
      * Logs entry to a method.
      *
      * @param logger
@@ -50,6 +84,7 @@ public class FLog {
     public static void enter(Logger logger, Level level, Object caller, String method, Object... params) {
 
         try {
+
             if (logger != null && level != null && logger.isLoggable(level)) {
 
                 StringBuilder buf = new StringBuilder();
