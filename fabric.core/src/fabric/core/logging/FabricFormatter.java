@@ -92,16 +92,12 @@ public class FabricFormatter extends Formatter {
             /* Add the short name of the source class */
             String className = r.getSourceClassName();
             className = className.substring(className.lastIndexOf('.') + 1, className.length());
-            ;
-            logMessage.append('[').append(className).append(" ");
-            logMessage.append(r.getSourceMethodName());
-            logMessage.append("] ");
+            logMessage.append('[').append(className).append('.').append(r.getSourceMethodName()).append("] ");
 
         }
 
         /* Add the body of the message */
-        logMessage.append(": ");
-        logMessage.append(formatMessage(r));
+        logMessage.append(": ").append(formatMessage(r));
 
         /* If an exception is involved... */
         if (r.getThrown() != null) {
