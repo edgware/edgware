@@ -29,9 +29,9 @@ CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=true;user=gaiandb;password=pa
 --    The URI of additional type attributes.
 -------------------------------------------------------------------------------
 
-INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('app', 'Built-in platform type for applications', '{"persistence":"static"}', null);
-INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('service', 'Built-in platform type for services', '{"persistence":"static"}', null);
-INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('sensor', 'Built-in generic sensor platform type', '{"persistence":"static"}', null);
+INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('app', 'Built-in platform type for applications', '{"persistent":"true"}', null);
+INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('service', 'Built-in platform type for services', '{"persistent":"true"}', null);
+INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('sensor', 'Built-in generic sensor platform type', '{"persistent":"true"}', null);
 
 -------------------------------------------------------------------------------
 -- FABRIC.SYSTEM_TYPES
@@ -51,7 +51,7 @@ INSERT INTO FABRIC.PLATFORM_TYPES VALUES ('sensor', 'Built-in generic sensor pla
 --    The URI of additional type attributes.
 -------------------------------------------------------------------------------
 
-INSERT INTO FABRIC.SERVICE_TYPES VALUES ('simple_system', 'Default simple system', 'untyped_output_feed,untyped_input_feed,untyped_solicit_response,untyped_request_response,untyped_notification,untyped_listener', null);
+INSERT INTO FABRIC.SERVICE_TYPES VALUES ('simple_system', 'Default simple system', '{"persistent":"true","serviceTypes":"untyped_output_feed,untyped_input_feed,untyped_solicit_response,untyped_request_response,untyped_notification,untyped_listener"}', null);
 
 -------------------------------------------------------------------------------
 -- FABRIC.SERVICE_TYPES
@@ -72,12 +72,12 @@ INSERT INTO FABRIC.SERVICE_TYPES VALUES ('simple_system', 'Default simple system
 --    The URI of additional type attributes.
 -------------------------------------------------------------------------------
 
-INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_output_feed', 'Built-in untyped output feed service type', 'output-feed', null);
-INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_input_feed', 'Built-in untyped input feed service type', 'input-feed', null);
-INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_solicit_response', 'Built-in untyped solicit-response service type', 'solicit-response', null);
-INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_request_response', 'Built-in untyped request-response service type', 'request-response', null);
-INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_notification', 'Built-in untyped notification service type', 'notification', null);
-INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_listener', 'Built-in untyped listener service type', 'listener', null);
+INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_output_feed', 'Built-in untyped output feed service type', '{"persistent":"true","mode":"output-feed"}', null);
+INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_input_feed', 'Built-in untyped input feed service type', '{"persistent":"true","mode":"input-feed"}', null);
+INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_solicit_response', 'Built-in untyped solicit-response service type', '{"persistent":"true","mode":"solicit-response"}', null);
+INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_request_response', 'Built-in untyped request-response service type', '{"persistent":"true","mode":"request-response"}', null);
+INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_notification', 'Built-in untyped notification service type', '{"persistent":"true","mode":"notification"}', null);
+INSERT INTO FABRIC.FEED_TYPES VALUES('untyped_listener', 'Built-in untyped listener service type', '{"persistent":"true","mode":"listener"}', null);
 
 -------------------------------------------------------------------------------
 DISCONNECT;
