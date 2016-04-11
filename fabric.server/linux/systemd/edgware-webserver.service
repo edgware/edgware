@@ -15,9 +15,9 @@ Description=Start and stop the Edgware Web Server
 After=network.target
 
 [Service]
-EnvironmentFile=/opt/ibm/edgware-0.4.0/server/linux/sysconfig
-ExecStart=/opt/ibm/edgware-0.4.0/bin/linux/fabadmin -s -w default
-ExecStop=/opt/ibm/edgware-0.4.0/bin/linux/fabadmin -st -w
+EnvironmentFile=/opt/ibm/edgware-0.4.1/server/linux/sysconfig
+ExecStart=/opt/ibm/edgware-0.4.1/bin/linux/fabadmin -s -w default
+ExecStop=/opt/ibm/edgware-0.4.1/bin/linux/fabadmin -st -w
 
 [Install]
 WantedBy=multi-user.target

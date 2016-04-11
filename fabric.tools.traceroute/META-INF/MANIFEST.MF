@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric TraceRoute Service
 Bundle-SymbolicName: fabric.tools.traceroute
-Bundle-Version: 0.4.0
+Bundle-Version: 0.4.1
 Bundle-Copyright: (C) Copyright IBM Corp. 2009, 2012
 Export-Package: fabric.tools.traceroute
 Import-Package: fabric,

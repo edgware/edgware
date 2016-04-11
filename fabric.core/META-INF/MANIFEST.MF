@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Base Abstraction API
 Bundle-SymbolicName: fabric.core
-Bundle-Version: 0.4.0
-Bundle-Copyright: (C) Copyright IBM Corp. 2007, 2014
+Bundle-Version: 0.4.1
+Bundle-Copyright: (C) Copyright IBM Corp. 2007, 2016
 Bundle-Localization: plugin
 Bundle-Vendor: IBM
 Export-Package: fabric.core.cache,

@@ -7,7 +7,7 @@
 <listEntry value="1"/>
 </listAttribute>
 <mapAttribute key="org.eclipse.debug.core.environmentVariables">
-<mapEntry key="FABRIC_HOME" value="${workspace_loc:fabric.build}\work\core\edgware-0.4.0"/>
+<mapEntry key="FABRIC_HOME" value="${workspace_loc:fabric.build}\work\core\edgware-0.4.1"/>
 </mapAttribute>
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/CDC-1.0%Foundation-1.0"/>
@@ -15,5 +15,5 @@
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="--registry -delete"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="fabric.admin"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Djava.util.logging.config.file=./logging.properties"/>
-<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:fabric.build/work/core/edgware-0.4.0}"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:fabric.build/work/core/edgware-0.4.1}"/>
 </launchConfiguration>

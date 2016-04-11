@@ -16,9 +16,9 @@ Requires=edgware-node.service
 After=network.target
 
 [Service]
-EnvironmentFile=/opt/ibm/edgware-0.4.0/server/linux/sysconfig
-ExecStart=/opt/ibm/edgware-0.4.0/bin/linux/fabadmin -s -n default
-ExecStop=/opt/ibm/edgware-0.4.0/bin/linux/fabadmin -st -n default
+EnvironmentFile=/opt/ibm/edgware-0.4.1/server/linux/sysconfig
+ExecStart=/opt/ibm/edgware-0.4.1/bin/linux/fabadmin -s -n default
+ExecStop=/opt/ibm/edgware-0.4.1/bin/linux/fabadmin -st -n default
 
 [Install]
 WantedBy=multi-user.target

@@ -27,7 +27,7 @@
 ### REQUIRED VARIABLE
 # Please ensure this is set correctly for your installation
 
-[ -z "$FABRIC_HOME" ] && export FABRIC_HOME=/opt/ibm/edgware-0.4.0
+[ -z "$FABRIC_HOME" ] && export FABRIC_HOME=/opt/ibm/edgware-0.4.1
 
 ### END REQUIRED VARIABLE
 

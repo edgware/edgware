@@ -15,9 +15,9 @@ Description=Start and stop the Edgware Registry
 After=network.target
 
 [Service]
-EnvironmentFile=/opt/ibm/edgware-0.4.0/server/linux/sysconfig
-ExecStart=/opt/ibm/edgware-0.4.0/linux/fabadmin -s -distributed -r default 
-ExecStop=/opt/ibm/edgware-0.4.0/linux/fabadmin -st -distributed -r
+EnvironmentFile=/opt/ibm/edgware-0.4.1/server/linux/sysconfig
+ExecStart=/opt/ibm/edgware-0.4.1/linux/fabadmin -s -distributed -r default 
+ExecStop=/opt/ibm/edgware-0.4.1/linux/fabadmin -st -distributed -r
 
 [Install]
 WantedBy=multi-user.target

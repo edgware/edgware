@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Registry Monitor
 Bundle-SymbolicName: fabric.registry.monitor
-Bundle-Version: 0.4.0
-Bundle-Copyright: (C) Copyright IBM Corp. 2009, 2012
+Bundle-Version: 0.4.1
+Bundle-Copyright: (C) Copyright IBM Corp. 2009, 2016
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,

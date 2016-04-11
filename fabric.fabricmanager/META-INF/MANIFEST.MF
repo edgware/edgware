@@ -3,8 +3,8 @@ Eclipse-LazyStart: true
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Manager
 Bundle-SymbolicName: fabric.fabricmanager;singleton:=true
-Bundle-Version: 0.4.0
-Bundle-Copyright: (C) Copyright IBM Corp. 2006, 2014
+Bundle-Version: 0.4.1
+Bundle-Copyright: (C) Copyright IBM Corp. 2006, 2016
 Bundle-Activator: fabric.fabricmanager.osgi.Activator
 Bundle-Vendor: IBM
 Bundle-Localization: plugin

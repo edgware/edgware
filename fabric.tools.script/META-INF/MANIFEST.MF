@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Script
 Bundle-SymbolicName: fabric.tools.script
 Bundle-Version: 0.4.1
+Bundle-Copyright: (C) Copyright IBM Corp. 2016
 Bundle-ClassPath: script.jar,
  jars/org.eclipse.paho.client.mqttv3_1.0.2.jar,
  jars/jackson-annotations-2.5.1.jar,
@@ -10,6 +11,6 @@ Bundle-ClassPath: script.jar,
  jars/jackson-databind-2.5.1.jar
 Export-Package: fabric.script;uses:="org.eclipse.paho.client.mqttv3"
 Bundle-Vendor: IBM
-Require-Bundle: fabric.services.interfaces.json;bundle-version="0.4.0",
- bundle.jackson;bundle-version="2.2.3",
- bundle.paho.mqtt;bundle-version="0.4.0"
+Require-Bundle: fabric.services.interfaces.json;bundle-version="0.4.1",
+ bundle.jackson;bundle-version="2.5.1",
+ bundle.paho.mqtt;bundle-version="0.4.1"

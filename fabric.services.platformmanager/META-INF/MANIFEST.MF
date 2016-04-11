@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Platform Manager Service
 Bundle-SymbolicName: fabric.services.platformmanager
-Bundle-Version: 0.4.0
+Bundle-Version: 0.4.1
 Bundle-Copyright: (C) Copyright IBM Corp. 2012
 Import-Package: fabric,
  fabric.bus,
@@ -12,8 +12,8 @@ Import-Package: fabric,
  fabric.bus.services.impl,
  fabric.core.io
 Fabric-Plugin: fabric.services.platformmanager.PlatformManagerService
-Require-Bundle: fabric.core;bundle-version="0.4.0",
- fabric.lib;bundle-version="0.4.0",
- fabric.fabricmanager;bundle-version="0.4.0"
+Require-Bundle: fabric.core;bundle-version="0.4.1",
+ fabric.lib;bundle-version="0.4.1",
+ fabric.fabricmanager;bundle-version="0.4.1"
 Bundle-Vendor: IBM
 Export-Package: fabric.services.platformmanager

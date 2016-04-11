@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Availability Fablet
 Bundle-SymbolicName: fabric.fablets.availability
-Bundle-Version: 0.4.0
+Bundle-Version: 0.4.1
 Bundle-Copyright: (C) Copyright IBM Corp. 2010, 2012
 Import-Package: fabric,
  fabric.bus,
@@ -12,8 +12,8 @@ Import-Package: fabric,
  fabric.registry,
  fabric.registry.exception
 Fabric-Plugin: fabric.fablets.availability.AvailabilityFablet
-Require-Bundle: fabric.core;bundle-version="0.4.0",
- fabric.lib;bundle-version="0.4.0",
- fabric.fabricmanager;bundle-version="0.4.0"
+Require-Bundle: fabric.core;bundle-version="0.4.1",
+ fabric.lib;bundle-version="0.4.1",
+ fabric.fabricmanager;bundle-version="0.4.1"
 Export-Package: fabric.fablets.availability
 Bundle-Vendor: IBM

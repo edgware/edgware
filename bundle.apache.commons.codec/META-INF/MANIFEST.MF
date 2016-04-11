@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Apache Commons Codec Bundle
 Bundle-SymbolicName: bundle.apache.commons.codec
-Bundle-Version: 1.8
+Bundle-Version: 1.10
 Import-Package: org.osgi.framework
 Bundle-ClassPath: jars/commons-codec-1.10.jar,
  .

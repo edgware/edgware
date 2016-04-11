@@ -3,8 +3,8 @@ Eclipse-RegisterBuddy: fabric.lib
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Auto Discovery Fablet
 Bundle-SymbolicName: fabric.fablets.autodiscovery
-Bundle-Version: 0.4.0
-Bundle-Copyright: (C) Copyright IBM Corp. 2008, 2014
+Bundle-Version: 0.4.1
+Bundle-Copyright: (C) Copyright IBM Corp. 2008, 2016
 Import-Package: fabric,
  fabric.bus,
  fabric.bus.messages,

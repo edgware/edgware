@@ -15,7 +15,7 @@
 JAVA_HOME=/etc/alternatives/jre
 
 # The root location of your Edgware installation
-FABRIC_HOME=/opt/ibm/edgware-0.4.0
+FABRIC_HOME=/opt/ibm/edgware-0.4.1
 
 # Add Edgware and Java to the PATH
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:$JAVA_HOME/jre/bin:$FABRIC_HOME/bin/linux

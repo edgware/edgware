@@ -3,7 +3,7 @@ Eclipse-RegisterBuddy: fabric.lib
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Proxy Publisher Service
 Bundle-SymbolicName: fabric.services.proxypublisher
-Bundle-Version: 0.4.0
+Bundle-Version: 0.4.1
 Bundle-Copyright: (C) Copyright IBM Corp. 2012
 Import-Package: fabric,
  fabric.bus,
