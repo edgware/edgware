@@ -68,7 +68,10 @@ public class MqttConfig extends Config {
     private int connectRetries = 3;
 
     /** The interval between connection retries (milliseconds). */
-    private int connectRetriesInterval = 1000;
+    private int connectRetriesInterval = 5000;
+
+    /** The maximum time interval (seconds) between messages sent/received via a broker connection. */
+    private int keepAliveInterval = 60;
 
     /** Indicates if the MQTT-S is enabled. */
     private boolean mqttsEnabled = false;
@@ -103,6 +106,7 @@ public class MqttConfig extends Config {
         this.retain = source.retain;
         this.connectRetries = source.connectRetries;
         this.connectRetriesInterval = source.connectRetriesInterval;
+        this.keepAliveInterval = source.keepAliveInterval;
 
         /* QoS settings */
         this.mqttsEnabled = source.mqttsEnabled;
@@ -112,7 +116,7 @@ public class MqttConfig extends Config {
 
     /**
      * Constructs a new instance from the specified configuration properties.
-     * 
+     *
      * @param config
      *            the configuration properties.
      */
@@ -134,6 +138,8 @@ public class MqttConfig extends Config {
                 .toString(connectRetries)));
         connectRetriesInterval = Integer.parseInt(config.getProperty(ConfigProperties.MQTT_CONNECT_RETRIES_INTERVAL,
                 Integer.toString(connectRetriesInterval)));
+        keepAliveInterval = Integer.parseInt(config.getProperty(ConfigProperties.MQTT_KEEP_ALIVE_INTERVAL, Integer
+                .toString(keepAliveInterval)));
 
         /* QoS settings */
         maxMqttsPayload = Integer.parseInt(config.getProperty("mqtts.maxPayload", "500"));
@@ -143,7 +149,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the IP port of the broker.
-     * 
+     *
      * @return the IP port of the broker.
      */
     public int getIPPort() {
@@ -153,7 +159,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the IP port of the broker.
-     * 
+     *
      * @param brokerIpPort
      *            the IP port of the broker.
      */
@@ -170,10 +176,10 @@ public class MqttConfig extends Config {
      * <li>QOS_1 or 1</li>
      * <li>QOS_2 or 2</li>
      * </ul>
-     * 
+     *
      * @param qosString
      *            the string representation of the QoS value.
-     * 
+     *
      * @return the QoS value.
      */
     public static byte decodeMqttQoS(String qosString) {
@@ -199,10 +205,10 @@ public class MqttConfig extends Config {
 
     /**
      * Generates a random client ID.
-     * 
+     *
      * @param prefix
      *            the caller-supplied prefix for the client ID.
-     * 
+     *
      * @return the random client ID, prefixed with the caller supplied prefix.
      */
     public static String generateClient(String prefix) {
@@ -213,7 +219,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the flag indicating if the MQTT-S is enabled.
-     * 
+     *
      * @return <code>true</code> if MQTT-S is enabled, <code>false</code> otherwise.
      */
     public boolean isMqttsEnabled() {
@@ -224,7 +230,7 @@ public class MqttConfig extends Config {
     /**
      * Gets the maximum size of a message (in bytes) that can be sent as <code>MessageQoS.BEST_EFFORT</code> (currently
      * the space available in a single UDP packet).
-     * 
+     *
      * @return the maximum size in bytes.
      */
     public int getMaxMqttsPayload() {
@@ -234,7 +240,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the "clean start" flag (defaults to <code>true</code>).
-     * 
+     *
      * @return the current flag value or the default.
      */
     public boolean isCleanStart() {
@@ -244,7 +250,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the "clean start" flag (defaults to <code>true</code>).
-     * 
+     *
      * @param cleanStart
      *            the new value.
      */
@@ -255,7 +261,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the client ID (no default).
-     * 
+     *
      * @return the client ID or <code>null</code> if it has not been set.
      */
     public String getClient() {
@@ -266,7 +272,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the client ID (defaults to a generated UUID).
-     * 
+     *
      * @param client
      *            the client ID to set.
      */
@@ -277,7 +283,7 @@ public class MqttConfig extends Config {
 
     /**
      * The "retain publication" flag (defaults to <code>false</code>).
-     * 
+     *
      * @return the current flag value or the default.
      */
     public boolean isRetain() {
@@ -287,7 +293,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the "retain publication" flag (defaults to <code>false</code>).
-     * 
+     *
      * @param retain
      *            the new value.
      */
@@ -298,7 +304,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the IP address of the broker (no default).
-     * 
+     *
      * @return the address.
      */
     public String getbrokerIpAddress() {
@@ -314,7 +320,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the QoS setting (defaults to <code>2</code>).
-     * 
+     *
      * @return the QoS setting.
      */
     public byte getMqttQos() {
@@ -324,7 +330,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the QoS setting (defaults to <code>2</code>).
-     * 
+     *
      * @param mqttQos
      *            The QoS setting.
      */
@@ -335,7 +341,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the number of connection retries before failing (default 0).
-     * 
+     *
      * @return the number of retries.
      */
     public int getConnectRetries() {
@@ -345,7 +351,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the number of connection retries before failing (default 0).
-     * 
+     *
      * @param retries
      *            the number of retries.
      */
@@ -356,7 +362,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the message sent when connection is lost (<em>disconnect</em> message).
-     * 
+     *
      * @return the disconnection message.
      */
     public String getDisconnectMessage() {
@@ -366,7 +372,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the message sent when connection is lost (<em>disconnect</em> message).
-     * 
+     *
      * @param disconnectMessage
      *            the disconnection message.
      */
@@ -377,7 +383,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the message sent when connection is established (<em>connect</em> message).
-     * 
+     *
      * @return the connection message.
      */
     public String getConnectMessage() {
@@ -387,7 +393,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the message sent when connection is established (<em>connect</em> message).
-     * 
+     *
      * @param reconnectMessage
      *            the connection message.
      */
@@ -398,7 +404,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the name of the connection message topic (no default).
-     * 
+     *
      * @return The name of the last will and testament topic.
      */
     public String getConnectionMessageTopic() {
@@ -408,7 +414,7 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the name of the connection message topic (no default).
-     * 
+     *
      * @param connectionMessageTopic
      *            The name of the topic.
      */
@@ -419,7 +425,7 @@ public class MqttConfig extends Config {
 
     /**
      * Gets the interval (milliseconds) between connection retries.
-     * 
+     *
      * @return the retry interval.
      */
     public int getConnectionRetryInterval() {
@@ -429,12 +435,33 @@ public class MqttConfig extends Config {
 
     /**
      * Sets the interval (milliseconds) between connection retries before failing.
-     * 
+     *
      * @param retries
      *            the number of retries.
      */
-    public void setConnectRetriesInterval(int interval) {
+    public void setConnectRetryInterval(int interval) {
 
         this.connectRetriesInterval = interval;
+    }
+
+    /**
+     * Gets the maximum interval (seconds) between messages to/from the broker.
+     *
+     * @return the keep alive interval.
+     */
+    public int getKeepAliveInterval() {
+
+        return keepAliveInterval;
+    }
+
+    /**
+     * Sets the maximum interval (seconds) between messages to/from the broker.
+     *
+     * @param keepAliveInterval
+     *            the keep alive interval.
+     */
+    public void setKeepAliveInterval(int keepAliveInterval) {
+
+        this.keepAliveInterval = keepAliveInterval;
     }
 }

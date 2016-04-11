@@ -53,8 +53,11 @@ public class ConfigProperties {
      */
     public static final String REGISTRY_DISTRIBUTED_PERF_LOGGING = "fabric.perf.logging";
 
-    /** Timeout configuration property indicating how long the distributed Registry will wait for a response. */
+    /** Timeout configuration property indicating how long a distributed Registry query will wait for a response. */
     public static final String REGISTRY_DISTRIBUTED_TIMEOUT = "registry.distributed.timeout";
+
+    /** Timeout configuration property indicating how long a local Registry query will wait for a response. */
+    public static final String REGISTRY_LOCAL_TIMEOUT = "registry.local.timeout";
 
     /**
      * Configuration property indicating the amount by which the distributed Registry timeout is reduced at each hop in
@@ -180,6 +183,12 @@ public class ConfigProperties {
 
     /** Configuration property indicating the interval between trying to re-establish a broker connection. */
     public static final String MQTT_CONNECT_RETRIES_INTERVAL = "mqtt.connectRetries.interval";
+
+    /**
+     * Configuration property indicating the maximum time interval (seconds) between messages sent/received via a broker
+     * connection.
+     */
+    public static final String MQTT_KEEP_ALIVE_INTERVAL = "mqtt.keepAlive.interval";
 
     /** The MQTT clean start setting configuration property. */
     public static final String MQTT_CLEAN_START = "mqtt.cleanStart";
