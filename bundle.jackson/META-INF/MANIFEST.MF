@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Jackson
 Bundle-SymbolicName: bundle.jackson
-Bundle-Version: 2.2.3
+Bundle-Version: 2.5.1
 Import-Package: org.osgi.framework
 Bundle-ClassPath: jars/jackson-annotations-2.5.1.jar,
  jars/jackson-core-2.5.1.jar,
