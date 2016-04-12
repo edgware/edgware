@@ -400,7 +400,7 @@ public class SystemServices extends FabricBus {
      * @throws IncompleteObjectException
      */
     protected void addWiringToRegistry(ServiceDescriptor subscribeToDescriptor, ServiceDescriptor deliverToDescriptor)
-        throws IncompleteObjectException {
+            throws IncompleteObjectException {
 
         SystemWiringFactory swf = FabricRegistry.getSystemWiringFactory(QueryScope.LOCAL);
         SystemWiring sw = swf.create("DEFAULT", subscribeToDescriptor.platform(), subscribeToDescriptor.system(),

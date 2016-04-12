@@ -513,7 +513,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      * @throws Exception
      */
     public void unsubscribe(ServiceDescriptor[] outputFeedServices, ServiceDescriptor inputFeedService)
-            throws Exception {
+        throws Exception {
 
         /* If this is a valid input feed... */
         if (systemServices.inputFeedIDs().contains(inputFeedService.service())) {
@@ -567,7 +567,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      * @throws Exception
      */
     public HashMap<ServiceDescriptor, List<ServiceDescriptor>> unsubscribe(ServiceDescriptor[] outputFeedServices)
-            throws Exception {
+        throws Exception {
 
         Fabric fabric = new Fabric();
         HashMap<ServiceDescriptor, List<ServiceDescriptor>> allUnwired = new HashMap<ServiceDescriptor, List<ServiceDescriptor>>();
