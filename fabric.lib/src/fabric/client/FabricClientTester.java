@@ -34,8 +34,8 @@ import fabric.bus.messages.IServiceMessage;
 import fabric.bus.messages.impl.MessagePayload;
 import fabric.bus.messages.impl.ServiceMessage;
 import fabric.bus.routing.impl.StaticRouting;
+import fabric.client.services.IClientNotification;
 import fabric.client.services.IClientNotificationHandler;
-import fabric.client.services.ITopologyChange;
 import fabric.core.io.mqtt.MqttConfig;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Platform;
@@ -46,8 +46,8 @@ import fabric.registry.RouteFactory;
 /**
  * Fabric test class.
  */
-public class FabricClientTester extends FabricBus implements ISubscriptionCallback, ITopologyChange,
-IClientNotificationHandler {
+public class FabricClientTester extends FabricBus implements ISubscriptionCallback, IClientNotification,
+        IClientNotificationHandler {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2008, 2012";
@@ -153,7 +153,7 @@ IClientNotificationHandler {
 
             testharness.run(line.getArgs()[0], line.getOptionValue("actor"), line.getOptionValue("task"), line
                     .getOptionValue("platform", "'*'"), line.getOptionValue("service", "'*'"), line.getOptionValue(
-                            "feed", "'*'"), line.getOptionValue("max", "5"));
+                    "feed", "'*'"), line.getOptionValue("max", "5"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -217,7 +217,7 @@ IClientNotificationHandler {
         fabricClient = new FabricClient(node, actor, actorPlatform, this);
 
         /* Register to receive notifications if the home node is lost */
-        fabricClient.registerHomeNodeConnectivityCallback(this);
+        fabricClient.registerClientNotificationCallback(this);
 
         fabricClient.connect();
 
@@ -451,20 +451,30 @@ IClientNotificationHandler {
     }
 
     /**
-     * @see fabric.client.services.ITopologyChange#homeNodeUpdate(fabric.bus.messages.IServiceMessage)
+     * @see fabric.client.services.IClientNotification#homeNodeNotification(fabric.bus.messages.IServiceMessage)
      */
     @Override
-    public void homeNodeUpdate(IServiceMessage message) {
+    public void homeNodeNotification(IServiceMessage message) {
 
-        logger.log(Level.INFO, "homeNodeConnectivity(): IServiceMessage received: " + message);
+        logger.log(Level.INFO, "homeNodeNotification(): IServiceMessage received: " + message);
 
     }
 
-    /** @see fabric.client.services.ITopologyChange#topologyUpdate(fabric.bus.messages.IServiceMessage) */
+    /** @see fabric.client.services.IClientNotification#topologyNotification(fabric.bus.messages.IServiceMessage) */
     @Override
-    public void topologyUpdate(IServiceMessage message) {
+    public void topologyNotification(IServiceMessage message) {
 
-        logger.log(Level.INFO, "topologyUpdate(): IServiceMessage received: " + message);
+        logger.log(Level.INFO, "topologyNotification(): IServiceMessage received: " + message);
+
+    }
+
+    /**
+     * @see fabric.client.services.IClientNotification#fabricNotification(fabric.bus.messages.IServiceMessage)
+     */
+    @Override
+    public void fabricNotification(IServiceMessage message) {
+
+        logger.log(Level.INFO, "fabricNotification(): IServiceMessage received: " + message);
 
     }
 

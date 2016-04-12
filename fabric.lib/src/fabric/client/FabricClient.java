@@ -814,11 +814,11 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
     }
 
     /**
-     * @see fabric.client.IFabricClientServices#registerTopologyChangeCallback(fabric.client.services.IClientNotification
+     * @see fabric.client.IFabricClientServices#registerClientNotificationCallback(fabric.client.services.IClientNotification
      *      )
      */
     @Override
-    public IClientNotification registerTopologyChangeCallback(IClientNotification callback) {
+    public IClientNotification registerClientNotificationCallback(IClientNotification callback) {
 
         IClientNotification oldCallback = clientNotification;
         clientNotification = callback;
