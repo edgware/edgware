@@ -159,8 +159,8 @@ IClientNotificationServices {
 
         } else {
 
-            logger.log(Level.FINE, "No handler registered for message UID [{0}] (correlation ID [{1}])", new Object[] {
-                    message.getUID(), message.getCorrelationID()});
+            logger.log(Level.FINEST, "No client handler registered for message UID [{0}] (correlation ID [{1}])",
+                    new Object[] {message.getUID(), message.getCorrelationID()});
 
         }
 
