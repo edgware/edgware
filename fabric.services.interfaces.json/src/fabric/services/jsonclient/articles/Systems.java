@@ -60,7 +60,7 @@ public class Systems extends Article {
      *
      * @return A JSON status object.
      */
-    public static JSON register(final JSON op, String correlId) {
+    public static JSON register(final JSON op, String correlId, Object clientID) {
 
         AdapterStatus status = new AdapterStatus(correlId);
 
@@ -96,7 +96,11 @@ public class Systems extends Article {
 
                     if (status != null && status.isOK()) {
 
-                        String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                        JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
+                        attr = (attr != null) ? attr : new JSON();
+                        attr.putString("persistent", "true");
+                        attr.putString("autoStart", "true");
+                        attr.putString("clientID", (clientID != null) ? clientID.toString() : "<unknown>");
 
                         /* Insert the system into the Registry */
                         SystemFactory systemFactory = FabricRegistry.getSystemFactory();
@@ -112,7 +116,7 @@ public class Systems extends Article {
                                 0, // bearing,
                                 0, // velocity,
                                 op.getString(AdapterConstants.FIELD_DESCRIPTION), // system description
-                                attributes, null); // attributes, attributes URI;
+                                (attr != null) ? attr.toString() : null, null); // attributes, attributes URI;
                         boolean success = systemFactory.save(system);
 
                         if (!success) {
@@ -195,10 +199,21 @@ public class Systems extends Article {
                 break;
             }
 
+            /* Get the system's attributes */
+            JSON attr = null;
+            try {
+                String attrString = serviceTypeRecord.getAttributes();
+                attr = new JSON((attrString != null) ? attrString : "{}");
+            } catch (Exception e) {
+                status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_REGISTER,
+                        AdapterConstants.ARTICLE_SYSTEM, AdapterConstants.STATUS_MSG_BAD_ATTRIBUTE_JSON, correlId);
+                break;
+            }
+
             /* If the mode was not specified with the system type... */
             if (mode.equals("")) {
                 /* Get the mode of the service from the service type */
-                mode = serviceTypeRecord.getAttributes();
+                mode = attr.getString("mode");
             }
 
             /* Used to hold the updated mode name (known as the "direction" in the research Fabric Registry schema) */
@@ -241,7 +256,7 @@ public class Systems extends Article {
                     break;
             }
 
-            status = createService(platformId, systemId, name, type, direction, correlId);
+            status = createService(platformId, systemId, name, type, direction, attr, correlId);
 
             if (status.isOK()) {
 
@@ -277,7 +292,7 @@ public class Systems extends Article {
      * @return the status of the call.
      */
     private static AdapterStatus createService(String platformId, String systemId, String serviceId,
-            String serviceTypeId, String mode, String correlId) {
+            String serviceTypeId, String mode, JSON attr, String correlId) {
 
         AdapterStatus status = new AdapterStatus(correlId);
 
@@ -294,8 +309,8 @@ public class Systems extends Article {
                     null, // credentials
                     AdapterConstants.STATE_AVAILABLE, //
                     null, // description
-                    null, // attributes
-                    null); // attributes URI
+                    (attr != null) ? attr.toString() : null, // attributes
+                            null); // attributes URI
             boolean success = systemFactory.save(service);
 
             if (!success) {
@@ -382,7 +397,14 @@ public class Systems extends Article {
         if (type != null) {
 
             /* Unpack the list of service types */
-            String serviceTypeList = type.getAttributes();
+            String attrString = type.getAttributes();
+            JSON attr = null;
+            try {
+                attr = new JSON((attrString != null) ? attrString : "{}");
+            } catch (Exception e) {
+                attr = new JSON();
+            }
+            String serviceTypeList = attr.getString("serviceTypes");
             serviceTypes = serviceTypeList.split(",");
 
         }
