@@ -124,11 +124,14 @@ public class MQTTAdapter extends JSONAdapter implements IFabricShutdownHookActio
 
         setAdapterUserID(MqttConfig.generateClient("MA"));
         setAdapterPlatformID(MqttConfig.generateClient("MA"));
-        setAdapterPlatformType("HTTP_ADAPTER");
+        setAdapterPlatformType("MQTT_ADAPTER");
         super.init();
 
         /* Open the command channels */
         openChannels();
+
+        /* Start pre-registered systems */
+        startSystems();
 
     }
 
