@@ -146,14 +146,23 @@ public class ClientServiceDispatcher extends ServiceDispatcher implements IClien
                 if ((event == IServiceMessage.EVENT_DISCONNECTED || event == IServiceMessage.EVENT_CONNECTED)) {
                     if (homeNode().equals(node)) {
                         if (client != null) {
-                            client.homeNodeUpdate(requestIn);
+                            client.homeNodeNotification(requestIn);
                         }
                     } else {
                         if (client != null) {
-                            client.topologyUpdate(requestIn);
+                            client.topologyNotification(requestIn);
                         }
                     }
+                } else {
+                    /* Pass all others through to the client */
+                    client.fabricNotification(requestIn);
                 }
+
+            } else {
+
+                /* Pass all others through to the client */
+                client.fabricNotification(requestIn);
+
             }
         }
 
