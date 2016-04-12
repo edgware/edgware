@@ -115,7 +115,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
      */
     @Override
     public TaskServiceDescriptor subscribe(TaskServiceDescriptor feed, ISubscriptionCallback callback)
-        throws IllegalArgumentException, Exception {
+            throws IllegalArgumentException, Exception {
 
         return subscribe(feed, null, callback);
     }
@@ -219,7 +219,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
             TaskSubscription ts = factory.createTaskSubscription(activeServiceDescriptor.task(), fabricClient.actor(),
                     activeServiceDescriptor.platform(), activeServiceDescriptor.system(), activeServiceDescriptor
-                            .service(), fabricClient.platform());
+                    .service(), fabricClient.platform());
             try {
                 factory.save(ts);
             } catch (IncompleteObjectException e) {
@@ -367,7 +367,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
      * @throws FactoryCreationException
      */
     private FeedRoutes getFeedRoute(TaskServiceDescriptor feedPattern) throws PersistenceException,
-        FactoryCreationException {
+    FactoryCreationException {
 
         // Query not restricted to just local
         RegistryObject[] objects = FabricRegistry.runQuery(FeedRoutesFactoryImpl.getRouteQuery(feedPattern.task(),
@@ -455,7 +455,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
         } catch (Exception e) {
 
-            logger.log(Level.WARNING, "Exception handling message received on topic [{0}]: {1}", new Object[] {
+            logger.log(Level.FINE, "Exception handling message received on topic [{0}]: {1}", new Object[] {
                     messageTopic, e.getMessage()});
             logger.log(Level.FINER, "Full message:\n{0}", messageString);
             logger.log(Level.FINEST, "Full exception: ", e);

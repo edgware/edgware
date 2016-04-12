@@ -217,6 +217,9 @@ public class NotificationManagerService extends BusService implements Runnable, 
                                 logger.log(Level.FINE,
                                         "Timout; firing notification for correlation ID [{0}], service ID [{1}]",
                                         new Object[] {nextRecord.correlationID, nextRecord.serviceDescriptor});
+                                logger.log(Level.FINE, "Notification message [{0}] bytes:\n", new Object[] {
+                                        (nextRecord.message != null) ? nextRecord.message.toString().length() : 0,
+                                        (nextRecord.message != null) ? nextRecord.message.toString() : ""});
                                 deliverNotification(nextRecord.actor, nextRecord.actorPlatform, null,
                                         nextRecord.message, null);
 
