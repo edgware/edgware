@@ -26,8 +26,8 @@ import fabric.bus.messages.impl.ConnectionMessage;
 import fabric.bus.services.IClientServiceDispatcher;
 import fabric.bus.services.impl.ClientServiceDispatcher;
 import fabric.client.services.ClientNotificationService;
+import fabric.client.services.IClientNotification;
 import fabric.client.services.IClientNotificationHandler;
-import fabric.client.services.ITopologyChange;
 import fabric.core.io.ICallback;
 import fabric.core.io.InputTopic;
 import fabric.core.io.Message;
@@ -99,7 +99,7 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
     protected String actor = null;
 
     /** The callback to handle Fabric service messages that are otherwise ignored. */
-    protected ITopologyChange topologyChange = null;
+    protected IClientNotification clientNotification = null;
 
     /**
      * The ID of the platform associated with the connection, i.e. the actor's platform, for example the name of the
@@ -814,40 +814,54 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
     }
 
     /**
-     * @see fabric.client.IFabricClientServices#registerHomeNodeConnectivityCallback(fabric.client.services.ITopologyChange
+     * @see fabric.client.IFabricClientServices#registerTopologyChangeCallback(fabric.client.services.IClientNotification
      *      )
      */
     @Override
-    public ITopologyChange registerHomeNodeConnectivityCallback(ITopologyChange callback) {
+    public IClientNotification registerTopologyChangeCallback(IClientNotification callback) {
 
-        ITopologyChange oldCallback = topologyChange;
-        topologyChange = callback;
+        IClientNotification oldCallback = clientNotification;
+        clientNotification = callback;
         return oldCallback;
 
     }
 
     /**
-     * @see fabric.client.services.ITopologyChange#homeNodeUpdate(fabric.bus.messages.IServiceMessage)
+     * @see fabric.client.services.IClientNotification#homeNodeNotification(fabric.bus.messages.IServiceMessage)
      */
     @Override
-    public void homeNodeUpdate(IServiceMessage message) {
-        if (topologyChange != null) {
+    public void homeNodeNotification(IServiceMessage message) {
+        if (clientNotification != null) {
             try {
-                topologyChange.homeNodeUpdate(message);
+                clientNotification.homeNodeNotification(message);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Exception in client home node connectivity callback: ", e);
+                logger.log(Level.WARNING, "Exception in client home node notification callback: ", e);
             }
         }
     }
 
-    /** @see fabric.client.services.ITopologyChange#topologyUpdate(fabric.bus.messages.IServiceMessage) */
+    /** @see fabric.client.services.IClientNotification#topologyNotification(fabric.bus.messages.IServiceMessage) */
     @Override
-    public void topologyUpdate(IServiceMessage message) {
-        if (topologyChange != null) {
+    public void topologyNotification(IServiceMessage message) {
+        if (clientNotification != null) {
             try {
-                topologyChange.topologyUpdate(message);
+                clientNotification.topologyNotification(message);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Exception in client topology update callback: ", e);
+                logger.log(Level.WARNING, "Exception in client topology notification callback: ", e);
+            }
+        }
+    }
+
+    /**
+     * @see fabric.client.services.IClientNotification#fabricNotification(fabric.bus.messages.IServiceMessage)
+     */
+    @Override
+    public void fabricNotification(IServiceMessage message) {
+        if (clientNotification != null) {
+            try {
+                clientNotification.fabricNotification(message);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Exception in client Fabric notification callback: ", e);
             }
         }
     }

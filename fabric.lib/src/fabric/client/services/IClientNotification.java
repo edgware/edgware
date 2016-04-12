@@ -12,7 +12,7 @@ import fabric.bus.messages.IServiceMessage;
 /**
  * Interface for classes handling Fabric topology change information.
  */
-public interface ITopologyChange {
+public interface IClientNotification {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010";
@@ -31,7 +31,7 @@ public interface ITopologyChange {
      * @param message
      *            the message.
      */
-    public void homeNodeUpdate(IServiceMessage message);
+    public void homeNodeNotification(IServiceMessage message);
 
     /**
      * Handles a message indicating a change in Fabric topology.
@@ -39,6 +39,13 @@ public interface ITopologyChange {
      * @param message
      *            the message.
      */
-    public void topologyUpdate(IServiceMessage message);
+    public void topologyNotification(IServiceMessage message);
 
+    /**
+     * Handles all other Fabric notification messages.
+     *
+     * @param message
+     *            the message.
+     */
+    public void fabricNotification(IServiceMessage message);
 }
