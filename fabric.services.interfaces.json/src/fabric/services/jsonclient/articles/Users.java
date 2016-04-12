@@ -53,7 +53,7 @@ public class Users extends Article {
 
             } else {
 
-                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
 
                 ActorFactory actorFactory = FabricRegistry.getActorFactory();
                 Actor actor = actorFactory.createActor(id, //
@@ -62,8 +62,8 @@ public class Users extends Article {
                         null, // credentials
                         op.getString(AdapterConstants.FIELD_AFFIL), // Affiliation
                         op.getString(AdapterConstants.FIELD_DESCRIPTION), // Description
-                        attributes, // Attributes
-                        null); // attributesURI
+                        (attr != null) ? attr.toString() : null, // Attributes
+                                null); // attributesURI
                 boolean success = actorFactory.save(actor);
 
                 if (!success) {

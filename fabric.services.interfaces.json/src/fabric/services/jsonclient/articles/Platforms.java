@@ -74,7 +74,7 @@ public class Platforms extends Article {
                 Double lat = location.getDouble(AdapterConstants.FIELD_LATITUDE);
                 Double lon = location.getDouble(AdapterConstants.FIELD_LONGITUDE);
                 Double alt = location.getDouble(AdapterConstants.FIELD_ALTITUDE);
-                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
                 String description = op.getString(AdapterConstants.FIELD_DESCRIPTION);
 
                 Platform platform = platformFactory.createPlatform(platformId, platformTypeId, getNode(), //
@@ -88,7 +88,7 @@ public class Platforms extends Article {
                         0.0, // Bearing
                         0.0, // Velocity
                         description, // Description
-                        attributes, // Attributes
+                        (attr != null) ? attr.toString() : null, // Attributes
                         null); // Attributes URI
                 boolean success = platformFactory.save(platform);
 

@@ -32,13 +32,13 @@ public class SystemTypes extends Article {
 
     /**
      * Inserts a System Type into the registry.
-     * 
+     *
      * @param op
      *            the full JSON operation object.
-     * 
+     *
      * @param correlId
      *            the operation correlation ID.
-     * 
+     *
      * @return the status of the operation.
      */
     public static JSON register(final JSON op, String correlId) {
@@ -108,13 +108,18 @@ public class SystemTypes extends Article {
                         serviceTypeList.setLength(serviceTypeList.length() - 1);
                     }
 
+                    /* Get the attributes of the service */
+                    JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
+                    attr = (attr != null) ? attr : new JSON();
+
                     /*
                      * Add the system type to the Registry (a system's services are currently recorded in its attributes
                      * field)
                      */
                     TypeFactory typeFactory = FabricRegistry.getTypeFactory();
+                    attr.putString("serviceTypes", serviceTypeList.toString());
                     Type type = typeFactory.createSystemType(typeid, op.getString(AdapterConstants.FIELD_DESCRIPTION),
-                            serviceTypeList.toString(), null);
+                            attr.toString(), null);
                     boolean success = typeFactory.save(type);
 
                     if (!success) {
@@ -140,7 +145,7 @@ public class SystemTypes extends Article {
 
     /**
      * Deletes a System Type from the registry.
-     * 
+     *
      * @param systemTypeId
      *            The ID of the Type to be deleted.
      * @param correlId
@@ -168,10 +173,10 @@ public class SystemTypes extends Article {
 
     /**
      * Returns the result of the System Type query a JSON Object.
-     * 
+     *
      * @param correlId
      *            The correlation ID of the request.
-     * 
+     *
      * @return The query result JSON Object.
      */
     public static JSON query(final JSON op, final String correlId) {
@@ -275,15 +280,15 @@ public class SystemTypes extends Article {
                         nextTypeJSON.putString(AdapterConstants.FIELD_TYPE, nextType.getId());
                         nextTypeJSON.putString(AdapterConstants.FIELD_DESCRIPTION, nextType.getDescription());
 
-                        String attributes = nextType.getAttributes();
-                        JSON attributesJson = JsonUtils.stringTOJSON(attributes, "Attribute value is not valid JSON");
-                        if (attributesJson != null) {
-                            nextTypeJSON.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
+                        String attrString = nextType.getAttributes();
+                        JSON attr = JsonUtils.stringTOJSON(attrString, "Attribute value is not valid JSON");
+                        if (attr != null) {
+                            nextTypeJSON.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attr);
                         }
 
                         /* Get the list of services offered by this system type */
 
-                        String[] servicesOffered = attributes.split(",");
+                        String[] servicesOffered = attrString.split(",");
                         JSONArray servicesOfferedJSONArray = new JSONArray();
 
                         for (String service : servicesOffered) {

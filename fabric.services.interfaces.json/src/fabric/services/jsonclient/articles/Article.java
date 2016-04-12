@@ -167,16 +167,21 @@ public class Article extends FabricBus {
         }
 
         if ((fields & QUERY_ATTRIBUTES) != 0) {
-            String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
-            if (attributes != null && !attributes.equals("{}")) {
-                int start = attributes.indexOf('{') + 1;
-                int end = attributes.lastIndexOf('}');
-                end = (end != -1) ? end : attributes.length();
+            String attrString = null;
+            try {
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
+                attrString = (attr != null) ? attr.toString() : null;
+            } catch (Exception e) {
+            }
+            if (attrString != null && !attrString.equals("{}")) {
+                int start = attrString.indexOf('{') + 1;
+                int end = attrString.lastIndexOf('}');
+                end = (end != -1) ? end : attrString.length();
                 if (start <= end) {
-                    attributes = attributes.substring(start, end);
+                    attrString = attrString.substring(start, end);
                 }
                 s.append("ATTRIBUTES LIKE '%");
-                s.append(attributes);
+                s.append(attrString);
                 s.append("%' AND ");
             }
         }
@@ -235,9 +240,9 @@ public class Article extends FabricBus {
 
         }
 
-        JSON attributesJson = JsonUtils.stringTOJSON(attributes, "Attribute value is not valid JSON");
-        if (attributesJson != null && !attributesJson.toString().equals("{}")) {
-            json.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attributesJson);
+        JSON attr = JsonUtils.stringTOJSON(attributes, "Attribute value is not valid JSON");
+        if (attr != null && !attr.toString().equals("{}")) {
+            json.putJSON(AdapterConstants.FIELD_ATTRIBUTES, attr);
         }
 
     }

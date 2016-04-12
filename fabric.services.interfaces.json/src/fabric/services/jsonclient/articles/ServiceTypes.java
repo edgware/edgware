@@ -53,9 +53,15 @@ public class ServiceTypes {
 
                 /* Get the mode of the service, indicating its semantics */
                 String mode = op.getString(AdapterConstants.FIELD_MODE);
-                String testMode = (mode != null) ? mode : "";
 
-                switch (testMode) {
+                /* Get the attributes of the service */
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
+                attr = (attr != null) ? attr : new JSON();
+
+                /* Combine */
+                attr.putString("mode", mode);
+
+                switch ((mode != null) ? mode : "") {
 
                     case AdapterConstants.MODE_OUTPUT:
                     case AdapterConstants.MODE_INPUT:
@@ -68,7 +74,7 @@ public class ServiceTypes {
                         /* Create the Registry entry for the new service type */
                         TypeFactory typeFactory = FabricRegistry.getTypeFactory();
                         Type type = typeFactory.createServiceType(typeid, op
-                                .getString(AdapterConstants.FIELD_DESCRIPTION), mode, null);
+                                .getString(AdapterConstants.FIELD_DESCRIPTION), attr.toString(), null);
                         boolean success = typeFactory.save(type);
 
                         if (!success) {

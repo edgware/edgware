@@ -52,13 +52,13 @@ public class UserTypes extends Article {
 
             } else {
 
-                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
 
                 TypeFactory typeFactory = FabricRegistry.getTypeFactory();
                 Type type = typeFactory.createActorType(typeid, //
                         op.getString(AdapterConstants.FIELD_DESCRIPTION), // Description
-                        attributes, // Attributes
-                        null); // Attributes URI
+                        (attr != null) ? attr.toString() : null, // Attributes
+                                null); // Attributes URI
                 typeFactory.save(type);
 
             }

@@ -74,7 +74,7 @@ public class Nodes extends Article {
                 }
 
                 String description = op.getString(AdapterConstants.FIELD_DESCRIPTION);
-                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
 
                 NodeFactory nodeFactory = FabricRegistry.getNodeFactory();
                 Node node = nodeFactory.createNode(id, typeId, // Node type
@@ -87,7 +87,7 @@ public class Nodes extends Article {
                         0, // altitude,
                         0, // bearing,
                         0, // velocity,
-                        description, attributes, null);
+                        description, (attr != null) ? attr.toString() : null, null);
                 boolean success = nodeFactory.save(node);
 
                 if (!success) {
@@ -318,7 +318,8 @@ public class Nodes extends Article {
         try {
 
             String target = op.getString("target");
-            QueryScope queryScope = (target != null && target.equals("local")) ? QueryScope.LOCAL : QueryScope.DISTRIBUTED;
+            QueryScope queryScope = (target != null && target.equals("local")) ? QueryScope.LOCAL
+                    : QueryScope.DISTRIBUTED;
             NodeNeighbourFactory neighbourFactory = FabricRegistry.getNodeNeighbourFactory(queryScope);
             String querySQL = generatePredicate(AdapterConstants.FIELD_ID, "NODE_ID", QUERY_NONE, op);
 

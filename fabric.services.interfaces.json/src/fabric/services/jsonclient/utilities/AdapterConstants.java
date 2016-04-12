@@ -260,5 +260,6 @@ public class AdapterConstants {
     public static final String STATUS_MSG_BAD_MODE = "Unrecognized mode.";
     public static final String STATUS_MSG_BAD_STATE = "Unrecognized system state.";
     public static final String STATUS_MSG_UNRECOGNIZED_TYPE = "Unrecognized type.";
+    public static final String STATUS_MSG_BAD_ATTRIBUTE_JSON = "Invalid JSON attributes.";
 
 }

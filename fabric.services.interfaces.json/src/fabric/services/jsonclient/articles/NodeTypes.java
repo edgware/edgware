@@ -52,11 +52,12 @@ public class NodeTypes extends Article {
 
             } else {
 
-                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
                 String description = op.getString(AdapterConstants.FIELD_DESCRIPTION);
 
                 TypeFactory typeFactory = FabricRegistry.getTypeFactory();
-                Type type = typeFactory.createNodeType(typeid, description, attributes, null);
+                Type type = typeFactory.createNodeType(typeid, description, (attr != null) ? attr.toString() : null,
+                        null);
                 typeFactory.save(type);
 
             }

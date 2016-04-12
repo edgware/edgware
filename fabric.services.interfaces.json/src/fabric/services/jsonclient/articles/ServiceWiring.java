@@ -139,16 +139,17 @@ public class ServiceWiring extends Article {
                 predicateBuilder.append("' AND ");
             }
 
-            String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
-            if (attributes != null && !attributes.equals("{}")) {
-                int start = attributes.indexOf('{') + 1;
-                int end = attributes.lastIndexOf('}');
-                end = (end != -1) ? end : attributes.length();
+            JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
+            String attrString = (attr != null) ? attr.toString() : null;
+            if (attrString != null && !attrString.equals("{}")) {
+                int start = attrString.indexOf('{') + 1;
+                int end = attrString.lastIndexOf('}');
+                end = (end != -1) ? end : attrString.length();
                 if (start <= end) {
-                    attributes = attributes.substring(start, end);
+                    attrString = attrString.substring(start, end);
                 }
                 predicateBuilder.append("ATTRIBUTES LIKE '%");
-                predicateBuilder.append(attributes);
+                predicateBuilder.append(attrString);
                 predicateBuilder.append("%' AND ");
             }
 

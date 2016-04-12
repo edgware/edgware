@@ -60,10 +60,11 @@ public class Bearers extends Article {
             } else {
 
                 String description = op.getString(AdapterConstants.FIELD_DESCRIPTION);
-                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
 
                 BearerFactory bearerFactory = FabricRegistry.getBearerFactory();
-                Bearer bearer = bearerFactory.createBearer(id, available, description, attributes, null);
+                Bearer bearer = bearerFactory.createBearer(id, available, description, (attr != null) ? attr.toString()
+                        : null, null);
                 boolean success = bearerFactory.save(bearer);
 
                 if (!success) {

@@ -56,11 +56,11 @@ public class PlatformTypes extends Article {
 
             } else {
 
-                String attributes = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES).toString();
+                JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
 
                 TypeFactory typeFactory = FabricRegistry.getTypeFactory();
                 Type type = typeFactory.createPlatformType(typeId, op.getString(AdapterConstants.FIELD_DESCRIPTION),
-                        attributes, null);
+                        (attr != null) ? attr.toString() : null, null);
                 boolean success = typeFactory.save(type);
 
                 if (!success) {
