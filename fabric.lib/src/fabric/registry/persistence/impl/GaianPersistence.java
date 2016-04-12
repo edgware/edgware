@@ -35,10 +35,8 @@ public class GaianPersistence extends SingletonJDBCPersistence {
     }
 
     @Override
-    public void init(String Url, Properties config) {
-
-        this.config = config;
-        this.fabricDbUrl = Url;
+    public void init(String url, Properties config) {
+        super.init(url, config);
     }
 
     /**
@@ -107,7 +105,7 @@ public class GaianPersistence extends SingletonJDBCPersistence {
 
     @Override
     public RegistryObject[] queryRegistryObjects(String queryString, AbstractFactory factory, QueryScope queryScope)
-            throws PersistenceException {
+        throws PersistenceException {
 
         if (queryScope == QueryScope.DISTRIBUTED) {
             queryString = mapSQLForGaian(queryString);
