@@ -62,8 +62,11 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
     /** The services represented by this subscription. */
     private TaskServiceDescriptor activeServiceDescriptor = null;
 
+    /** The subscribe message for this subscriber. */
+    private SubscriptionMessage subscriptionMessage = null;
+
     /** The unsubscribe message for this subscriber. */
-    private ServiceMessage unsubscribeMessage;
+    private ServiceMessage unsubscribeMessage = null;
 
     /** The name of the topic upon which feed messages will arrive. */
     private String topic = null;
@@ -165,7 +168,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
         if (route == null) {
 
             /* We've failed to subscribe */
-            String message = String.format("Subscription failed; cannot find route to feed \"%s\"",
+            String message = String.format("Subscription failed; cannot find route to feed [%s]",
                     activeServiceDescriptor);
             logger.fine(message);
             activeServiceDescriptor = null;
@@ -180,7 +183,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
              * Build the subscription message
              */
 
-            SubscriptionMessage subscriptionMessage = new SubscriptionMessage();
+            subscriptionMessage = new SubscriptionMessage();
 
             /* Set the correlation ID */
             subscriptionMessage.setCorrelationID(correlationID);
@@ -207,7 +210,11 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
             subscriptionMessage.setRouting(messageRouting);
 
             /* Send the subscribe command to the local Fabric Manager */
-            logger.log(Level.FINER, "Sending subscribe command:\n{0}", subscriptionMessage.toString());
+
+            logger.log(Level.FINE, "Sending subscription message for feed(s) [{0}]", FLog
+                    .arrayAsString(subscriptionMessage.getFeedList().getFeeds()));
+            logger.log(Level.FINEST, "Full message:\n{0}", subscriptionMessage);
+
             ioChannels.sendCommandsChannel.write(subscriptionMessage.toWireBytes());
 
             /* Update the Client with the subscription */
@@ -219,7 +226,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
             TaskSubscription ts = factory.createTaskSubscription(activeServiceDescriptor.task(), fabricClient.actor(),
                     activeServiceDescriptor.platform(), activeServiceDescriptor.system(), activeServiceDescriptor
-                    .service(), fabricClient.platform());
+                            .service(), fabricClient.platform());
             try {
                 factory.save(ts);
             } catch (IncompleteObjectException e) {
@@ -236,6 +243,25 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
     }
 
     /**
+     * @see fabric.bus.feeds.ISubscription#resubscribe()
+     */
+    @Override
+    public void resubscribe() throws Exception {
+
+        if (subscriptionMessage != null) {
+
+            /* Re-send the subscribe command to the local Fabric Manager */
+            logger.log(Level.FINEST, "Re-sending subscribe command:\n{0}", subscriptionMessage.toString());
+            ioChannels.sendCommandsChannel.write(subscriptionMessage.toWireBytes());
+
+        } else {
+
+            throw new SubscriptionException(ReasonCode.NOT_SUBSCRIBED, "No active subscription");
+
+        }
+    }
+
+    /**
      * @see ISubscription#unsubscribe()
      */
     @Override
@@ -245,9 +271,9 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
             throw new SubscriptionException(ReasonCode.NOT_SUBSCRIBED, "No active subscription");
         }
 
-        logger.log(Level.FINER, "Unsubscribing from feed {0}", activeServiceDescriptor);
+        logger.log(Level.FINER, "Unsubscribing from feed [{0}]", activeServiceDescriptor);
         fabricClient.homeNodeEndPoint().closeChannel(channel, false);
-        logger.log(Level.FINEST, "Stopped listening for subscription messages on \"{0}\"", topic);
+        logger.log(Level.FINEST, "Stopped listening for subscription messages on [{0}]", topic);
 
         channel = null;
         topic = null;
@@ -419,32 +445,36 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
         byte[] messageData = message.data;
         String messageString = new String((messageData != null) ? messageData : new byte[0]);
 
-        logger.log(Level.FINER, "Handling message [{0}] from topic [{1}]", new Object[] {FLog.trim(messageString),
-                message.topic});
-        logger.log(Level.FINEST, "Full message:\n{0}", messageString);
-
         try {
 
             IFabricMessage parsedMessage = null;
 
             try {
+
                 /* Parse the message */
                 parsedMessage = FabricMessageFactory.create(messageTopic, messageData);
+
             } catch (Exception e) {
+
                 logger.log(Level.WARNING, "Improperly formatted message received on topic {0}: {1}", new Object[] {
                         messageTopic, messageString});
+
             }
 
             /* If this is a Fabric feed message... */
             if (parsedMessage instanceof IFeedMessage) {
+
                 try {
+
                     /* Invoke the client callback */
                     callback.handleSubscriptionMessage((IFeedMessage) parsedMessage);
+
                 } catch (Exception ce) {
-                    logger.log(
-                            Level.WARNING,
-                            "Exception in subscription callback \"{0}\" (feed message handling) while handling message:\n{1}\n{2}",
-                            new Object[] {callback.toString(), message, FLog.stackTrace(ce)});
+
+                    logger.log(Level.WARNING, "Exception in subscription callback [{0}] (feed message handling): {1}",
+                            new Object[] {callback.toString(), ce.getMessage()});
+                    logger.log(Level.FINEST, "Full exception: ", ce);
+                    logger.log(Level.FINEST, "Full message: {0}", message);
                 }
 
             } else {
@@ -469,8 +499,11 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
     public void handleNotification(IClientNotificationMessage message) {
 
         try {
-            // Identify what event this is a notification for
+
+            /* Identify what event this is a notification for */
+
             int eventType = message.getEvent();
+
             if (message.getNotificationAction() != null) {
                 if (message.getNotificationAction().equals(IServiceMessage.ACTION_SUBSCRIBE)) {
                     eventType = IServiceMessage.EVENT_SUBSCRIBED;
@@ -478,13 +511,17 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
                     eventType = IServiceMessage.EVENT_UNSUBSCRIBED;
                 }
             }
+
             /* Invoke the client callback */
             callback.handleSubscriptionEvent(this, eventType, message);
+
         } catch (Exception ce) {
-            logger.log(
-                    Level.WARNING,
-                    "Exception in subscription callback {0} (Fabric message handling) while handling message:\n{1}\n{2}",
-                    new Object[] {callback.toString(), message, FLog.stackTrace(ce)});
+
+            logger.log(Level.WARNING,
+                    "Exception in subscription callback [{0}] (Fabric message handling) while handling message: {1}",
+                    new Object[] {callback.toString(), ce.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", ce);
+            logger.log(Level.FINEST, "Full message:\n{0}", message);
 
         }
     }

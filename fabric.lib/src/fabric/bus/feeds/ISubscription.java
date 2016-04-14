@@ -80,7 +80,7 @@ public interface ISubscription {
      *             thrown if the subscription fails.
      */
     public TaskServiceDescriptor subscribe(TaskServiceDescriptor feed, ISubscriptionCallback callback)
-            throws IllegalArgumentException, Exception;
+        throws IllegalArgumentException, Exception;
 
     /**
      * Subscribes to the specified Fabric feed using the specified route to the end node
@@ -109,7 +109,16 @@ public interface ISubscription {
      *             thrown if the subscription fails.
      */
     public TaskServiceDescriptor subscribe(TaskServiceDescriptor feed, String[] route, ISubscriptionCallback callback)
-            throws IllegalArgumentException, Exception;
+        throws IllegalArgumentException, Exception;
+
+    /**
+     * Re-sends the subscription message, to re-establish an existing subscription.
+     *
+     * @exception Exception
+     *                thrown if there is no current subscription, of if there is an error sending the current
+     *                subscription.
+     */
+    public void resubscribe() throws Exception;
 
     /**
      * Tear down the subscription to the active Fabric feed managed by this instance.
