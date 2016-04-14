@@ -50,7 +50,7 @@ public class Message {
     public String toString() {
 
         byte[] nonNullData = (data != null) ? data : new byte[0];
-        String toString = "[" + topic + "][" + new String(nonNullData) + "]";
+        String toString = String.format("topic [%s], data [%s]", topic, new String(nonNullData));
         return toString;
 
     }

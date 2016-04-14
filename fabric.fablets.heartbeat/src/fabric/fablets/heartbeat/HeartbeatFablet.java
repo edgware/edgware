@@ -20,7 +20,6 @@ import fabric.bus.plugins.IPluginConfig;
 import fabric.core.io.ICallback;
 import fabric.core.io.Message;
 import fabric.core.io.OutputTopic;
-import fabric.core.logging.FLog;
 
 /**
  * Simple Fablet class that publishes a heartbeat message to a topic periodically.
@@ -105,8 +104,9 @@ public class HeartbeatFablet extends FabricBus implements IFabletPlugin, ICallba
         try {
             homeNodeEndPoint().closeChannel(hebtChannel, false);
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Closure of channel for \"{0}\" failed: {1}", new Object[] {heartbeatTopic,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Closure of channel for [{0}] failed: {1}", new Object[] {heartbeatTopic,
+                    e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
         }
     }
 
@@ -130,8 +130,9 @@ public class HeartbeatFablet extends FabricBus implements IFabletPlugin, ICallba
             } catch (Exception e1) {
                 /* not a number - default instead */
                 sleepInterval = 30000;
-                logger.log(Level.WARNING, "Unable to parse sleep interval \"{1}\"; using default ({0}) instead",
-                        new Object[] {interval, sleepInterval});
+                logger.log(Level.WARNING, "Unable to parse sleep interval [{1}]; using default ({0}) instead: {2}",
+                        new Object[] {interval, sleepInterval, e1.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e1);
             }
 
             if (sleepInterval != 0) {
@@ -173,7 +174,7 @@ public class HeartbeatFablet extends FabricBus implements IFabletPlugin, ICallba
 
             logger.log(Level.WARNING, "Plug-in [{0}] failed with exception: {1}", new Object[] {
                     this.getClass().getName(), e1.getMessage()});
-            logger.log(Level.FINEST, "Full exception:\n{0}", FLog.stackTrace(e1));
+            logger.log(Level.FINEST, "Full exception: ", e1);
 
         }
     }

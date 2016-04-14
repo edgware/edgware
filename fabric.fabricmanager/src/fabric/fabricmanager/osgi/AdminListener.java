@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -23,113 +23,115 @@ import org.osgi.framework.BundleException;
 
 public class AdminListener extends Thread {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
 
-	ServerSocket ssocket;
-	String node;
-	boolean running;
-	String key = null;
-	File pidFile = null;
+    ServerSocket ssocket;
+    String node;
+    boolean running;
+    String key = null;
+    File pidFile = null;
 
-	BundleContext context;
+    BundleContext context;
 
-	public AdminListener(BundleContext context, String node) {
+    public AdminListener(BundleContext context, String node) {
 
-		this.context = context;
-		this.node = node;
-		key = UUID.randomUUID().toString();
-		try {
-			ssocket = new ServerSocket(0);
-			ssocket.setReuseAddress(true);
-			pidFile = new File(System.getenv("FABRIC_HOME") + "/pid/.fm." + this.node);
-			FileOutputStream fos = new FileOutputStream(pidFile);
-			PrintStream ps = new PrintStream(fos);
-			ps.print(this.node + ":" + key + ":" + ssocket.getLocalPort());
-			ps.flush();
-			fos.close();
+        this.context = context;
+        this.node = node;
+        key = UUID.randomUUID().toString();
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        setName("Admin-Listener-" + node);
 
-	public void shutdown() {
+        try {
+            ssocket = new ServerSocket(0);
+            ssocket.setReuseAddress(true);
+            pidFile = new File(System.getenv("FABRIC_HOME") + "/pid/.fm." + this.node);
+            FileOutputStream fos = new FileOutputStream(pidFile);
+            PrintStream ps = new PrintStream(fos);
+            ps.print(this.node + ":" + key + ":" + ssocket.getLocalPort());
+            ps.flush();
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-		this.running = false;
-		try {
-			ssocket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			pidFile.delete();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    public void shutdown() {
 
-	@Override
-	public void run() {
+        this.running = false;
+        try {
+            ssocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            pidFile.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-		running = true;
-		while (running) {
-			Socket sock = null;
-			try {
-				sock = ssocket.accept();
-			} catch (Exception e) {
-				this.shutdown();
-				break;
-			}
-			BufferedReader in = null;
-			try {
-				in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-				boolean authenticated = false;
-				while (true) {
-					String l = null;
-					try {
-						l = in.readLine();
-					} catch (IOException ioe) {
-						break;
-					}
-					if (l == null) {
-						break;
-					}
-					if (!authenticated) {
-						if (l.equals(key)) {
-							authenticated = true;
-						} else {
-							break;
-						}
-					} else {
-						if (l.equals("shutdown")) {
-							Bundle bs = context.getBundle(0);
-							try {
-								bs.stop();
-								System.exit(0);
-							} catch (BundleException e) {
-							}
-						}
-					}
-				}
-			} catch (IOException ioe) {
-				if (in != null) {
-					try {
-						in.close();
-					} catch (Exception e2) {
-					}
-					try {
-						sock.close();
-					} catch (Exception e2) {
-					}
-				}
-			}
-		}
+    @Override
+    public void run() {
 
-		try {
-			ssocket.close();
-		} catch (Exception e) {
-		}
-	}
+        running = true;
+        while (running) {
+            Socket sock = null;
+            try {
+                sock = ssocket.accept();
+            } catch (Exception e) {
+                this.shutdown();
+                break;
+            }
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+                boolean authenticated = false;
+                while (true) {
+                    String l = null;
+                    try {
+                        l = in.readLine();
+                    } catch (IOException ioe) {
+                        break;
+                    }
+                    if (l == null) {
+                        break;
+                    }
+                    if (!authenticated) {
+                        if (l.equals(key)) {
+                            authenticated = true;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        if (l.equals("shutdown")) {
+                            Bundle bs = context.getBundle(0);
+                            try {
+                                bs.stop();
+                                System.exit(0);
+                            } catch (BundleException e) {
+                            }
+                        }
+                    }
+                }
+            } catch (IOException ioe) {
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (Exception e2) {
+                    }
+                    try {
+                        sock.close();
+                    } catch (Exception e2) {
+                    }
+                }
+            }
+        }
+
+        try {
+            ssocket.close();
+        } catch (Exception e) {
+        }
+    }
 
 }

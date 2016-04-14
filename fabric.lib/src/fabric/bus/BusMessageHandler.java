@@ -21,6 +21,7 @@ import fabric.bus.routing.IRouting;
 import fabric.bus.services.IBusServiceDispatcher;
 import fabric.bus.services.IService;
 import fabric.bus.services.impl.BusServiceDispatcher;
+import fabric.core.logging.FLog;
 
 /**
  * Handles messages received by the Fabric Manager:
@@ -112,11 +113,12 @@ public class BusMessageHandler extends Fabric {
      */
     public void handleServiceMessage(IServiceMessage request) throws Exception {
 
+        FLog.enter(logger, Level.FINER, this, "handleServiceMessage", request);
+
         /* Make a copy of the original request */
         IServiceMessage requestCopy = (IServiceMessage) request.replicate();
 
         Object[] messageID = new Object[] {requestCopy.getUID(), requestCopy.getCorrelationID()};
-        logger.log(Level.FINER, "Handling message {0} (correlation ID {1})", messageID);
 
         /* To hold the response from the service invocation on this node (sent back to the originating node) */
         INotificationMessage nodeResponse = null;
@@ -237,7 +239,7 @@ public class BusMessageHandler extends Fabric {
             }
         }
 
-        logger.log(Level.FINER, "Completed handling message UID [{0}] (correlation ID [{1}])", messageID);
+        FLog.exit(logger, Level.FINER, this, "handleServiceMessage", null);
     }
 
     /**
@@ -398,7 +400,7 @@ public class BusMessageHandler extends Fabric {
 
         /* Delegate this to the subscription handler */
         feedManager.handleFeed(message);
-        logger.log(Level.FINEST, "Feed message (UID: \"{0}\") handled", message.getUID());
+        logger.log(Level.FINEST, "Feed message (UID: [{0}]) handled", message.getUID());
 
     }
 

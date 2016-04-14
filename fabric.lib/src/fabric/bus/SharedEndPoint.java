@@ -198,7 +198,7 @@ public class SharedEndPoint extends EndPoint {
     public SharedChannel openIOChannel(InputTopic inputTopic, OutputTopic outputTopic, ICallback callback)
         throws IOException, UnsupportedOperationException {
 
-        logger.log(Level.FINEST, "Opening channel: local topic \"{0}\", remote topic \"{1}\", callback \"{2}\"",
+        logger.log(Level.FINEST, "Opening channel; local topic [{0}], remote topic [{1}], callback [{2}]",
                 new Object[] {inputTopic, outputTopic, callback});
 
         /* Construct the key used to identify this channel */
@@ -232,7 +232,7 @@ public class SharedEndPoint extends EndPoint {
 
         }
 
-        logger.log(Level.FINEST, "Channel opened: input topic \"{0}\", output topic \"{1}\"", new Object[] {inputTopic,
+        logger.log(Level.FINEST, "Channel opened; input topic [{0}], output topic [{1}]", new Object[] {inputTopic,
                 outputTopic});
         return nodeChannel;
     }

@@ -94,12 +94,13 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
 
         // Empty registry of neighbours previously discovered
         String sql = "DELETE FROM FABRIC.NODE_NEIGHBOURS WHERE DiscoveredBy='" + CLASS_NAME + "'";
-        logger.finest("Emptying the regsitry of previously discovered neighbours");
+        logger.finest("Emptying the Registry of previously discovered neighbours");
         try {
             FabricRegistry.runUpdates(new String[] {sql});
         } catch (PersistenceException e) {
-            logger.log(Level.FINE, "Failed to empty the registry of previously discovered neighbours :", FLog
-                    .stackTrace(e));
+            logger.log(Level.FINE, "Failed to empty the registry of previously discovered neighbours: {0}", e
+                    .getMessage());
+            logger.log(Level.FINEST, "Full exception: ", e);
         }
     }
 
@@ -121,8 +122,9 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
             try {
                 homeNodeEndPoint().closeChannel(topicChannel, false);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Closure of MQTT channel for topic \"{0}\" failed: {1}", new Object[] {topic,
-                        FLog.stackTrace(e)});
+                logger.log(Level.WARNING, "Closure of channel for topic [{0}] failed: {1}", new Object[] {topic,
+                        e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
         }
     }
@@ -139,8 +141,8 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
             try {
                 topicChannel = homeNodeEndPoint().openInputChannel(topic, this);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to map topic \"{0}\": {1}",
-                        new Object[] {topic, FLog.stackTrace(e)});
+                logger.log(Level.WARNING, "Failed to map topic [{0}]: {1}", new Object[] {topic, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
 
             while (isRunning) {
@@ -154,8 +156,9 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
                 }
             }
         } catch (Exception e1) {
-            logger.log(Level.WARNING, "Plug-in \"{0}\" failed with exception: {1}", new Object[] {
-                    this.getClass().getName(), FLog.stackTrace(e1)});
+            logger.log(Level.WARNING, "Fablet [{0}] failed: {1}", new Object[] {this.getClass().getName(),
+                    e1.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e1);
         }
     }
 
@@ -183,8 +186,7 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
         byte[] messageData = message.data;
         String messageString = new String((messageData != null) ? messageData : new byte[0]);
 
-        logger.log(Level.FINER, "Handling message [{0}] from topic [{1}]", new Object[] {FLog.trim(messageString),
-                message.topic});
+        logger.log(Level.FINER, "Handling message from topic [{0}]", message.topic);
         logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
         if (perfLoggingEnabled) {
@@ -240,7 +242,7 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
         String nodeStatusIndicator = parts[6].split("=")[1];
         String nodeAffiliation = parts[7].split("=")[1];
 
-        logger.log(Level.FINER, "Node \"{0}\" has affiliation \"{1}\".", new Object[] {neighbourId, nodeAffiliation});
+        logger.log(Level.FINEST, "Node [{0}] has affiliation [{1}]", new Object[] {neighbourId, nodeAffiliation});
 
         if (!neighbourId.equals(myNodeName)) {
 

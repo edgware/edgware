@@ -14,7 +14,6 @@ import fabric.Fabric;
 import fabric.bus.plugins.IFabletConfig;
 import fabric.bus.plugins.IFabletHandler;
 import fabric.bus.plugins.IFabletPlugin;
-import fabric.core.logging.FLog;
 
 /**
  * Class representing the Fablet plug-ins.
@@ -24,6 +23,16 @@ public class FabletHandler extends PluginHandler implements IFabletHandler {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2007, 2012";
+
+    /*
+     * Class static fields
+     */
+
+    /** Count of active shutdown hooks. */
+    private static int fabletCount = 1;
+
+    /** Object used to lock access to the shutdown hook count. */
+    private static Object fabletCountLock = new Object();
 
     /*
      * Class fields
@@ -62,16 +71,18 @@ public class FabletHandler extends PluginHandler implements IFabletHandler {
     @Override
     public void start() {
 
+        String className = pluginConfig().getName();
+
         try {
 
-            logger.log(Level.FINE, "Starting fablet handler {0}", pluginConfig.getName());
-
             /* Instantiate the class */
-            fablet = (IFabletPlugin) Fabric.instantiate(pluginConfig.getName());
+            fablet = (IFabletPlugin) Fabric.instantiate(className);
 
         } catch (Throwable t) {
 
-            logger.log(Level.WARNING, "Failed to create plugin: ", t);
+            logger.log(Level.WARNING, "Failed to instantiate fablet [{0}]: {1}", new Object[] {className,
+                    t.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", t);
 
         }
 
@@ -86,14 +97,20 @@ public class FabletHandler extends PluginHandler implements IFabletHandler {
 
                     /* Start it now */
                     Thread pluginThread = new Thread(fablet);
+                    synchronized (fabletCountLock) {
+                        className = className.substring(className.lastIndexOf('.') + 1, className.length());
+                        pluginThread.setName("Fablet-" + fabletCount + '-' + className);
+                        fabletCount++;
+                    }
                     pluginThread.start();
 
                 }
 
             } catch (Throwable t) {
 
-                logger.log(Level.WARNING, "Plugin initialization failed for class {0}, arguments \"{1}\": {2}",
-                        new Object[] {pluginConfig.getName(), pluginConfig.getArguments(), FLog.stackTrace(t)});
+                logger.log(Level.WARNING, "Fablet initialization failed for [{0}], argument(s) [{1}]: {2}",
+                        new Object[] {pluginConfig.getName(), pluginConfig.getArguments(), t.getMessage()});
+                logger.log(Level.FINEST, "Full exception: }", t);
 
             }
         }

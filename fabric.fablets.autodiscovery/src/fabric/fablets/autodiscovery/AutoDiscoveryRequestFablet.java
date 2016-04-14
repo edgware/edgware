@@ -31,7 +31,6 @@ import fabric.bus.plugins.IFabletPlugin;
 import fabric.bus.plugins.IPluginConfig;
 import fabric.core.io.ICallback;
 import fabric.core.io.Message;
-import fabric.core.logging.FLog;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Node;
@@ -149,26 +148,28 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
             } catch (UnknownHostException e) {
 
                 logger.log(
-                        Level.WARNING,
-                        "Cannot establish the Multicast Group Address for AutoDiscovery broadcasts, Group = {0}. Discovery Broacdcast disabled.",
-                        new Object[] {multicastGroup, FLog.stackTrace(e)});
+                        Level.SEVERE,
+                        "Cannot establish the multicast group address for autodiscovery broadcasts, group [{0}]; discovery broacdcast disabled: {1}",
+                        new Object[] {multicastGroup, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
                 autoDiscoveryRequestEnabled = false;
                 return;
 
             }
 
-            logger.log(Level.FINE,
-                    "Sending autodiscovery requests to the group: {0} on port {1} with Frequency {2} milliseconds",
+            logger.log(
+                    Level.FINE,
+                    "Sending autodiscovery requests to the group [{0}] on port [{1}] with frequency [{2}] milliseconds",
                     new Object[] {multicastGroup, multicastPort, autoDiscoveryFrequency});
 
             broadcastMessageTTL = new Integer(config(ConfigProperties.AUTO_DISCOVERY_TTL,
                     ConfigProperties.AUTO_DISCOVERY_TTL_DEFAULT)).intValue();
-            logger.log(Level.FINER, "Broadcast Message Time To Live = {0}", new Object[] {broadcastMessageTTL});
+            logger.log(Level.FINER, "Broadcast message time to live [{0}]", broadcastMessageTTL);
 
             openRequestSockets();
 
         } else {
-            logger.log(Level.INFO, "Auto discovery requestor disabled");
+            logger.log(Level.INFO, "Autodiscovery requestor disabled");
         }
     }
 
@@ -228,21 +229,25 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
             requestToNodeIpMapping.put(request, nodeIpMapping);
 
         } catch (UnknownHostException e) {
-            logger.log(Level.INFO, "Couldn't get an InetAddress for the IP {0} for interface {1} on node {2} : {3}",
+            logger.log(Level.INFO,
+                    "Couldn't get an InetAddress for the IP [{0}] for interface [{1}] on node [{2}]: {3}",
                     new Object[] {nodeIpMapping.getIpAddress(), nodeIpMapping.getNodeInterface(),
-                    nodeIpMapping.getNodeId(), FLog.stackTrace(e)});
+                    nodeIpMapping.getNodeId(), e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
             failedRequests.add(request);
         } catch (SocketException e) {
-            logger.log(Level.WARNING,
-                    "Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}\": {2}",
-                    new Object[] {multicastGroupAddress.toString(), interfaceSendRequestAddr.toString(),
-                    FLog.stackTrace(e)});
+            logger.log(
+                    Level.WARNING,
+                    "Could not create broadcast/multicast socket to send to group [{0}] from interface [{1}]: {2}",
+                    new Object[] {multicastGroupAddress.toString(), interfaceSendRequestAddr.toString(), e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
             failedRequests.add(request);
         } catch (IOException e) {
-            logger.log(Level.WARNING,
-                    "Could not create broadcast/multicast socket to send to group \"{0}\" from interface \"{1}\": {2}",
-                    new Object[] {multicastGroupAddress.toString(), interfaceSendRequestAddr.toString(),
-                    FLog.stackTrace(e)});
+            logger.log(
+                    Level.WARNING,
+                    "Could not create broadcast/multicast socket to send to group [{0}] from interface [{1}]: {2}",
+                    new Object[] {multicastGroupAddress.toString(), interfaceSendRequestAddr.toString(), e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
             failedRequests.add(request);
         }
     }
@@ -326,8 +331,9 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
                                             FabricRegistry.save(nodeIpMapping);
                                             requestToNodeIpMapping.put(request, nodeIpMapping);
                                         } catch (Exception e) {
-                                            logger.log(Level.WARNING, "Cannot register IP mapping \"{0}\": {1}",
-                                                    new Object[] {nodeIpMapping.toString(), FLog.stackTrace(e)});
+                                            logger.log(Level.WARNING, "Cannot register IP mapping [{0}]: {1}",
+                                                    new Object[] {nodeIpMapping.toString(), e.getMessage()});
+                                            logger.log(Level.FINEST, "Full exception: ", e);
                                         }
                                     }
                                     break;
@@ -364,8 +370,9 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
                         udpSendRequestSocket.send(p);
                     } catch (IOException e) {
                         /* Could not send packet */
-                        logger.log(Level.WARNING, "Could not send broadcast/multicast packet to group \"{0}\": {1}",
+                        logger.log(Level.WARNING, "Could not send broadcast/multicast packet to group [{0}]: {1}",
                                 new Object[] {multicastGroupAddress.getHostAddress(), e.getMessage()});
+                        logger.log(Level.FINEST, "Full exception: ", e);
 
                         /* Clean everything up and restart */
                         udpSendRequestSocket.close();

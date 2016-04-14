@@ -31,7 +31,6 @@ import fabric.core.io.EndPoint;
 import fabric.core.io.InputTopic;
 import fabric.core.io.Message;
 import fabric.core.io.OutputTopic;
-import fabric.core.logging.FLog;
 import fabric.core.properties.Properties;
 import fabric.core.util.Split;
 
@@ -150,7 +149,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
                     callback.endPointConnected(this);
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Exception in callback {0}.endPointConnected(): {1}", new Object[] {
-                            classID(callback), FLog.stackTrace(e)});
+                            classID(callback), e.getMessage()});
+                    logger.log(Level.FINEST, "Full exception: ", e);
                 }
             }
 
@@ -209,7 +209,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "Exception in callback {0}.endPointClosed(): {1}", new Object[] {
-                    classID(callback), FLog.stackTrace(e)});
+                    classID(callback), e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
         }
     }
 
@@ -227,7 +228,7 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
      */
     @Override
     public Channel channel(InputTopic inputTopic, OutputTopic outputTopic) throws IOException,
-    UnsupportedOperationException {
+        UnsupportedOperationException {
 
         MqttChannel mqttChannel = new MqttChannel(this, inputTopic, outputTopic);
 
@@ -266,7 +267,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
                 callback.endPointDisconnected(this);
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Exception in callback {0}.endPointDisconnected(): {1}", new Object[] {
-                        classID(callback), FLog.stackTrace(e)});
+                        classID(callback), e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
         }
 
@@ -294,7 +296,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
                     callback.endPointReconnected(this);
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Exception in callback {0}.endPointReconnected(): {1}", new Object[] {
-                            classID(callback), FLog.stackTrace(e)});
+                            classID(callback), e.getMessage()});
+                    logger.log(Level.FINEST, "Full exception: ", e);
                 }
             }
 
@@ -320,8 +323,7 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
         boolean retain = msg.isRetained();
         String messageStr = new String(messageBytes);
 
-        logger.log(Level.FINEST, "Message received by end point \"{0}\" on topic \"{1}\":\n{2}", new Object[] {this,
-                topic, messageStr});
+        logger.log(Level.FINEST, "Message received on topic [{0}]:\n{1}", new Object[] {topic, messageStr});
 
         boolean messageHandled = true;
 
@@ -355,14 +357,14 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
             } else {
 
                 /* We can't handle the message, so drop it */
-                logger.log(Level.WARNING, "No channel open for topic \"{0}\", dropping message:\n{1}", new Object[] {
+                logger.log(Level.WARNING, "No channel open for topic [{0}], dropping message:\n{1}", new Object[] {
                         topic, message.toString()});
                 messageHandled = false;
 
             }
         }
 
-        logger.log(Level.FINEST, "Message handled (status: \"{0}\")", Boolean.toString(messageHandled));
+        logger.log(Level.FINEST, "Message handled (status [{0}])", Boolean.toString(messageHandled));
 
     }
 
@@ -474,9 +476,8 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
                 logger.log(Level.FINER, "Connecting to broker [{0}] as [{1}] with connection message topic [{2}]",
                         new Object[] {config.getbrokerIpAddress(), config.getClient(),
-                                config.getConnectionMessageTopic()});
-                logger.log(Level.FINEST, "LWT for connection to [{0}]:\n[{3}]", new Object[] {
-                        config.getbrokerIpAddress(), config.getDisconnectMessage()});
+                        config.getConnectionMessageTopic()});
+                logger.log(Level.FINEST, "Disconnect message:\n[{0}]", config.getDisconnectMessage());
 
                 /* If there is no last will and testament... */
                 if (config.getConnectionMessageTopic() == null) {
@@ -513,9 +514,9 @@ public class MqttEndPoint extends EndPoint implements MqttCallback {
 
             } catch (Exception e) {
 
-                logger.log(Level.FINER, "Broker connection failed (attempt {0} of {1}): \"{2}\"", new Object[] {
-                        retries, maxRetries, e.getMessage()});
-                logger.log(Level.FINEST, "Exception: ", e);
+                logger.log(Level.FINER, "Broker connection failed (attempt {0} of {1}): [{2}]", new Object[] {retries,
+                        maxRetries, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
 
                 /* If retries are not unlimited... */
                 if (maxRetries != -1) {

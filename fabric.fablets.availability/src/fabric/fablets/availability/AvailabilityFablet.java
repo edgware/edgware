@@ -124,8 +124,9 @@ public class AvailabilityFablet extends FabricBus implements IFabletPlugin, ICal
 
         } catch (Exception e) {
 
-            logger.log(Level.WARNING, "Closure of channel for topic \"{0}\" failed: {1}", new Object[] {
-                    availabilityFeedsTopic, FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Closure of channel for topic [{0}] failed: {1}", new Object[] {
+                    availabilityFeedsTopic, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
     }
@@ -150,8 +151,9 @@ public class AvailabilityFablet extends FabricBus implements IFabletPlugin, ICal
             } catch (Exception e) {
 
                 logger.log(Level.WARNING,
-                        "Failed to open channel \"{0}\" used to monitor availability status messages: {1}",
-                        new Object[] {availabilityFeedsTopic, FLog.stackTrace(e)});
+                        "Failed to open channel [{0}], used to monitor availability status messages: {1}",
+                        new Object[] {availabilityFeedsTopic, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
 
             /* While the Fablet is running... */
@@ -221,7 +223,7 @@ public class AvailabilityFablet extends FabricBus implements IFabletPlugin, ICal
 
             } else {
 
-                logger.log(Level.WARNING, "Invalid availablity message payload \"{0}\"; expecting \"0\" or \"1\"",
+                logger.log(Level.WARNING, "Invalid availablity message payload [{0}]; expecting [0] or [1]",
                         messageString);
                 return;
 
@@ -249,14 +251,15 @@ public class AvailabilityFablet extends FabricBus implements IFabletPlugin, ICal
             } else {
 
                 /* Internal error; we're probably listening on the wrong topics */
-                logger.log(Level.WARNING, "Invalid feed descriptor \"{0}\"; check subscription (topic = \"{1}\")",
+                logger.log(Level.WARNING, "Invalid feed descriptor [{0}]; check subscription (topic [{1}])",
                         new Object[] {serviceDescriptor.toString(), availabilityFeedsTopic});
             }
 
         } catch (Exception e) {
 
-            logger.log(Level.WARNING, "Cannot update availability received on topic \"{0}\" (value \"{1}\"): {2}",
-                    new Object[] {messageTopic, messageString, FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot update availability received on topic [{0}] (value [{1}]): {2}",
+                    new Object[] {messageTopic, messageString, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
 
@@ -314,7 +317,7 @@ public class AvailabilityFablet extends FabricBus implements IFabletPlugin, ICal
      * @throws PersistenceException
      */
     private void setPlatformAvailability(String availability, ServiceDescriptor serviceDescriptor)
-            throws IncompleteObjectException, PersistenceException {
+        throws IncompleteObjectException, PersistenceException {
 
         /* Update the availability of the platform */
         PlatformFactory platformFactory = FabricRegistry.getPlatformFactory();
@@ -356,7 +359,7 @@ public class AvailabilityFablet extends FabricBus implements IFabletPlugin, ICal
      * @throws PersistenceException
      */
     private void setSystemAvailability(String availability, ServiceDescriptor serviceDescriptor)
-            throws IncompleteObjectException, PersistenceException {
+        throws IncompleteObjectException, PersistenceException {
 
         /* Update the availability of the system */
         SystemFactory systemFactory = FabricRegistry.getSystemFactory();

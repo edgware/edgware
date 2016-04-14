@@ -140,36 +140,36 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
             ioChannels.receiveCommands = new InputTopic(config(ConfigProperties.TOPIC_SEND_SESSION_COMMANDS,
                     ConfigProperties.TOPIC_SEND_SESSION_COMMANDS_DEFAULT, homeNode()));
             ioChannels.receiveCommandsChannel = homeNodeEndPoint().openInputChannel(ioChannels.receiveCommands, this);
-            logger.log(Level.FINER, "Listening on: {0}", ioChannels.receiveCommands);
+            logger.log(Level.FINER, "Listening on [{0}]", ioChannels.receiveCommands);
 
             /* The topic on which the Fabric Manager sends commands */
             ioChannels.sendCommands = new OutputTopic(config(ConfigProperties.TOPIC_SEND_SESSION_COMMANDS,
                     ConfigProperties.TOPIC_SEND_SESSION_COMMANDS_DEFAULT, homeNode()));
             ioChannels.sendCommandsChannel = homeNodeEndPoint().openOutputChannel(ioChannels.sendCommands);
-            logger.log(Level.FINER, "Commands will be sent to: {0}", ioChannels.sendCommands);
+            logger.log(Level.FINER, "Commands will be sent to [{0}]", ioChannels.sendCommands);
 
             /*
              * The channel on which the Fabric Manager publishes commands to locally attached clients (note that the
              * client-specific topic must be provided when this channel is used)
              */
             ioChannels.sendClientCommandsChannel = homeNodeEndPoint().openOutputChannel();
-            logger.log(Level.FINER, "Client commands will be sent via channel: {0}",
+            logger.log(Level.FINER, "Client commands will be sent via channel [{0}]",
                     ioChannels.sendClientCommandsChannel);
 
             /* The channel on which the Fabric Manager publishes commands to locally attached platforms */
             ioChannels.sendPlatformCommandsChannel = homeNodeEndPoint().openOutputChannel();
-            logger.log(Level.FINER, "Platform commands will be sent via channel: {0}",
+            logger.log(Level.FINER, "Platform commands will be sent via channel [{0}]",
                     ioChannels.sendPlatformCommandsChannel);
 
             /* The channel on which the Fabric Manager publishes commands to locally attached services */
             ioChannels.sendServiceCommandsChannel = homeNodeEndPoint().openOutputChannel(ioChannels.sendCommands);
-            logger.log(Level.FINER, "System commands will be sent to: {0}", ioChannels.sendCommands);
+            logger.log(Level.FINER, "System commands will be sent to [{0}]", ioChannels.sendCommands);
 
             /* The topic on which the Fabric Manager listens for locally connected data feeds */
             ioChannels.receiveLocalFeeds = new InputTopic(config("fabric.feeds.onramp", null, homeNode()));
             ioChannels.receiveLocalFeedsChannel = homeNodeEndPoint().openInputChannel(
                     new InputTopic(ioChannels.receiveLocalFeeds + "/#"), this);
-            logger.log(Level.FINER, "Listening for locally connected data feeds on: {0}", ioChannels.receiveLocalFeeds
+            logger.log(Level.FINER, "Listening for locally connected data feeds on [{0}]", ioChannels.receiveLocalFeeds
                     + "/#");
 
             /* The topic on which the Fabric Manager listens for messages en route across the Fabric */
@@ -177,26 +177,26 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
                     ConfigProperties.TOPIC_FEEDS_BUS_DEFAULT, homeNode()));
             ioChannels.receiveBusChannel = homeNodeEndPoint().openInputChannel(
                     new InputTopic(ioChannels.receiveBus + "/#"), this);
-            logger.log(Level.FINER, "Listening for bus data feed messages on: {0}", ioChannels.receiveBus + "/#");
+            logger.log(Level.FINER, "Listening for bus data feed messages on [{0}]", ioChannels.receiveBus + "/#");
 
             /* The topic on which the Fabric Manager listens for local replay messages */
             ioChannels.receiveLocalReplayFeeds = new InputTopic(config("fabric.feeds.replay", null, homeNode()));
             ioChannels.receiveLocalReplayFeedsChannel = homeNodeEndPoint().openInputChannel(
                     new InputTopic(ioChannels.receiveLocalReplayFeeds + "/#"), this);
-            logger.log(Level.FINER, "Listening for local replay messages on: {0}", ioChannels.receiveLocalReplayFeeds
+            logger.log(Level.FINER, "Listening for local replay messages on [{0}]", ioChannels.receiveLocalReplayFeeds
                     + "/#");
 
             /* The topic on which the Fabric Manager listens for last will and testament messages */
             ioChannels.connectionComands = new InputTopic(config("fabric.commands.topology", null, "+"));
             ioChannels.connectionCommandsChannel = homeNodeEndPoint().openInputChannel(ioChannels.connectionComands,
                     this);
-            logger.log(Level.FINER, "Listening for LWT messages on: {0}", ioChannels.connectionComands);
+            logger.log(Level.FINER, "Listening for LWT messages on [{0}]", ioChannels.connectionComands);
 
             /* The topic on which the Fabric Manager publishes messages for local consumption */
             ioChannels.sendLocalSubscription = new OutputTopic(config("fabric.feeds.offramp", null, homeNode()));
             ioChannels.sendLocalSubscriptionChannel = homeNodeEndPoint().openOutputChannel(
                     ioChannels.sendLocalSubscription);
-            logger.log(Level.FINER, "Delivered messages will be sent to: {0}", ioChannels.sendLocalSubscription);
+            logger.log(Level.FINER, "Delivered messages will be sent to [{0}]", ioChannels.sendLocalSubscription);
 
         } catch (Exception e) {
 
@@ -226,8 +226,6 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
         byte[] messageData = message.data;
         String messageString = new String((messageData != null) ? messageData : new byte[0]);
 
-        logger.log(Level.FINER, "Handling message [{0}] from topic [{1}]", new Object[] {FLog.trim(messageString),
-                message.topic});
         logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
         /* Instrumentation */
@@ -250,7 +248,8 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
                     try {
                         floodFeedMessage(feedTopic, message.data);
                     } catch (Exception e) {
-                        logger.log(Level.SEVERE, "Failed to publish virtual service message: ", e);
+                        logger.log(Level.SEVERE, "Failed to publish virtual service message: ", e.getMessage());
+                        logger.log(Level.FINEST, "Full exception: ", e);
                     }
 
                 } else {
@@ -279,29 +278,30 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
                 } catch (Exception e) {
 
                     logger.log(Level.WARNING, "Improperly formatted message received on topic {0}: {1}", new Object[] {
-                            messageTopic, messageString});
-                    logger.log(Level.FINE, "Exception: ", e);
+                            messageTopic, e.getMessage()});
+                    logger.log(Level.FINEST, "Full exception: ", e);
+                    logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
                 }
 
                 /* If this is a Fabric feed message... */
                 if (parsedMessage instanceof IFeedMessage) {
 
+                    logger.finer("Identified feed message");
                     messageHandler.handleFeedMessage((IFeedMessage) parsedMessage);
 
                 }
                 /* Else if this is a Fabric service message... */
                 else if (parsedMessage instanceof IServiceMessage) {
 
-                    logger.log(Level.FINEST, "Service message recevied on topic [{0}]:\n{1}", new Object[] {
-                            messageTopic, parsedMessage.toString()});
+                    logger.finer("Identified service message");
                     messageHandler.handleServiceMessage((ServiceMessage) parsedMessage);
 
                 }
                 /* Else if this is any other kind of Fabric message... */
                 else if (parsedMessage != null) {
 
-                    logger.log(Level.WARNING, "Unsupported Fabric message recevied on topic {0}: {1}", new Object[] {
+                    logger.log(Level.WARNING, "Unsupported Fabric message recevied on topic {0}:\n{1}", new Object[] {
                             messageTopic, parsedMessage.toString()});
 
                 }
@@ -311,12 +311,15 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
                  */
                 else if (messageTopic.startsWith(ioChannels.connectionComands.name())) {
 
-                    logger.log(Level.WARNING,
-                            "Ignoring improperly formatted connection status (last-will-and-testament) message");
+                    logger.log(
+                            Level.WARNING,
+                            "Ignoring improperly formatted connection status (last-will-and-testament) message recevied on topic {0}:\n{1}",
+                            new Object[] {messageTopic, messageString});
 
                 } else {
 
-                    logger.log(Level.WARNING, "Ignoring improperly formatted message: {0}", messageString);
+                    logger.log(Level.WARNING, "Ignoring improperly formatted message recevied on topic {0}:\n{1}",
+                            new Object[] {messageTopic, messageString});
 
                 }
 
@@ -326,8 +329,8 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
             logger.log(Level.WARNING, "Exception handling message received on topic [{0}]: {1}", new Object[] {
                     messageTopic, e.getMessage()});
-            logger.log(Level.FINER, "Full message:\n{0}", messageString);
             logger.log(Level.FINEST, "Full exception: ", e);
+            logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
         } finally {
 
@@ -433,7 +436,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
                     /* Mark this nodeDescriptor as unavailable */
                     FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL)
-                            .markUnavailable(homeNode(), nodeDescriptor);
+                    .markUnavailable(homeNode(), nodeDescriptor);
                     /*
                      * Move onto next possible nodeDescriptor, previous one should be marked unavailable and not
                      * returned.
@@ -540,8 +543,9 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
         } catch (Exception e) {
 
-            logger.log(Level.WARNING, "Cannot connect to Fabric neighbour node {0}: {1}", new Object[] {
-                    neighbourDescriptor, FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot connect to Fabric neighbour node [{0}]: {1}", new Object[] {
+                    neighbourDescriptor, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
 
@@ -589,7 +593,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
      */
     @Override
     public NeighbourChannels disconnectNeighbour(NodeDescriptor nodeDescriptor, boolean doRetry)
-            throws UnsupportedOperationException, IOException {
+        throws UnsupportedOperationException, IOException {
 
         NeighbourChannels currentChannels = neighbourChannelsTable.remove(nodeDescriptor);
         NeighbourChannels newChannels = null;
@@ -626,8 +630,9 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
         } catch (Exception e) {
 
             logger.log(Level.WARNING,
-                    "Internal error: cannot convert {0} to bytes, message cannot be pushed onto the bus: {1}",
-                    new Object[] {FeedMessage.class.getName(), FLog.stackTrace(e)});
+                    "Internal error: cannot convert [{0}] to bytes, message cannot be pushed onto the bus: {1}",
+                    new Object[] {FeedMessage.class.getName(), e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
 
@@ -693,7 +698,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
         /* If we have a connection to the neighbour... */
         if (nodeConnection != null) {
 
-            logger.log(Level.FINEST, "Sending feed {0} message to node {1}", new Object[] {feedTopic,
+            logger.log(Level.FINEST, "Sending feed [{0}] message to node [{1}]", new Object[] {feedTopic,
                     nodeConnection.neighbourDescriptor()});
             String fullTopic = nodeConnection.outboundFeedBus().name() + '/' + feedTopic;
             nodeConnection.feedBusChannel().write(message.toWireBytes(), new OutputTopic(fullTopic));
@@ -716,8 +721,8 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
         String fullTopic = ioChannels.sendLocalSubscription.name() + '/' + subscription.actor() + '/'
                 + subscription.actorPlatform() + '/' + subscription.feed().task() + '/' + feedTopic;
 
-        logger.log(Level.FINEST, "Delivering feed {0} message to client {1}, task {2} using topic {3}", new Object[] {
-                subscription.feed(), subscription.actor(), subscription.feed().task(), fullTopic});
+        logger.log(Level.FINEST, "Delivering feed [{0}] message to client [{1}], task [{2}] using topic [{3}]",
+                new Object[] {subscription.feed(), subscription.actor(), subscription.feed().task(), fullTopic});
 
         ioChannels.sendLocalSubscriptionChannel.write(message.toWireBytes(), new OutputTopic(fullTopic));
 
@@ -822,7 +827,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
                     /* Mark this Neighbour Node Descriptor as Unavailable */
                     FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL)
-                            .markUnavailable(homeNode(), nodeDescriptor);
+                    .markUnavailable(homeNode(), nodeDescriptor);
                 }
             }
         } catch (UnsupportedOperationException | IOException e) {

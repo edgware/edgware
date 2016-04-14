@@ -23,7 +23,6 @@ import fabric.bus.messages.impl.MessagePayload;
 import fabric.core.io.EndPoint;
 import fabric.core.io.IOBase;
 import fabric.core.io.mqtt.MqttConfig;
-import fabric.core.logging.FLog;
 import fabric.core.properties.ConfigProperties;
 import fabric.core.xml.XML;
 import fabric.registry.FabricRegistry;
@@ -215,7 +214,7 @@ public class FabricBus extends Fabric {
         for (Iterator<NodeDescriptor> nodeKeys = connectedNodes.keySet().iterator(); nodeKeys.hasNext();) {
 
             NodeDescriptor nd = nodeKeys.next();
-            logger.log(Level.FINE, "Closing connection to node: \"{0}\"", nd);
+            logger.log(Level.FINE, "Closing connection to node: [{0}]", nd);
 
             /* Get the connection details for this node */
             SharedEndPoint node = connectedNodes.get(nd);
@@ -225,8 +224,9 @@ public class FabricBus extends Fabric {
                 try {
                     node.close();
                 } catch (Exception e) {
-                    logger.log(Level.WARNING, "Failed to close connection to node \"{0}\": {1}", new Object[] {
-                            nd.name(), FLog.stackTrace(e)});
+                    logger.log(Level.WARNING, "Failed to close connection to node [{0}]: {1}", new Object[] {nd.name(),
+                            e.getMessage()});
+                    logger.log(Level.FINEST, "Full exception: ", e);
                 }
             }
         }
@@ -297,32 +297,34 @@ public class FabricBus extends Fabric {
 
         } else {
 
-            logger.log(Level.FINE, "Connecting to broker for node [{0}] via interface [{1}] at address [{2}:{3}]",
+            logger.log(Level.FINE,
+                    "Establishing connection to broker for node [{0}] via interface [{1}] at address [{2}:{3}]",
                     new Object[] {nodeDescriptor.name(), nodeDescriptor.networkInterface(), nodeDescriptor.address(),
-                            "" + nodeDescriptor.port()});
+                    "" + nodeDescriptor.port()});
 
             try {
 
                 /* Get the address of the target node */
+
                 inetAddress = InetAddress.getByName(nodeDescriptor.address());
+
                 if (inetAddress == null) {
+
                     /* Cannot resolve node name/ipaddress */
                     throw new Exception("Cannot resolve IP address for broker for node " + nodeDescriptor.name()
                             + "at address " + nodeDescriptor.address() + ":" + nodeDescriptor.port());
 
                 } else {
+
                     nodeID = nodeDescriptor.name();
                     nodeInterface = nodeDescriptor.networkInterface();
                     ipAddress = inetAddress.getHostAddress();
                     portNumber = nodeDescriptor.port();
                     fullIPAddress = ipAddress + ":" + portNumber;
 
-                    logger.log(Level.FINER,
-                            "Checking for existing connecting to broker for node \"{0}\" at address: {1}",
-                            new Object[] {nodeID, fullIPAddress});
-
                     /* Check for an existing connection to the node */
                     sharedEndPoint = connectedNodes.get(nodeDescriptor);
+
                 }
 
                 /* If we are not already connected... */
@@ -354,24 +356,25 @@ public class FabricBus extends Fabric {
                     /* Record the connection */
                     connectedNodes.put(nodeDescriptor, sharedEndPoint);
 
-                    logger.log(Level.INFO, "Connected to broker for node [{0}] via interface [{1}] at address [{2}]",
-                            new Object[] {nodeID, nodeInterface, fullIPAddress});
+                    logger.log(Level.INFO, "Connected to broker for node [{0}]", nodeID);
 
                 } else {
-                    logger.log(Level.FINEST, "Already connected to broker for node [{0}] at address [{1}]",
-                            new Object[] {nodeID, fullIPAddress});
+
+                    logger.log(Level.FINE, "Already connected to broker for node [{0}]", nodeID);
+
                 }
 
             } catch (Exception e) {
+
                 sharedEndPoint = null;
-                logger.log(Level.WARNING, "Unable to connect to broker for node [{0}]: \"{1}\"", new Object[] {nodeID,
+
+                logger.log(Level.WARNING, "Unable to connect to broker for node [{0}]: {1}", new Object[] {nodeID,
                         e.getMessage()});
-                logger.log(Level.FINEST, "Broker connection error full stack trace: {0}", FLog.stackTrace(e));
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
         }
 
         return sharedEndPoint;
-
     }
 
     /**

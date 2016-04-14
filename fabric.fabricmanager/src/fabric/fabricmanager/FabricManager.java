@@ -45,7 +45,6 @@ import fabric.bus.services.impl.ConnectionManagerService;
 import fabric.bus.services.impl.FloodMessageService;
 import fabric.bus.services.impl.NotificationManagerService;
 import fabric.core.io.MessageQoS;
-import fabric.core.logging.FLog;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricPlugin;
 import fabric.registry.FabricRegistry;
@@ -292,7 +291,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
         shutdownHook.addAction(this);
 
         /* Initialize Fabric trace */
-        logger.log(Level.INFO, "Fabric Manager on \"{0}\" started", name);
+        logger.log(Level.INFO, "Fabric Manager on [{0}] started", name);
 
     }
 
@@ -392,8 +391,9 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
                 FabricRegistry.getTypeFactory(QueryScope.LOCAL).update(nodeType);
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot register node type \"{0}\": {1}", new Object[] {nodeType.toString(),
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot register node type [{0}]: {1}", new Object[] {nodeType.toString(),
+                    e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
         }
 
         /* Add the node itself */
@@ -406,13 +406,11 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
         try {
             FabricRegistry.save(node);
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot register node \"{0}\": {1}", new Object[] {node.toString(),
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot register node [{0}]: {1}", new Object[] {node.toString(), e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
         }
 
-        if (logger.isLoggable(Level.FINEST)) {
-            logPossibleInterfaces();
-        }
+        logPossibleInterfaces();
 
         // Determine ipAddresses from interface names
         String[] interfaceNames = config().getProperty(ConfigProperties.NODE_INTERFACES,
@@ -427,8 +425,8 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
                 NetworkInterface networkInterface = NetworkInterface.getByName(interfaceName);
                 if (networkInterface == null) {
-                    logger.warning("Interface : " + interfaceName + " not found, defaulting to "
-                            + ConfigProperties.NODE_INTERFACES_DEFAULT);
+                    logger.log(Level.WARNING, "Interface [{0}] not found, defaulting to [{1}]", new Object[] {
+                            interfaceName, ConfigProperties.NODE_INTERFACES_DEFAULT});
                     interfaceName = ConfigProperties.NODE_INTERFACES_DEFAULT;
                     networkInterface = NetworkInterface.getByName(interfaceName);
                 }
@@ -454,15 +452,16 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
                 logger.log(
                         Level.WARNING,
-                        "Registering this node with IP address \"{0}\" will mean that nodes on remote systems will not able to connect to it",
+                        "Registering this node with IP address [{0}] will mean that nodes on remote systems will not able to connect to it",
                         ipMapping.getIpAddress());
             }
 
             try {
                 FabricRegistry.save(ipMapping);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Cannot register IP mapping \"{0}\": {1}", new Object[] {
-                        ipMapping.toString(), FLog.stackTrace(e)});
+                logger.log(Level.WARNING, "Cannot register IP mapping [{0}]: {1}", new Object[] {ipMapping.toString(),
+                        e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
         }
     }

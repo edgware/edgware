@@ -12,6 +12,7 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Formatter;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 public class FabricFormatter extends Formatter {
@@ -24,7 +25,7 @@ public class FabricFormatter extends Formatter {
      */
 
     private String title = "unknown";
-
+    private int maxThreadNameLength = 0;
     private boolean longMessages = false;
 
     /*
@@ -71,18 +72,18 @@ public class FabricFormatter extends Formatter {
         logMessage.append('[').append(this.title).append("] ");
 
         /* Add the thread ID */
-        logMessage.append('[');
-        logMessage.append(Thread.currentThread().getName());
-        logMessage.append(pad(Thread.currentThread().getName(), 20));
-        logMessage.append(']');
-        logMessage.append(' ');
+
+        String threadName = Thread.currentThread().getName();
+        if (threadName != null) {
+            maxThreadNameLength = (threadName.length() > maxThreadNameLength ? threadName.length()
+                    : maxThreadNameLength);
+        }
+
+        logMessage.append('[').append(threadName).append(pad(threadName, maxThreadNameLength)).append(']').append(' ');
 
         /* Add the name of the log level */
-        logMessage.append('[');
-        logMessage.append(r.getLevel().getName());
-        logMessage.append(pad(r.getLevel().getName(), 7));
-        logMessage.append(']');
-        logMessage.append(' ');
+        logMessage.append('[').append(r.getLevel().getName()).append(pad(r.getLevel().getName(), 7)).append(']')
+                .append(' ');
 
         if (longMessages) {
 
@@ -97,7 +98,17 @@ public class FabricFormatter extends Formatter {
         }
 
         /* Add the body of the message */
-        logMessage.append(": ").append(formatMessage(r));
+
+        logMessage.append(": ");
+
+        if (r.getLevel().intValue() < Level.FINE.intValue() && !r.getMessage().startsWith("-")
+                && !r.getMessage().startsWith("<")) {
+            logMessage.append(FLog.indent());
+        } else {
+            logMessage.append("- ");
+        }
+
+        logMessage.append(formatMessage(r));
 
         /* If an exception is involved... */
         if (r.getThrown() != null) {

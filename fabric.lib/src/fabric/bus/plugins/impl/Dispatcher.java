@@ -71,7 +71,7 @@ public abstract class Dispatcher extends FabricBus implements IDispatcher {
                 /* Initialize it */
                 family = new Family();
                 familyManagement.put(familyName, family);
-                logger.log(Level.FINEST, "Added a family management object \"{0}\"", familyName);
+                logger.log(Level.FINEST, "Added a family management object for family [{0}]", familyName);
 
             }
 

@@ -112,7 +112,7 @@ public class JsonClient implements MqttCallback {
             } catch (Exception e) {
 
                 System.out.println("Broker connection failed (ensure that the broker is running); retrying in "
-                        + retryInterval + " seconds: \"" + e.getMessage() + "\"");
+                        + retryInterval + " seconds: " + e.getMessage());
 
                 /* Wait before retrying */
                 try {

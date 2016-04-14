@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fabric.core.logging.FLog;
 import fabric.core.properties.Properties;
 import fabric.registry.FabricRegistry;
 import fabric.registry.QueryScope;
@@ -263,15 +262,16 @@ public class LocalConfig extends Properties implements IConfig {
                 /* Query the default configuration properties table in the Registry */
                 propertyValue = FabricRegistry.runStringQuery("select VALUE from " + FabricRegistry.DEFAULT_CONFIG
                         + " where NAME='" + key + "'", queryScope);
-                logger.log(Level.FINEST, "Registry lookup for key \"{0}\" returned \"{1}\"", new Object[] {key,
+                logger.log(Level.FINEST, "Registry lookup for key [{0}] returned [{1}]", new Object[] {key,
                         propertyValue});
 
             }
 
         } catch (PersistenceException e) {
 
-            logger.log(Level.WARNING, "Exception looking up configuration property \"{0}\": {1}", new Object[] {key,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Exception looking up configuration property [{0}]: {1}", new Object[] {key,
+                    e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
 

@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import fabric.core.io.ICallback;
 import fabric.core.io.Message;
-import fabric.core.logging.FLog;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodeIpMapping;
@@ -79,7 +78,8 @@ public class DiscoverySweeper implements Runnable, ICallback {
                     unavailableNeighbours = FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL).getNeighbours(
                             " AVAILABILITY='" + NodeNeighbour.UNAVAILABLE + "'");
                 } catch (RegistryQueryException e) {
-                    logger.log(Level.WARNING, "Registry for unavailable neighbours failed: {0}", FLog.stackTrace(e));
+                    logger.log(Level.WARNING, "Registry for unavailable neighbours failed: {0}", e.getMessage());
+                    logger.log(Level.FINEST, "Full exception: ", e);
                 }
 
                 synchronized (myFablet.nodeLastSeen) {

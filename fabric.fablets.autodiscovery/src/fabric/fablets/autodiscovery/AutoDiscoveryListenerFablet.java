@@ -196,13 +196,13 @@ public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlu
             if (sweeper == null) {
                 /* Create and start the sweeper thread, used to remove node neighbours that have disappeared */
                 sweeper = new DiscoverySweeper(this);
-                new Thread(sweeper).start();
+                new Thread(sweeper, "Auto-Discovery-Sweeper").start();
             }
 
             /* Start all the multicast Listeners */
             for (int i = 0; i < interfaceListeners.size(); i++) {
                 NetworkInterfaceListener interfaceListener = interfaceListeners.get(i);
-                new Thread(interfaceListener).start();
+                new Thread(interfaceListener, "Auto-Discovery-Listener").start();
             }
 
             isRunning = true;

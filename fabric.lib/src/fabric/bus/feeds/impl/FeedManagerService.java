@@ -329,8 +329,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         } else {
 
             /* The message is not to be processed further */
-
-            logger.log(Level.FINEST, "Discarding message from feed \"{0}\" due to in-bound node plug-in action",
+            logger.log(Level.FINEST, "Discarding message from feed [{0}] due to in-bound node plug-in action",
                     fhmd.feedName);
 
         }
@@ -474,7 +473,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         } else {
 
             /* The message is not to be processed further */
-            logger.log(Level.FINEST, "Discarding message from feed \"{0}\" due to in-bound task plug-in action",
+            logger.log(Level.FINEST, "Discarding message from feed [{0}] due to in-bound task plug-in action",
                     fhmd.feedName);
             fhmd.messageModified = true;
 
@@ -552,7 +551,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
                         /* The message is not to be processed further */
                         logger.log(Level.FINEST,
-                                "Discarding message from feed \"{0}\" due to out-bound task plug-in action",
+                                "Discarding message from feed [{0}] due to out-bound task plug-in action",
                                 fhmd.feedName);
                         fhmd.messageModified = true;
 
@@ -602,7 +601,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             } else {
 
                 /* The message is not to be processed further */
-                logger.log(Level.FINEST, "Discarding message from feed \"{0}\" due to out-bound actor plug-in action",
+                logger.log(Level.FINEST, "Discarding message from feed [{0}] due to out-bound actor plug-in action",
                         fhmd.feedName);
                 fhmd.messageModified = true;
                 actorMessage = null;
@@ -612,7 +611,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         } else {
 
             /* The message is not to be processed further */
-            logger.log(Level.FINEST, "Discarding message from feed \"{0}\" due to in-bound actor plug-in action",
+            logger.log(Level.FINEST, "Discarding message from feed [{0}] due to in-bound actor plug-in action",
                     fhmd.feedName);
             fhmd.messageModified = true;
             actorMessage = null;
@@ -877,7 +876,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         /* If this subscription is not already active... */
         if (!activeSubscriptionIDs.containsKey(subscriptionID)) {
 
-            logger.log(Level.FINER, "Creating subscription for actor \"{0}\" on platform \"{1}\", task \"{2}\"",
+            logger.log(Level.FINER, "Creating subscription for actor [{0}] on platform [{1}], task [{2}]",
                     new Object[] {actor, actorPlatform, taskFeed.task()});
 
             /* Determine the QoS for this feed */
@@ -910,7 +909,8 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             activeSubscriptionIDs.put(subscriptionID, subscription);
 
         } else {
-            logger.log(Level.FINE, "Skipping \"{0}\", already subscribed", subscriptionID);
+
+            logger.log(Level.FINE, "Ignoring subscription for [{0}], already subscribed", subscriptionID);
 
         }
     }
@@ -1021,7 +1021,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                  * node(s) in the route)
                  */
 
-                logger.log(Level.FINEST, "Registering clean-up for upstream disconnections (next node is \"{0}\")",
+                logger.log(Level.FINEST, "Registering clean-up for upstream disconnections (next node is [{0}])",
                         nextNodes[n]);
 
                 handle = busServices.addFeedMessage(nextNodes[n], taskFeed.platform(), taskFeed.system(), taskFeed
@@ -1040,7 +1040,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
              */
 
             logger.log(Level.FINEST,
-                    "Registering clean-up for subscriber-side disconnections (previous node was \"{0}\"",
+                    "Registering clean-up for subscriber-side disconnections (previous node was [{0}]",
                     subscriptionRouting.previousNode());
 
             handle = busServices.addFeedMessage(subscriptionRouting.previousNode(), taskFeed.platform(), taskFeed
@@ -1054,7 +1054,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
             /* Register an auto-unsubscribe message to handle unexpected the disconnection of the subscriber */
 
-            logger.log(Level.FINEST, "Registering clean-up for subscriber disconnections (subscriber node is \"{0}\"",
+            logger.log(Level.FINEST, "Registering clean-up for subscriber disconnections (subscriber node is [{0}]",
                     message.subscriberNode());
 
             String actor = message.getProperty(SubscriptionMessage.PROPERTY_ACTOR);
@@ -1095,7 +1095,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
             /* Register an auto-unsubscribe message to handle unexpected loss of the publisher */
 
-            logger.log(Level.FINEST, "Registering clean-up for publisher disconnections (publisher node was \"{0}\"",
+            logger.log(Level.FINEST, "Registering clean-up for publisher disconnections (publisher node was [{0}]",
                     message.publisherNode());
 
             handle = busServices.addFeedMessage(homeNode(), taskFeed.platform(), taskFeed.system(), taskFeed.service(),
@@ -1237,7 +1237,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         /* If this subscription is active... */
         if (activeSubscriptionIDs.containsKey(subscriptionID)) {
 
-            logger.log(Level.FINER, "Stopping subscription for actor \"{0}\", task \"{1}\"", new Object[] {actor,
+            logger.log(Level.FINER, "Stopping subscription for actor [{0}], task [{1}]", new Object[] {actor,
                     taskFeed.task()});
 
             /* Get the list of active subscriptions for this feed */
@@ -1330,8 +1330,9 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         } catch (Exception e) {
 
             logger.log(Level.WARNING,
-                    "Cannot fire notifications for correlation ID \"{0}\", feed \"{1}\", event \"{2}\": {3}",
-                    new Object[] {correlationID, serviceDescriptor.toString(), event, FLog.stackTrace(e)});
+                    "Cannot fire notifications for correlation ID [{0}], feed [{1}], event [{2}]: {3}", new Object[] {
+                            correlationID, serviceDescriptor.toString(), event, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
 
@@ -1518,7 +1519,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             } else {
 
                 /* The message is not to be processed further */
-                logger.log(Level.FINEST, "Discarding message from feed \"{0}\" due to out-bound node plug-in action",
+                logger.log(Level.FINEST, "Discarding message from feed [{0}] due to out-bound node plug-in action",
                         fhmd.feedName);
 
             }
@@ -1571,7 +1572,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             } else {
 
                 /* The message is not to be processed further */
-                logger.log(Level.FINEST, "Discarding message from feed \"{0}\" due to out-bound node plug-in action",
+                logger.log(Level.FINEST, "Discarding message from feed [{0}] due to out-bound node plug-in action",
                         fhmd.feedName);
 
             }

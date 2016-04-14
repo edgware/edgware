@@ -56,9 +56,11 @@ public class FLog {
         StringBuilder indent = new StringBuilder();
         int indentLevel = indentLevel();
 
-        for (int i = 0; i < indentLevel; i++) {
+        for (int i = 0; i <= indentLevel; i++) {
             indent.append('-');
         }
+
+        indent.append(' ');
 
         return indent.toString();
     }
@@ -251,5 +253,84 @@ public class FLog {
         throwable.printStackTrace(printWriter);
         return stringWriter.toString();
 
+    }
+
+    /**
+     * Answers a single string containing the string representations of an array of objects.
+     * <p>
+     * The string is of the form:
+     *
+     * <pre>
+     * [<em>string-1</em>][<em>string-2</em>][<em>string-3</em>]...
+     * </pre>
+     *
+     * </p>
+     *
+     * @param array
+     * @return
+     */
+    public static String arrayAsString(Object[] array) {
+
+        StringBuilder s = new StringBuilder();
+
+        if (array != null) {
+
+            for (Object a : array) {
+                s.append('[').append(a).append(']');
+            }
+        }
+        return s.toString();
+    }
+
+    /*
+     * Aliases for standard logging methods.
+     */
+
+    public static void finest(Logger l, String msg, Object... args) {
+        l.log(Level.FINEST, msg, args);
+    }
+
+    public static void finest(Logger l, String msg) {
+        l.log(Level.FINEST, msg);
+    }
+
+    public static void finer(Logger l, String msg, Object... args) {
+        l.log(Level.FINER, msg, args);
+    }
+
+    public static void finer(Logger l, String msg) {
+        l.log(Level.FINER, msg);
+    }
+
+    public static void fine(Logger l, String msg, Object... args) {
+        l.log(Level.FINE, msg, args);
+    }
+
+    public static void fine(Logger l, String msg) {
+        l.log(Level.FINE, msg);
+    }
+
+    public static void info(Logger l, String msg, Object... args) {
+        l.log(Level.INFO, msg, args);
+    }
+
+    public static void info(Logger l, String msg) {
+        l.log(Level.INFO, msg);
+    }
+
+    public static void warn(Logger l, String msg, Object... args) {
+        l.log(Level.WARNING, msg, args);
+    }
+
+    public static void warn(Logger l, String msg) {
+        l.log(Level.WARNING, msg);
+    }
+
+    public static void severe(Logger l, String msg, Object... args) {
+        l.log(Level.SEVERE, msg, args);
+    }
+
+    public static void severe(Logger l, String msg) {
+        l.log(Level.SEVERE, msg);
     }
 }

@@ -65,17 +65,17 @@ public class MetricsManager extends Fabric {
 
     /**
      * Initialize instrumentation.
-     * 
+     *
      * @param doInstrument
      *            <code>true</code> if instrumentation is enabled, <code>false</code> otherwise.
-     * 
+     *
      * @param fileName
      *            the name of the file to which metrics should be persisted, or <code>null</code> if there is none.
-     * 
+     *
      * @param maxBufferedMetrics
      *            the maximum number of records that should be buffered before being written to the file, written to the
      *            Registry, or discarded.
-     * 
+     *
      * @throws IOException
      *             thrown if there is a problem opening the persistence file.
      */
@@ -92,7 +92,7 @@ public class MetricsManager extends Fabric {
             if (persistToFile) {
 
                 /* Open the file */
-                logger.log(Level.FINE, "Opening instrumentation file \"{0}\"", fileName);
+                logger.log(Level.FINE, "Opening instrumentation file [{0}]", fileName);
                 metricsWriter = new FileWriter(fileName);
 
             }
@@ -102,10 +102,10 @@ public class MetricsManager extends Fabric {
 
     /**
      * Set the start time of a Fabric metric and record.
-     * 
+     *
      * @param metric
      *            the metric to record.
-     * 
+     *
      * @param event
      *            the event that has occurred.
      */
@@ -126,10 +126,10 @@ public class MetricsManager extends Fabric {
 
     /**
      * Set the end time of a Fabric metric and record.
-     * 
+     *
      * @param metric
      *            the metric to record.
-     * 
+     *
      * @param event
      *            the event that has occuered.
      */
@@ -151,7 +151,7 @@ public class MetricsManager extends Fabric {
     /**
      * Adds a new metric. If the new metric exceeds the maximum size of the buffer then the results are persisted (if
      * persistence is enabled) and cleared.
-     * 
+     *
      * @param metric
      *            the metric to add.
      */

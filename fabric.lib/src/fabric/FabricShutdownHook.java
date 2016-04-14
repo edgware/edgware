@@ -1,6 +1,6 @@
 /*
- * (C) Copyright IBM Corp. 2009, 2012
- * 
+ * (C) Copyright IBM Corp. 2009, 2016
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -12,102 +12,115 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import fabric.core.logging.FLog;
-
 /**
  * Shutdown hook for Fabric applications.
  */
 public class FabricShutdownHook extends Thread {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2016";
 
-	/*
-	 * Class static fields
-	 */
+    /*
+     * Class static fields
+     */
 
-	/** The list of shutdown actions for this hook to invoke */
-	private ArrayList<IFabricShutdownHookAction> actionList = new ArrayList<IFabricShutdownHookAction>();
+    /** Count of active shutdown hooks. */
+    private static int hookCount = 1;
 
-	private Logger logger;
+    /** Object used to lock access to the shutdown hook count. */
+    private static Object hookCountLock = new Object();
 
-	public FabricShutdownHook(String name) {
+    /*
+     * Class fields
+     */
 
-		logger = Logger.getLogger(name);
-	}
+    /** The list of shutdown actions for this hook to invoke */
+    private ArrayList<IFabricShutdownHookAction> actionList = new ArrayList<IFabricShutdownHookAction>();
 
-	/*
-	 * Class methods
-	 */
+    private Logger logger;
 
-	/**
-	 * Adds a new shutdown action to the list for this shutdown hook.
-	 * <p>
-	 * <strong>Note:</strong>
-	 * <ul>
-	 * <li>Shutdown actions will be invoked in the order in which they are registered.</li>
-	 * <li>Each instance of an action class can only be added <em>once</em>.</li>
-	 * </ul>
-	 * </p>
-	 * 
-	 * @param action
-	 *            the class implementing clean-up actions.
-	 */
-	public void addAction(IFabricShutdownHookAction action) {
+    public FabricShutdownHook(String name) {
 
-		/* If the action has not already been added... */
-		if (!actionList.contains(action)) {
+        logger = Logger.getLogger(name);
 
-			/* Add the new action */
-			actionList.add(action);
+        synchronized (hookCountLock) {
+            setName("Shutdown-Hook-" + hookCount++);
+        }
+    }
 
-		}
+    /*
+     * Class methods
+     */
 
-	}
+    /**
+     * Adds a new shutdown action to the list for this shutdown hook.
+     * <p>
+     * <strong>Note:</strong>
+     * <ul>
+     * <li>Shutdown actions will be invoked in the order in which they are registered.</li>
+     * <li>Each instance of an action class can only be added <em>once</em>.</li>
+     * </ul>
+     * </p>
+     *
+     * @param action
+     *            the class implementing clean-up actions.
+     */
+    public void addAction(IFabricShutdownHookAction action) {
 
-	/**
-	 * Removes the <em>first</em> occurrence of the specified shutdown action from the list for this shutdown hook.
-	 * 
-	 * @param action
-	 *            the action class to be removed.
-	 */
-	public void removeAction(IFabricShutdownHookAction action) {
+        /* If the action has not already been added... */
+        if (!actionList.contains(action)) {
 
-		actionList.remove(action);
+            /* Add the new action */
+            actionList.add(action);
 
-	}
+        }
 
-	/**
-	 * Shutdown hook entry point.
-	 * <p>
-	 * When called by the JVM, this method will invoke each of the registered shutdown actions.
-	 * </p>
-	 */
-	@Override
-	public void run() {
+    }
 
-		logger.log(Level.INFO, "Performing pre-termination clean-up");
+    /**
+     * Removes the <em>first</em> occurrence of the specified shutdown action from the list for this shutdown hook.
+     *
+     * @param action
+     *            the action class to be removed.
+     */
+    public void removeAction(IFabricShutdownHookAction action) {
 
-		/* For each clean-up action... */
-		for (Iterator<IFabricShutdownHookAction> i = actionList.iterator(); i.hasNext();) {
+        actionList.remove(action);
 
-			/* Get the next shutdown action */
-			IFabricShutdownHookAction nextAction = i.next();
+    }
 
-			try {
+    /**
+     * Shutdown hook entry point.
+     * <p>
+     * When called by the JVM, this method will invoke each of the registered shutdown actions.
+     * </p>
+     */
+    @Override
+    public void run() {
 
-				/* Invoke the action */
-				nextAction.shutdown();
+        logger.log(Level.INFO, "Performing pre-termination clean-up");
 
-			} catch (Exception e) {
+        /* For each clean-up action... */
+        for (Iterator<IFabricShutdownHookAction> i = actionList.iterator(); i.hasNext();) {
 
-				String actionInstance = nextAction.getClass().getName() + '@'
-						+ Integer.toHexString(nextAction.hashCode());
+            /* Get the next shutdown action */
+            IFabricShutdownHookAction nextAction = i.next();
 
-				logger.log(Level.WARNING, "Shutdown action \"{0}\" failed with exception: {1}", new Object[] {
-						actionInstance, FLog.stackTrace(e)});
+            try {
 
-			}
-		}
-	}
+                /* Invoke the action */
+                nextAction.shutdown();
+
+            } catch (Exception e) {
+
+                String actionInstance = nextAction.getClass().getName() + '@'
+                        + Integer.toHexString(nextAction.hashCode());
+
+                logger.log(Level.WARNING, "Shutdown action [{0}] failed with exception: {1}", new Object[] {
+                        actionInstance, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
+
+            }
+        }
+    }
 }

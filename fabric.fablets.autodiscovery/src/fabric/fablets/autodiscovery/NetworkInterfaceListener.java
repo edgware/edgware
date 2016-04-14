@@ -166,13 +166,13 @@ public class NetworkInterfaceListener implements Runnable {
             logger.log(Level.WARNING,
                     "Could not create broadcast/multicast socket to send to group [{0}] from interface [{1}:{2}]: {3}",
                     new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
-                            e.getMessage()});
+                    e.getMessage()});
         } catch (SocketException e) {
             // Couldn't connect to socket - probably in use, possibly below 1024
             logger.log(Level.WARNING,
                     "Could not create broadcast/multicast socket to send to group [{0}] from interface [{1}:{2}]: {3}",
                     new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
-                    e.getMessage()});
+                            e.getMessage()});
         }
     }
 
