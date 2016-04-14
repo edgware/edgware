@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -30,374 +30,378 @@ import fabric.services.systems.RuntimeManager;
  */
 public class OperationDispatcher extends FabricBus {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Handles a query operation.
-	 * 
-	 * @param operation
-	 *            The name of the requested operation.
-	 * 
-	 * @param op
-	 *            The full operation message.
-	 * 
-	 * @param correlId
-	 *            The correlation ID of the request.
-	 * 
-	 * @return the operation response.
-	 */
-	public static JSON query(final String operation, final JSON op, String correlId) {
+    /**
+     * Handles a SQL operation.
+     *
+     * @param operation
+     *            The name of the requested operation.
+     *
+     * @param op
+     *            The full operation message.
+     *
+     * @param correlId
+     *            The correlation ID of the request.
+     *
+     * @return the operation response.
+     */
+    public static JSON sql(final String operation, final JSON op, String correlId) {
 
-		JSON response = null;
+        JSON response = null;
 
-		/* Determine what operation has been requested, and invokes the correct class and method. */
+        /* Determine what operation has been requested, and invokes the correct class and method. */
 
-		switch (operation) {
+        switch (operation) {
 
-		case AdapterConstants.OP_QUERY_LOCAL_NODE:
+            case AdapterConstants.OP_QUERY_LOCAL_NODE:
 
-			response = Nodes.queryLocalNode(correlId);
-			break;
+                response = Nodes.queryLocalNode(correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_NODES:
+            case AdapterConstants.OP_QUERY_NODES:
 
-			response = Nodes.query(op, correlId);
-			break;
+                response = Nodes.query(op, correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_NEIGHBOURS:
+            case AdapterConstants.OP_QUERY_NEIGHBOURS:
 
-			response = Nodes.queryNeighbours(op, correlId);
-			break;
+                response = Nodes.queryNeighbours(op, correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_NODE_TYPES:
-			response = NodeTypes.query(op, correlId);
-			break;
+            case AdapterConstants.OP_QUERY_NODE_TYPES:
+                response = NodeTypes.query(op, correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_BEARERS:
+            case AdapterConstants.OP_QUERY_BEARERS:
 
-			response = Bearers.query(op, correlId);
-			break;
+                response = Bearers.query(op, correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_SYSTEMS:
+            case AdapterConstants.OP_QUERY_SYSTEMS:
 
-			response = Systems.query(op, correlId);
-			break;
+                response = Systems.query(op, correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_SYSTEM_TYPES:
+            case AdapterConstants.OP_QUERY_SYSTEM_TYPES:
 
-			response = SystemTypes.query(op, correlId);
-			break;
+                response = SystemTypes.query(op, correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_PLATFORMS:
+            case AdapterConstants.OP_QUERY_PLATFORMS:
 
-			response = Platforms.query(op, correlId);
-			break;
+                response = Platforms.query(op, correlId);
+                break;
 
-		case AdapterConstants.OP_QUERY_PLATFORM_TYPES:
+            case AdapterConstants.OP_QUERY_PLATFORM_TYPES:
 
-			response = PlatformTypes.query(op, correlId);
-			break;
-			
-		case AdapterConstants.OP_QUERY_SERVICE_WIRING:
+                response = PlatformTypes.query(op, correlId);
+                break;
 
-			response = ServiceWiring.query(op, correlId);
-			break;
+            case AdapterConstants.OP_QUERY_SERVICE_WIRING:
 
-		case AdapterConstants.OP_QUERY_USERS:
+                response = ServiceWiring.query(op, correlId);
+                break;
 
-			response = Users.query(op, correlId);
-			break;
+            case AdapterConstants.OP_QUERY_USERS:
 
-		case AdapterConstants.OP_QUERY_USER_TYPES:
+                response = Users.query(op, correlId);
+                break;
 
-			response = UserTypes.query(op, correlId);
-			break;
+            case AdapterConstants.OP_QUERY_USER_TYPES:
 
-		case AdapterConstants.OP_SQL_DELETE:
-			response = Registry.executeDeleteQuery(op);
-			break;
+                response = UserTypes.query(op, correlId);
+                break;
 
-		case AdapterConstants.OP_SQL_SELECT:
+            case AdapterConstants.OP_SQL_DELETE:
+                response = Registry.executeDeleteQuery(op);
+                break;
 
-			response = Registry.executeSelectQuery(op);
-			break;
+            case AdapterConstants.OP_SQL_SELECT:
 
-		case AdapterConstants.OP_SQL_UPDATE:
+                response = Registry.executeSelectQuery(op);
+                break;
 
-			response = Registry.executeUpdateQuery(op);
-			break;
-
-		default:
-
-			AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
-					AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
-			response = status.toJsonObject();
-			break;
-		}
-		return response;
-	}
-
-	/**
-	 * Handles a registration operation.
-	 * 
-	 * @param operation
-	 *            The name of the requested operation.
-	 * 
-	 * @param op
-	 *            The full operation message.
-	 * 
-	 * @param correlId
-	 *            The correlation ID of the request.
-	 * 
-	 * @param isRegister
-	 *            flag indicating if this is a registration (<code>true</code>) or deregistration (<code>false</code>)
-	 *            operation.
-	 * 
-	 * @return the operation response.
-	 */
-	public static JSON registration(final String operation, final JSON op, boolean isRegister, String correlId) {
-
-		JSON response = null;
-		String id = null;
-		String subOperation = operation.split(":")[1];
-
-		if (subOperation.endsWith(AdapterConstants.FIELD_SUFFIX_TYPE)) {
-			id = op.getString(AdapterConstants.FIELD_TYPE);
-		} else {
-			id = op.getString(AdapterConstants.FIELD_ID);
-		}
-
-		/* Determine what operation has been requested, and invokes the correct class and method. */
-
-		switch (subOperation) {
-
-		case AdapterConstants.FIELD_NODE:
-
-			if (isRegister) {
-				response = Nodes.register(op, correlId);
-			} else {
-				response = Nodes.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_NODE_TYPE:
-
-			if (isRegister) {
-				response = NodeTypes.register(op, correlId);
-			} else {
-				response = NodeTypes.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_BEARER:
-
-			if (isRegister) {
-				response = Bearers.register(op, correlId);
-			} else {
-				response = Bearers.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_PLATFORM:
-
-			if (isRegister) {
-				response = Platforms.register(op, correlId);
-			} else {
-				response = Platforms.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_PLATFORM_TYPE:
-
-			if (isRegister) {
-				response = PlatformTypes.register(op, correlId);
-			} else {
-				response = PlatformTypes.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_SYSTEM:
-
-			if (isRegister) {
-				response = Systems.register(op, correlId);
-			} else {
-				response = Systems.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_SYSTEM_TYPE:
-
-			if (isRegister) {
-				response = SystemTypes.register(op, correlId);
-			} else {
-				response = SystemTypes.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_SERVICE_TYPE:
-
-			if (isRegister) {
-				response = ServiceTypes.register(op, correlId);
-			} else {
-				response = ServiceTypes.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_USER:
-
-			if (isRegister) {
-				response = Users.register(op, correlId);
-			} else {
-				response = Users.deregister(id, correlId);
-			}
-			break;
-
-		case AdapterConstants.FIELD_USER_TYPE:
-
-			if (isRegister) {
-				response = UserTypes.register(op, correlId);
-			} else {
-				response = UserTypes.deregister(id, correlId);
-			}
-			break;
-
-		default:
-
-			AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
-					AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
-			response = status.toJsonObject();
-			break;
-
-		}
-
-		return response;
-	}
-
-	/**
-	 * Handles a system state change operation.
-	 * 
-	 * @param operation
-	 *            The name of the requested operation.
-	 * 
-	 * @param client
-	 *            adapter-specific ID of the client, used to target messages sent to the client.
-	 * 
-	 * @param op
-	 *            The full operation message.
-	 * 
-	 * @param runtimeManager
-	 *            the runtime manager instance responsible for managing this system instance.
-	 * 
-	 * @param adapterProxy
-	 *            the name of the class implementing the system adapter proxy for the JSON Fabric client.
-	 * 
-	 * @param correlId
-	 *            The correlation ID of the request.
-	 * 
-	 * @return the operation response.
-	 */
-	public static JSON stateChange(String operation, Object client, JSON op, RuntimeManager runtimeManager,
-			String adapterProxy, String correlId) {
-
-		JSON response = null;
-
-		/* Determine what operation has been requested, and invoke the correct class and method. */
-
-		String subOperation = operation.split(":")[1];
-
-		switch (subOperation) {
-
-		case AdapterConstants.FIELD_SYSTEM:
-
-			response = Systems.changeState(op, client, runtimeManager, adapterProxy, correlId);
-			break;
-
-		default:
-
-			AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
-					AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
-			response = status.toJsonObject();
-			break;
-
-		}
-
-		return response;
-	}
-
-	/**
-	 * Handles a system request/response operation.
-	 * 
-	 * @param operation
-	 *            The name of the requested operation.
-	 * 
-	 * @param op
-	 *            The full operation message.
-	 * 
-	 * @param runtimeManager
-	 *            the runtime manager instance responsible for managing this system instance.
-	 * 
-	 * @param correlId
-	 *            The correlation ID of the request.
-	 * 
-	 * @return the operation response.
-	 */
-	public static JSON serviceOperation(String operation, JSON op, RuntimeManager runtimeManager, String correlId) {
-
-		JSON response = null;
-
-		/* Determine what operation has been requested, and invokes the correct class and method. */
-
-		switch (operation) {
-
-		case AdapterConstants.OP_SERVICE_REQUEST:
-
-			response = Systems.request(op, runtimeManager, correlId);
-			break;
-
-		case AdapterConstants.OP_SERVICE_RESPONSE:
-
-			response = Systems.response(op, runtimeManager, correlId);
-			break;
-
-		case AdapterConstants.OP_NOTIFY:
-
-			response = Systems.notify(op, runtimeManager, correlId);
-			break;
-
-		case AdapterConstants.OP_PUBLISH:
-
-			response = Systems.publish(op, runtimeManager, correlId);
-			break;
-
-		case AdapterConstants.OP_SUBSCRIBE:
-
-			response = Systems.subscribe(op, runtimeManager, correlId);
-			break;
-
-		case AdapterConstants.OP_UNSUBSCRIBE:
-
-			response = Systems.unsubscribe(op, runtimeManager, correlId);
-			break;
-
-		case AdapterConstants.OP_DISCONNECT:
-
-			response = Systems.disconnect(op, runtimeManager);
-			break;
-
-		default:
-
-			AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
-					AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
-			response = status.toJsonObject();
-			break;
-
-		}
-
-		return response;
-	}
+            case AdapterConstants.OP_SQL_UPDATE:
+
+                response = Registry.executeUpdateQuery(op);
+                break;
+
+            default:
+
+                AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
+                        AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
+                response = status.toJsonObject();
+                break;
+        }
+        return response;
+    }
+
+    /**
+     * Handles a registration operation.
+     *
+     * @param operation
+     *            The name of the requested operation.
+     *
+     * @param op
+     *            The full operation message.
+     *
+     * @param correlId
+     *            The correlation ID of the request.
+     *
+     * @param isRegister
+     *            flag indicating if this is a registration (<code>true</code>) or deregistration (<code>false</code>)
+     *            operation.
+     *
+     * @param clientID
+     *            adapter-specific ID of the client, used to target messages sent to the client.
+     *
+     * @return the operation response.
+     */
+    public static JSON registration(final String operation, final JSON op, boolean isRegister, String correlId,
+            Object clientID) {
+
+        JSON response = null;
+        String id = null;
+        String subOperation = operation.split(":")[1];
+
+        if (subOperation.endsWith(AdapterConstants.FIELD_SUFFIX_TYPE)) {
+            id = op.getString(AdapterConstants.FIELD_TYPE);
+        } else {
+            id = op.getString(AdapterConstants.FIELD_ID);
+        }
+
+        /* Determine what operation has been requested, and invokes the correct class and method. */
+
+        switch (subOperation) {
+
+            case AdapterConstants.FIELD_NODE:
+
+                if (isRegister) {
+                    response = Nodes.register(op, correlId);
+                } else {
+                    response = Nodes.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_NODE_TYPE:
+
+                if (isRegister) {
+                    response = NodeTypes.register(op, correlId);
+                } else {
+                    response = NodeTypes.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_BEARER:
+
+                if (isRegister) {
+                    response = Bearers.register(op, correlId);
+                } else {
+                    response = Bearers.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_PLATFORM:
+
+                if (isRegister) {
+                    response = Platforms.register(op, correlId);
+                } else {
+                    response = Platforms.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_PLATFORM_TYPE:
+
+                if (isRegister) {
+                    response = PlatformTypes.register(op, correlId);
+                } else {
+                    response = PlatformTypes.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_SYSTEM:
+
+                if (isRegister) {
+                    response = Systems.register(op, correlId, clientID);
+                } else {
+                    response = Systems.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_SYSTEM_TYPE:
+
+                if (isRegister) {
+                    response = SystemTypes.register(op, correlId);
+                } else {
+                    response = SystemTypes.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_SERVICE_TYPE:
+
+                if (isRegister) {
+                    response = ServiceTypes.register(op, correlId);
+                } else {
+                    response = ServiceTypes.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_USER:
+
+                if (isRegister) {
+                    response = Users.register(op, correlId);
+                } else {
+                    response = Users.deregister(id, correlId);
+                }
+                break;
+
+            case AdapterConstants.FIELD_USER_TYPE:
+
+                if (isRegister) {
+                    response = UserTypes.register(op, correlId);
+                } else {
+                    response = UserTypes.deregister(id, correlId);
+                }
+                break;
+
+            default:
+
+                AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
+                        AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
+                response = status.toJsonObject();
+                break;
+
+        }
+
+        return response;
+    }
+
+    /**
+     * Handles a system state change operation.
+     *
+     * @param operation
+     *            The name of the requested operation.
+     *
+     * @param client
+     *            adapter-specific ID of the client, used to target messages sent to the client.
+     *
+     * @param op
+     *            The full operation message.
+     *
+     * @param runtimeManager
+     *            the runtime manager instance responsible for managing this system instance.
+     *
+     * @param adapterProxy
+     *            the name of the class implementing the system adapter proxy for the JSON Fabric client.
+     *
+     * @param correlId
+     *            The correlation ID of the request.
+     *
+     * @return the operation response.
+     */
+    public static JSON stateChange(String operation, Object client, JSON op, RuntimeManager runtimeManager,
+            String adapterProxy, String correlId) {
+
+        JSON response = null;
+
+        /* Determine what operation has been requested, and invoke the correct class and method. */
+
+        String subOperation = operation.split(":")[1];
+
+        switch (subOperation) {
+
+            case AdapterConstants.FIELD_SYSTEM:
+
+                response = Systems.changeState(op, client, runtimeManager, adapterProxy, correlId);
+                break;
+
+            default:
+
+                AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
+                        AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
+                response = status.toJsonObject();
+                break;
+
+        }
+
+        return response;
+    }
+
+    /**
+     * Handles a system request/response operation.
+     *
+     * @param operation
+     *            The name of the requested operation.
+     *
+     * @param op
+     *            The full operation message.
+     *
+     * @param runtimeManager
+     *            the runtime manager instance responsible for managing this system instance.
+     *
+     * @param correlId
+     *            The correlation ID of the request.
+     *
+     * @return the operation response.
+     */
+    public static JSON serviceOperation(String operation, JSON op, RuntimeManager runtimeManager, String correlId) {
+
+        JSON response = null;
+
+        /* Determine what operation has been requested, and invokes the correct class and method. */
+
+        switch (operation) {
+
+            case AdapterConstants.OP_SERVICE_REQUEST:
+
+                response = Systems.request(op, runtimeManager, correlId);
+                break;
+
+            case AdapterConstants.OP_SERVICE_RESPONSE:
+
+                response = Systems.response(op, runtimeManager, correlId);
+                break;
+
+            case AdapterConstants.OP_NOTIFY:
+
+                response = Systems.notify(op, runtimeManager, correlId);
+                break;
+
+            case AdapterConstants.OP_PUBLISH:
+
+                response = Systems.publish(op, runtimeManager, correlId);
+                break;
+
+            case AdapterConstants.OP_SUBSCRIBE:
+
+                response = Systems.subscribe(op, runtimeManager, correlId);
+                break;
+
+            case AdapterConstants.OP_UNSUBSCRIBE:
+
+                response = Systems.unsubscribe(op, runtimeManager, correlId);
+                break;
+
+            case AdapterConstants.OP_DISCONNECT:
+
+                response = Systems.disconnect(op, runtimeManager);
+                break;
+
+            default:
+
+                AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
+                        AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlId);
+                response = status.toJsonObject();
+                break;
+
+        }
+
+        return response;
+    }
 }

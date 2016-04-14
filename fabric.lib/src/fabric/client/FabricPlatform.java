@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -32,175 +32,174 @@ import fabric.core.properties.ConfigProperties;
  */
 public class FabricPlatform extends FabricClient implements IPlatformNotificationServices {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/** The platform notification service */
-	private PlatformNotificationService platformNotificationService = null;
+    /** The platform notification service */
+    private PlatformNotificationService platformNotificationService = null;
 
-	/** The ID of the service associated with the platform, i.e. where a platform and service are the same process. */
-	protected String service = null;
+    /** The ID of the service associated with the platform, i.e. where a platform and service are the same process. */
+    protected String service = null;
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Constructs a new instance.
-	 * 
-	 * @param actor
-	 *            the ID of the actor (i.e. the user) making this connection.
-	 * 
-	 * @param platform
-	 *            the ID of the platform (i.e. the application, service, or process etc.) making this connection.
-	 * @throws Exception
-	 */
-	public FabricPlatform(String actor, String platform) throws Exception {
+    /**
+     * Constructs a new instance.
+     * 
+     * @param actor
+     *            the ID of the actor (i.e. the user) making this connection.
+     * 
+     * @param platform
+     *            the ID of the platform (i.e. the application, service, or process etc.) making this connection.
+     * @throws Exception
+     */
+    public FabricPlatform(String actor, String platform) throws Exception {
 
-		super(actor, platform);
+        super(actor, platform);
 
-	}
+    }
 
-	/**
-	 * Constructs a new instance.
-	 * 
-	 * @param actor
-	 *            the ID of the actor (i.e. the user) making this connection.
-	 * 
-	 * @param platform
-	 *            the ID of the platform (i.e. the application, service, or process etc.) making this connection.
-	 * 
-	 * @param the
-	 *            ID of the service associated with the platform, i.e. where a platform and service are the same
-	 *            process.
-	 * @throws Exception
-	 */
-	public FabricPlatform(String actor, String platform, String service) throws Exception {
+    /**
+     * Constructs a new instance.
+     * 
+     * @param actor
+     *            the ID of the actor (i.e. the user) making this connection.
+     * 
+     * @param platform
+     *            the ID of the platform (i.e. the application, service, or process etc.) making this connection.
+     * 
+     * @param the
+     *            ID of the service associated with the platform, i.e. where a platform and service are the same
+     *            process.
+     * @throws Exception
+     */
+    public FabricPlatform(String actor, String platform, String service) throws Exception {
 
-		super(actor, platform);
+        super(actor, platform);
 
-		this.service = service;
+        this.service = service;
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.FabricClient#openHomeNodeChannels()
-	 */
-	@Override
-	protected void openHomeNodeChannels() throws Exception {
+    /**
+     * @see fabric.client.FabricClient#openHomeNodeChannels()
+     */
+    @Override
+    protected void openHomeNodeChannels() throws Exception {
 
-		super.openHomeNodeChannels();
+        super.openHomeNodeChannels();
 
-		try {
+        try {
 
-			/*
-			 * The topic on which this client will receive platform commands from the Fabric (via the local node's
-			 * Fabric Manager) for its associated platform
-			 */
-			ioChannels.receivePlatformCommands = new InputTopic(config(
-					ConfigProperties.TOPIC_RECEIVE_PLATFORM_COMMANDS,
-					ConfigProperties.TOPIC_RECEIVE_PLATFORM_COMMANDS_DEFAULT, homeNode(), platform));
-			ioChannels.receivePlatformCommandsChannel = homeNodeEndPoint().openInputChannel(
-					ioChannels.receivePlatformCommands, this);
-			logger.log(Level.FINE, "Receiving Fabric platform commands from \"{0}\"",
-					ioChannels.receivePlatformCommands);
+            /*
+             * The topic on which this client will receive platform commands from the Fabric (via the local node's
+             * Fabric Manager) for its associated platform
+             */
+            ioChannels.receivePlatformCommands = new InputTopic(config(
+                    ConfigProperties.TOPIC_RECEIVE_PLATFORM_COMMANDS,
+                    ConfigProperties.TOPIC_RECEIVE_PLATFORM_COMMANDS_DEFAULT, homeNode(), platform));
+            ioChannels.receivePlatformCommandsChannel = homeNodeEndPoint().openInputChannel(
+                    ioChannels.receivePlatformCommands, this);
+            logger.log(Level.FINE, "Receiving Fabric platform commands from [{0}]", ioChannels.receivePlatformCommands);
 
-			/* If a service has been specified... */
-			if (service != null) {
+            /* If a service has been specified... */
+            if (service != null) {
 
-				/*
-				 * The topic on which this client will receive platform commands from the Fabric (via the local node's
-				 * Fabric Manager) for its associated platform
-				 */
-				ioChannels.receiveServiceCommands = new InputTopic(config(
-						ConfigProperties.TOPIC_RECEIVE_SERVICES_COMMANDS,
-						ConfigProperties.TOPIC_RECEIVE_SERVICES_COMMANDS_DEFAULT, homeNode(), platform, service));
-				ioChannels.receiveServiceCommandsChannel = homeNodeEndPoint().openInputChannel(
-						ioChannels.receiveServiceCommands, this);
-				logger.log(Level.FINE, "Receiving Fabric service commands from \"{0}\"",
-						ioChannels.receiveServiceCommands);
+                /*
+                 * The topic on which this client will receive platform commands from the Fabric (via the local node's
+                 * Fabric Manager) for its associated platform
+                 */
+                ioChannels.receiveServiceCommands = new InputTopic(config(
+                        ConfigProperties.TOPIC_RECEIVE_SERVICES_COMMANDS,
+                        ConfigProperties.TOPIC_RECEIVE_SERVICES_COMMANDS_DEFAULT, homeNode(), platform, service));
+                ioChannels.receiveServiceCommandsChannel = homeNodeEndPoint().openInputChannel(
+                        ioChannels.receiveServiceCommands, this);
+                logger.log(Level.FINE, "Receiving Fabric service commands from [{0}]",
+                        ioChannels.receiveServiceCommands);
 
-			}
+            }
 
-		} catch (Exception e) {
+        } catch (Exception e) {
 
-			logger.log(Level.WARNING, "Connection to home node channels failed: ", e);
-			throw e;
+            logger.log(Level.WARNING, "Connection to home node channels failed: ", e);
+            throw e;
 
-		}
-	}
+        }
+    }
 
-	/**
-	 * @see fabric.client.FabricClient#loadServices()
-	 */
-	@Override
-	protected void loadServices() {
+    /**
+     * @see fabric.client.FabricClient#loadServices()
+     */
+    @Override
+    protected void loadServices() {
 
-		super.loadServices();
+        super.loadServices();
 
-		/* Platform notification service */
-		platformNotificationService = (PlatformNotificationService) serviceDispatcher.registerService(
-				PlatformNotificationService.class.getName(), null, Fabric.FABRIC_PLUGIN_FAMILY, null);
+        /* Platform notification service */
+        platformNotificationService = (PlatformNotificationService) serviceDispatcher.registerService(
+                PlatformNotificationService.class.getName(), null, Fabric.FABRIC_PLUGIN_FAMILY, null);
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#registerPlatformNotificationHandler(java.lang.String,
-	 *      fabric.client.services.IPlatformNotificationHandler)
-	 */
-	@Override
-	public IPlatformNotificationHandler registerPlatformNotificationHandler(String platform,
-			IPlatformNotificationHandler handler) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#registerPlatformNotificationHandler(java.lang.String,
+     *      fabric.client.services.IPlatformNotificationHandler)
+     */
+    @Override
+    public IPlatformNotificationHandler registerPlatformNotificationHandler(String platform,
+            IPlatformNotificationHandler handler) {
 
-		return platformNotificationService.registerPlatformNotificationHandler(platform, handler);
+        return platformNotificationService.registerPlatformNotificationHandler(platform, handler);
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#deregisterPlatformNotificationHandler(java.lang.String)
-	 */
-	@Override
-	public IPlatformNotificationHandler deregisterPlatformNotificationHandler(String platform) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#deregisterPlatformNotificationHandler(java.lang.String)
+     */
+    @Override
+    public IPlatformNotificationHandler deregisterPlatformNotificationHandler(String platform) {
 
-		return platformNotificationService.deregisterPlatformNotificationHandler(platform);
+        return platformNotificationService.deregisterPlatformNotificationHandler(platform);
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#registerServiceNotificationHandler(java.lang.String,
-	 *      java.lang.String, fabric.client.services.IPlatformNotificationHandler)
-	 */
-	@Override
-	public IPlatformNotificationHandler registerServiceNotificationHandler(String platform, String service,
-			IPlatformNotificationHandler handler) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#registerServiceNotificationHandler(java.lang.String,
+     *      java.lang.String, fabric.client.services.IPlatformNotificationHandler)
+     */
+    @Override
+    public IPlatformNotificationHandler registerServiceNotificationHandler(String platform, String service,
+            IPlatformNotificationHandler handler) {
 
-		return platformNotificationService.registerServiceNotificationHandler(platform, service, handler);
+        return platformNotificationService.registerServiceNotificationHandler(platform, service, handler);
 
-	}
+    }
 
-	/**
-	 * @see fabric.client.services.IPlatformNotificationServices#deregisterServiceNotificationHandler(java.lang.String,
-	 *      java.lang.String)
-	 */
-	@Override
-	public IPlatformNotificationHandler deregisterServiceNotificationHandler(String platform, String service) {
+    /**
+     * @see fabric.client.services.IPlatformNotificationServices#deregisterServiceNotificationHandler(java.lang.String,
+     *      java.lang.String)
+     */
+    @Override
+    public IPlatformNotificationHandler deregisterServiceNotificationHandler(String platform, String service) {
 
-		return platformNotificationService.deregisterServiceNotificationHandler(platform, service);
+        return platformNotificationService.deregisterServiceNotificationHandler(platform, service);
 
-	}
+    }
 
-	/**
-	 * Answers the ID of the service associated with this connection.
-	 * 
-	 * @return the service ID
-	 */
-	public String service() {
+    /**
+     * Answers the ID of the service associated with this connection.
+     * 
+     * @return the service ID
+     */
+    public String service() {
 
-		return service;
+        return service;
 
-	}
+    }
 }
