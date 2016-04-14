@@ -27,7 +27,7 @@ import fabric.client.FabricClient;
  * Handles notification messages sent from the Fabric to a platform.
  */
 public class PlatformNotificationService extends Fabric implements IClientService, IPersistentService,
-        IPlatformNotificationServices {
+IPlatformNotificationServices {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2014";
@@ -113,7 +113,7 @@ public class PlatformNotificationService extends Fabric implements IClientServic
     public IPlatformNotificationHandler registerPlatformNotificationHandler(String platform,
             IPlatformNotificationHandler handler) {
 
-        logger.log(Level.FINEST, "Registering notification handler for platform \"{0}\": {1}", new Object[] {platform,
+        logger.log(Level.FINEST, "Registering notification handler for platform [{0}]: {1}", new Object[] {platform,
                 "" + handler});
 
         IPlatformNotificationHandler oldHandler = platformNotificationHandlers.put(platform, handler);
@@ -127,7 +127,7 @@ public class PlatformNotificationService extends Fabric implements IClientServic
     @Override
     public IPlatformNotificationHandler deregisterPlatformNotificationHandler(String platform) {
 
-        logger.log(Level.FINEST, "De-registering notification handler for platform \"{0}\"", platform);
+        logger.log(Level.FINEST, "De-registering notification handler for platform [{0}]", platform);
 
         IPlatformNotificationHandler oldHandler = platformNotificationHandlers.remove(platform);
         return oldHandler;
@@ -183,7 +183,7 @@ public class PlatformNotificationService extends Fabric implements IClientServic
 
         } else {
 
-            logger.log(Level.FINE, "No handler registered for message for platform \"{0}\": {1}", new Object[] {
+            logger.log(Level.FINE, "No handler registered for message for platform [{0}]: {1}", new Object[] {
                     message.getCorrelationID(), notificationMessage.toString()});
 
         }

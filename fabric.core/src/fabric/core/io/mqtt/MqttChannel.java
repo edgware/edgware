@@ -13,6 +13,7 @@ import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 
 import fabric.core.io.Channel;
@@ -41,6 +42,19 @@ public class MqttChannel extends Channel {
 
     /** Separator for the topic part of the header */
     private static final byte[] MQTTS_TOPIC_SEPARATOR = new byte[] {' ', ' '};
+
+    /** The prefix for worker thread names */
+    private static final String prefix = "Fabric-Worker-";
+
+    /*
+     * Class static fields
+     */
+
+    /** The number of worker threads. */
+    private static int threadCount = 1;
+
+    /** Default thread factory used to create worker threads, customized by this classes thread factory */
+    private static final ThreadFactory threadFactory = Executors.defaultThreadFactory();
 
     /*
      * Class fields
@@ -79,9 +93,34 @@ public class MqttChannel extends Channel {
     /** To manage worker threads */
     private ExecutorService executor = null;
 
+    /** Thread factory for worker threads */
+    private ChannelThreadFactory ctf = new ChannelThreadFactory();
+
     /*
      * Inner classes
      */
+
+    /**
+     * Thread factory for worker threads.
+     */
+    class ChannelThreadFactory implements ThreadFactory {
+
+        /**
+         * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
+         */
+        @Override
+        public Thread newThread(Runnable r) {
+
+            Thread newThread = threadFactory.newThread(r);
+
+            synchronized (threadFactory) {
+                newThread.setName(prefix + threadCount++);
+            }
+
+            return newThread;
+        }
+
+    }
 
     /**
      * Runnable class used to invoke asynchronous I/O callbacks.
@@ -118,7 +157,7 @@ public class MqttChannel extends Channel {
             try {
 
                 /* Invoke the callback with the new message */
-                logger.log(Level.FINEST, "Thread running; sending message to callback \"{0}\"", callback.toString());
+                logger.log(Level.FINEST, "Sending message to callback [{0}]", callback.getClass().getName());
                 callback.handleMessage(message);
 
             } catch (Exception e) {
@@ -189,9 +228,7 @@ public class MqttChannel extends Channel {
         subscribe();
 
         /* Create the callback thread pool */
-        executor = Executors.newSingleThreadExecutor();
-        logger.log(Level.FINEST, "Callbacks will be invoked using Executor class type \"{0}\"", executor.getClass()
-                .getName());
+        executor = Executors.newSingleThreadExecutor(ctf);
 
     }
 
@@ -278,7 +315,7 @@ public class MqttChannel extends Channel {
      */
     @Override
     public void write(byte[] message, OutputTopic outputTopic, MessageQoS qos) throws IOException,
-    UnsupportedOperationException {
+        UnsupportedOperationException {
 
         if (outputTopic != null) {
 
@@ -291,8 +328,8 @@ public class MqttChannel extends Channel {
                         || (qos == MessageQoS.DEFAULT && defaultMessageQos == MessageQoS.RELIABLE)) {
 
                     /* Publish a MQTT message */
-                    logger.log(Level.FINEST, "Publishing {0} byte MQTT payload to \"{1}\"", new Object[] {
-                            message.length, outputTopic});
+                    logger.log(Level.FINEST, "Publishing {0} byte MQTT payload to [{1}]", new Object[] {message.length,
+                            outputTopic});
                     endPoint.getMqttClient().publish(outputTopic.name(), message, mqttQos, retain);
 
                 } else {
@@ -304,7 +341,7 @@ public class MqttChannel extends Channel {
                     if (effectiveQoS(finalPacketBytes.length, qos) == MessageQoS.BEST_EFFORT) {
 
                         /* Send it as a datagram */
-                        logger.log(Level.FINEST, "Publishing {0} byte MQTT-S payload to \"{1}\"", new Object[] {
+                        logger.log(Level.FINEST, "Publishing {0} byte MQTT-S payload to [{1}]", new Object[] {
                                 message.length, outputTopic});
                         DatagramPacket packet = new DatagramPacket(finalPacketBytes, finalPacketBytes.length, endPoint
                                 .getDatagramAddress(), config.getIPPort());
@@ -313,7 +350,7 @@ public class MqttChannel extends Channel {
                     } else {
 
                         /* Fallback to publishing it as an MQTT message */
-                        logger.log(Level.FINEST, "Publishing {0} byte MQTT payload to \"{1}\"", new Object[] {
+                        logger.log(Level.FINEST, "Publishing {0} byte MQTT payload to [{1}]", new Object[] {
                                 message.length, outputTopic});
                         endPoint.getMqttClient().publish(outputTopic.name(), message, mqttQos, retain);
 
@@ -596,13 +633,14 @@ public class MqttChannel extends Channel {
 
                 String[] topics = new String[] {inputTopic.name()};
                 endPoint.getMqttClient().unsubscribe(topics);
-                logger.log(Level.FINER, "Unsubscribed from topic \"{0}\"", inputTopic);
+                logger.log(Level.FINER, "Unsubscribed from topic [{0}]", inputTopic);
 
             }
 
         } catch (Exception e) {
 
-            logger.log(Level.FINER, "Unsubscribe failed: ", e);
+            logger.log(Level.FINER, "Unsubscribe failed: ", e.getMessage());
+            logger.log(Level.FINEST, "Full exception: ", e);
             throw new IOException(e.getMessage());
 
         }
@@ -623,13 +661,14 @@ public class MqttChannel extends Channel {
 
                 try {
 
-                    logger.log(Level.FINER, "Subscribing to topic \"{0}\"", new Object[] {subscriptionArray[0]});
+                    logger.log(Level.FINER, "Subscribing to topic [{0}]", subscriptionArray[0]);
                     endPoint.getMqttClient().subscribe(subscriptionArray, mqttQosArray);
                     subscribed = true;
 
                 } catch (Exception e) {
 
-                    logger.log(Level.WARNING, "Subscription failed: ", e);
+                    logger.log(Level.WARNING, "Subscription failed: ", e.getMessage());
+                    logger.log(Level.FINEST, "Full exception: ", e);
 
                     /* Wait before retrying */
                     try {

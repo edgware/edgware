@@ -150,7 +150,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      */
     public void start() throws Exception {
 
-        logger.log(Level.FINE, "Starting system \"{0}\"", systemDescriptor);
+        logger.log(Level.FINE, "Starting system [{0}]", systemDescriptor);
 
         /* Initialize this system's feeds */
         systemServices.initFeeds();
@@ -187,7 +187,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      */
     public void startInstance() {
 
-        logger.log(Level.FINE, "Starting service \"{0}\"", systemDescriptor);
+        logger.log(Level.FINE, "Starting service [{0}]", systemDescriptor);
 
         /* Inform the system to start processing */
         systemInstance.startInstance(systemDescriptor);
@@ -199,7 +199,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      */
     public void stop() {
 
-        logger.log(Level.FINE, "Stopping service \"{0}\"", systemDescriptor);
+        logger.log(Level.FINE, "Stopping service [{0}]", systemDescriptor);
 
         /* Disable the flow of messages into the service */
         synchronized (deliveryLock) {
@@ -219,8 +219,9 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 
         } catch (Exception e) {
 
-            logger.log(Level.SEVERE, "Error stopping service instance \"{0}\": {1}", new Object[] {systemDescriptor,
-                    FLog.stackTrace(e)});
+            logger.log(Level.SEVERE, "Error stopping service instance [{0}]: {1}", new Object[] {systemDescriptor,
+                    e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
     }
@@ -237,8 +238,9 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 
         } catch (Exception e) {
 
-            logger.log(Level.SEVERE, "Error disconnecting service instance \"{0}\" from the Fabric: {1}", new Object[] {
-                    systemDescriptor, FLog.stackTrace(e)});
+            logger.log(Level.SEVERE, "Error disconnecting service instance [{0}] from the Fabric: {1}", new Object[] {
+                    systemDescriptor, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
     }
@@ -312,8 +314,8 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
     @Override
     public void handleNotification(IClientNotificationMessage message) {
 
-        FLog.enter(logger, Level.FINE, this, "handleNotification", message.toString());
-        FLog.exit(logger, Level.FINE, this, "handleNotification", null);
+        FLog.enter(logger, Level.FINER, this, "handleNotification", message.toString());
+        FLog.exit(logger, Level.FINER, this, "handleNotification", null);
 
     }
 
@@ -1124,8 +1126,9 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 
         } catch (Exception e) {
 
-            logger.log(Level.SEVERE, "Cannot set availability to \"{0}\" on service \"{1}/{2}\": {3}", new Object[] {
-                    system.getAvailability(), system.getPlatformId(), system.getId(), FLog.stackTrace(e)});
+            logger.log(Level.SEVERE, "Cannot set availability to [{0}] on service [{1}/{2}]: {3}", new Object[] {
+                    system.getAvailability(), system.getPlatformId(), system.getId(), e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
     }
@@ -1151,9 +1154,10 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
         } catch (Exception e) {
 
             String targetNode = serviceMessage.getRouting().endNode();
-            String message = format("Cannot send notification service message to node '%s': %s", targetNode, FLog
-                    .stackTrace(e));
+            String message = format("Cannot send notification service message to node [%s]: %s", targetNode, e
+                    .getMessage());
             logger.log(Level.SEVERE, message);
+            logger.log(Level.FINEST, "Full exception: ", e);
             throw new Exception(message, e);
 
         }

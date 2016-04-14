@@ -104,7 +104,7 @@ public class ProxyPublisherService extends BusService {
                 + serviceMessage.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED));
 
         /* Publish the message */
-        logger.log(Level.FINEST, "Publishing message to bus topic \"{0}\":\n{1}", new Object[] {busTopic,
+        logger.log(Level.FINEST, "Publishing message to bus topic [{0}]:\n{1}", new Object[] {busTopic,
                 feedMessage.toString()});
         busChannel.write(feedMessage.toWireBytes(), busTopic);
 

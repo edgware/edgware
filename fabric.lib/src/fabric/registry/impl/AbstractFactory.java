@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import fabric.Fabric;
-import fabric.core.logging.FLog;
 import fabric.registry.QueryScope;
 import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
@@ -100,7 +99,6 @@ public abstract class AbstractFactory extends Fabric {
                 boolean success = PersistenceManager.getPersistence().updateRegistryObject(factory.getInsertSql(obj));
                 if (success) {
                     /* Update shadow since the object is now updated in the database */
-                    logger.log(Level.FINEST, "Updating shadow object to match database");
                     ((AbstractRegistryObject) obj).createShadow();
                 }
                 return success;
@@ -130,7 +128,6 @@ public abstract class AbstractFactory extends Fabric {
             boolean success = PersistenceManager.getPersistence().updateRegistryObject(factory.getUpdateSql(obj));
             if (success) {
                 /* Update shadow since the object is now updated in the database */
-                logger.log(Level.FINEST, "Updating shadow object to match database");
                 ((AbstractRegistryObject) obj).createShadow();
             }
             return success;
@@ -171,7 +168,8 @@ public abstract class AbstractFactory extends Fabric {
                 }
                 return success;
             } catch (PersistenceException e) {
-                logger.log(Level.WARNING, "Failed to save object:\n{0}\n{1}", new Object[] {obj, FLog.stackTrace(e)});
+                logger.log(Level.WARNING, "Failed to save object: {1}\n{0}", new Object[] {obj, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
                 return false;
             }
         } else {

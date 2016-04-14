@@ -18,7 +18,6 @@ import fabric.bus.plugins.IPluginConfig;
 import fabric.bus.services.IBusServiceConfig;
 import fabric.bus.services.IPersistentService;
 import fabric.bus.services.impl.BusService;
-import fabric.core.logging.FLog;
 
 /**
  * Manages the queue of feed messages to be sent to neighbouring nodes.
@@ -98,7 +97,7 @@ public class MessageForwardingService extends BusService implements IPersistentS
         sleepInterval = Integer.parseInt(config().getProperty("fabric.messageForwarding.sleepInterval", "1000"));
 
         /* Start the worker thread */
-        workerThread = new Thread(this);
+        workerThread = new Thread(this, "Message-Forwarding-Service");
         workerThread.start();
 
     }
@@ -183,10 +182,10 @@ public class MessageForwardingService extends BusService implements IPersistentS
 
                         } catch (Exception e) {
 
-                            logger.log(Level.WARNING,
-                                    "Failed to deliver message to feed \"{0}\" for user \"{1}\": {2}", new Object[] {
-                                    nextMessage.descriptor(), nextMessage.subscription().actor(),
-                                    FLog.stackTrace(e)});
+                            logger.log(Level.WARNING, "Failed to deliver message to feed [{0}] for user [{1}]: {2}",
+                                    new Object[] {nextMessage.descriptor(), nextMessage.subscription().actor(),
+                                    e.getMessage()});
+                            logger.log(Level.FINEST, "Full exception: ", e);
 
                         }
 

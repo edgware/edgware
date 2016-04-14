@@ -30,7 +30,7 @@ import fabric.core.io.OutputTopic;
  * Class handling service acknowledgment messages for the Fabric.
  */
 public class NotificationManagerService extends BusService implements Runnable, IPersistentService,
-        INotificationManager {
+INotificationManager {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2012";
@@ -172,7 +172,7 @@ public class NotificationManagerService extends BusService implements Runnable, 
         busServices = ((IBusServiceConfig) config).getFabricServices();
 
         /* Start the time out thread */
-        Thread pluginThread = new Thread(this);
+        Thread pluginThread = new Thread(this, "Notification-Manager");
         pluginThread.start();
 
     }
@@ -219,7 +219,7 @@ public class NotificationManagerService extends BusService implements Runnable, 
                                         new Object[] {nextRecord.correlationID, nextRecord.serviceDescriptor});
                                 logger.log(Level.FINE, "Notification message [{0}] bytes:\n", new Object[] {
                                         (nextRecord.message != null) ? nextRecord.message.toString().length() : 0,
-                                        (nextRecord.message != null) ? nextRecord.message.toString() : ""});
+                                                (nextRecord.message != null) ? nextRecord.message.toString() : ""});
                                 deliverNotification(nextRecord.actor, nextRecord.actorPlatform, null,
                                         nextRecord.message, null);
 
@@ -431,7 +431,7 @@ public class NotificationManagerService extends BusService implements Runnable, 
      */
     @Override
     public void fireNotifications(String correlationID, int event, String notificationArgs, INotificationMessage trigger)
-        throws Exception {
+            throws Exception {
 
         fireNotifications(correlationID, null, event, notificationArgs, trigger);
 

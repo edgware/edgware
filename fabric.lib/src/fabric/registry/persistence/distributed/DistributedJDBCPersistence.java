@@ -334,8 +334,6 @@ public class DistributedJDBCPersistence implements Persistence, ICallback {
         String messageString = new String((messageData != null) ? messageData : new byte[0]);
         IFabricMessage parsedMessage = null;
 
-        logger.log(Level.FINER, "Handling message [{0}] from topic [{1}]", new Object[] {FLog.trim(messageString),
-                message.topic});
         logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
         try {

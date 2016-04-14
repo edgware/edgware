@@ -317,8 +317,8 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
 
                 String instanceName = nextSubscription.getClass().getName() + '@'
                         + Integer.toHexString(nextSubscription.hashCode());
-                logger.log(Level.FINER, "Unsubscribe failed in \"{0}\": {1}", new Object[] {instanceName,
-                        FLog.stackTrace(e)});
+                logger.log(Level.FINER, "Unsubscribe failed in [{0}]: {1}", new Object[] {instanceName, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
 
             }
         }
@@ -360,10 +360,10 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
                 logger.log(Level.FINEST, "Actor type {0} registered", typeID);
             }
         } catch (DuplicateKeyException dke) {
-            logger.log(Level.FINEST, "Not registering: actor type \"{0}\" already exists", typeID);
+            logger.log(Level.FINEST, "Not registering: actor type [{0}] already exists", typeID);
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot register actor type \"{0}\": {1}", new Object[] {typeID,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot register actor type [{0}]: {1}", new Object[] {typeID, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
             success = false;
         }
 
@@ -414,14 +414,14 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
             if (null == typeFactory.getPlatformType(typeID)) {
                 Type type = typeFactory.createPlatformType(typeID, description, attributes, attributesURI);
                 typeFactory.insert(type);
-                logger.log(Level.FINEST, "Platform type \"{0}\" registered", typeID);
+                logger.log(Level.FINEST, "Platform type [{0}] registered", typeID);
             }
 
         } catch (DuplicateKeyException dke) {
-            logger.log(Level.FINEST, "Not registering: platform type \"{0}\" already exists", typeID);
+            logger.log(Level.FINEST, "Not registering: platform type [{0}] already exists", typeID);
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot register platform type \"{0}\": {1}", new Object[] {typeID,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot register platform type [{0}]: {1}", new Object[] {typeID, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
             success = false;
         }
 
@@ -478,8 +478,9 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
         } catch (DuplicateKeyException dke) {
             logger.log(Level.FINEST, "Not registering: actor {0} already exists", actorID);
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot register actor {0} with type {1}: {2}", new Object[] {actorID, typeID,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot register actor [{0}] with type [{1}]: {2}", new Object[] {actorID,
+                    typeID, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
             success = false;
         }
 
@@ -533,8 +534,9 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
         } catch (DuplicateKeyException dke) {
             logger.log(Level.FINEST, "Not registering: platform {0} already exists", platformID);
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Cannot register platform {0} with type {1}: {2}", new Object[] {platformID,
-                    typeID, FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot register platform [{0}] with type [{1}]: {2}", new Object[] {platformID,
+                    typeID, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
             success = false;
         }
 
@@ -595,8 +597,8 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
 
                 initConnectionMessage(connectionMessage, disconnectionMessage);
 
-                logger.log(Level.FINE, "Connecting Client {0} via {1} on {2}", new Object[] {actor, platform,
-                        homeNode()});
+                logger.log(Level.FINE, "Connecting client [{0}] via platform [{1}] on node [{2}]", new Object[] {actor,
+                        platform, homeNode()});
 
                 connectFabric();
 
@@ -727,8 +729,6 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
         byte[] messageData = message.data;
         String messageString = new String((messageData != null) ? messageData : new byte[0]);
 
-        logger.log(Level.FINER, "Handling message [{0}] from topic [{1}]", new Object[] {FLog.trim(messageString),
-                message.topic});
         logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
         try {
@@ -762,8 +762,10 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
 
         } catch (Exception e) {
 
-            logger.log(Level.WARNING, "Excpetion handling message received on topic {0}:\n{1}\n{2}", new Object[] {
-                    messageTopic, messageString, FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Excpetion handling message received on topic [{0}]: {1}", new Object[] {
+                    messageTopic, e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
+            logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
         }
 

@@ -86,8 +86,8 @@ class FabricConnection implements Runnable, MqttCallback {
         } catch (NumberFormatException e2) {
             /* Use the default value */
             System.out
-                    .println("Invalid value for configuration setting registry.broker.retryInterval (must be an integer value): "
-                            + configRetryInterval);
+            .println("Invalid value for configuration setting registry.broker.retryInterval (must be an integer value): "
+                    + configRetryInterval);
         }
         System.out.println("Re-try interval for the broker connection: " + retryInterval + " seconds");
     }
@@ -98,7 +98,7 @@ class FabricConnection implements Runnable, MqttCallback {
     public void start() {
 
         /* Start the thread */
-        Thread fabricThread = new Thread(this);
+        Thread fabricThread = new Thread(this, "Registry-Fabric-Connection");
         fabricThread.start();
 
         /*
@@ -139,7 +139,7 @@ class FabricConnection implements Runnable, MqttCallback {
 
     /**
      * Creates a MQTT client object.
-     * 
+     *
      * @throws IOException
      *             If there was a problem creating the MQTT client.
      */
@@ -160,13 +160,13 @@ class FabricConnection implements Runnable, MqttCallback {
 
     /**
      * Connects to the configured broker.
-     * 
+     *
      * @param lwtTopic
      *            the last will and testament topic, or <code>null</code> if none.
-     * 
+     *
      * @param connectMessage
      *            the connection message, or <code>null</code> if none.
-     * 
+     *
      * @param disconnectMessage
      *            the disconnection (last will and testament) message, or <code>null</code> if none.
      */
@@ -226,7 +226,7 @@ class FabricConnection implements Runnable, MqttCallback {
 
     /**
      * Answers <code>true</code> if the connection to the Fabric is active, <code>false</code> otherwise.
-     * 
+     *
      * @return the connection status.
      */
     public boolean isConnected() {
@@ -242,10 +242,10 @@ class FabricConnection implements Runnable, MqttCallback {
 
     /**
      * Send the specified service message.
-     * 
+     *
      * @param message
      *            the message to send.
-     * 
+     *
      * @throws Exception
      */
     public void sendRegistryUpdate(String update) throws Exception {

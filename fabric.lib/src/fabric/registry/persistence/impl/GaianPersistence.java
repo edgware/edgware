@@ -7,7 +7,6 @@
 
 package fabric.registry.persistence.impl;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import fabric.core.properties.Properties;
@@ -48,14 +47,6 @@ public class GaianPersistence extends SingletonJDBCPersistence {
      * @return the Gaian query.
      */
     private String mapSQLForGaian(String sql) {
-
-        if (logger.isLoggable(Level.FINEST)) {
-            /* Split on FABRIC. as an indicator for table names, this way we can debug any we may be missing */
-            String[] sqlParts = sql.split("FABRIC.");
-            for (int i = 0; i < sqlParts.length; i++) {
-                logger.finest("Found part '" + sqlParts[i] + "'");
-            }
-        }
 
         sql = sql.replaceAll(FabricRegistry.TASK_SUBSCRIPTIONS, "FABRIC.G_TASK_SUBSCRIPTIONS");
         sql = sql.replaceAll(FabricRegistry.NODES, "FABRIC.G_NODES");

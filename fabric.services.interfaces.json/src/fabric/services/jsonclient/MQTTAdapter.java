@@ -236,8 +236,9 @@ public class MQTTAdapter extends JSONAdapter implements IFabricShutdownHookActio
                 logger.log(Level.FINEST, "Response to client:\n{0}", response.toString());
                 sendChannel.write(response.toString().getBytes(), new OutputTopic(sendTopic + "/" + adapterClientID));
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to send response to client \"{0}\" (correlation ID \"{1}\"): {2}",
-                        new Object[] {adapterClientID, correlationID, FLog.stackTrace(e)});
+                logger.log(Level.WARNING, "Failed to send response to client [{0}] (correlation ID [{1}]): {2}",
+                        new Object[] {adapterClientID, correlationID, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
         }
 

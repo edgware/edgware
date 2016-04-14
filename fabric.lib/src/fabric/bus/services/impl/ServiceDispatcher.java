@@ -86,8 +86,7 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
         /* Get the service family name */
         String familyName = requestIn.getServiceFamilyName();
 
-        logger.log(Level.FINEST, "Handling message for service \"{0}\", family \"{1}\"",
-                new Object[] {name, familyName});
+        logger.log(Level.FINEST, "Handling message for service [{0}], family [{1}]", new Object[] {name, familyName});
 
         /* Get the active, or a new, instance of the service handler */
         IService service = serviceInstance(name, null, familyName, null);
@@ -104,7 +103,8 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
             } catch (Exception e) {
 
                 logger.log(Level.WARNING, "Exception handling message in service [0]: {1}", new Object[] {name,
-                        FLog.stackTrace(e)});
+                        e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
 
             }
 
@@ -181,8 +181,9 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
 
             } catch (Throwable t) {
 
-                logger.log(Level.WARNING, "Exception loading service handler class \"{0}\": {1}", new Object[] {name,
-                        FLog.stackTrace(t)});
+                logger.log(Level.WARNING, "Exception loading service handler class [{0}]: {1}", new Object[] {name,
+                        t.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", t);
                 service = null;
 
             }

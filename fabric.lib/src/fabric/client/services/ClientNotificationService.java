@@ -117,8 +117,8 @@ IClientNotificationServices {
     public IClientNotificationHandler registerNotificationHandler(String correlationID,
             IClientNotificationHandler handler) {
 
-        logger.log(Level.FINEST, "Registering notification handler for correlation ID '" + correlationID + "': {"
-                + handler + "}");
+        logger.log(Level.FINEST, "Registering notification handler for correlation ID [{0}]: {1}", new Object[] {
+                correlationID, handler});
 
         IClientNotificationHandler oldHandler = notificationHandlers.put(correlationID, handler);
         return oldHandler;
@@ -131,7 +131,7 @@ IClientNotificationServices {
     @Override
     public IClientNotificationHandler deregisterNotificationHandler(String correlationID) {
 
-        logger.log(Level.FINEST, "De-registering notification handler for correlation ID \"{0}\"", correlationID);
+        logger.log(Level.FINEST, "De-registering notification handler for correlation ID [{0}]", correlationID);
 
         IClientNotificationHandler oldHandler = notificationHandlers.remove(correlationID);
         return oldHandler;

@@ -216,8 +216,6 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
         byte[] messageData = message.data;
         String messageString = new String((messageData != null) ? messageData : new byte[0]);
 
-        logger.log(Level.FINER, "Handling message [{0}] from topic [{1}]", new Object[] {FLog.trim(messageString),
-                message.topic});
         logger.log(Level.FINEST, "Full message:\n{0}", messageString);
 
         long entryTime = 0;
@@ -387,7 +385,8 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
 
         } catch (Exception e) {
             // Log errors - nothing to catch them and do anything sensible
-            logger.fine("Exception:\n" + FLog.stackTrace(e));
+            logger.log(Level.FINE, "Exception handling message: {0}", e.getMessage());
+            logger.log(Level.FINEST, "Full exception: ", e);
         }
 
         if (perfLoggingEnabled) {
@@ -448,7 +447,7 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
      * We currently always execute our local query before we flood the query onwards
      **/
     private boolean executeQuery(String correlationId, String prevNode, DistributedQuery query)
-        throws PersistenceException {
+            throws PersistenceException {
 
         boolean returnImmediately = false;
 
@@ -527,7 +526,9 @@ public class DistributedPersistenceFablet extends FabricBus implements IFabletPl
                     }
                 }
             } catch (Exception e) {
-                logger.fine("Failed to flood message to " + nextNode + ":\n" + FLog.stackTrace(e));
+                logger.log(Level.FINE, "Failed to flood message to [{0}]: {1}"
+                        + new Object[] {nextNode, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
                 remainingNodes = updatePendingNodeByCorrelationIds(correlationId, nextNode);
             }
         }

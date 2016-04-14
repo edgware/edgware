@@ -400,7 +400,7 @@ public class SystemServices extends FabricBus {
      * @throws IncompleteObjectException
      */
     protected void addWiringToRegistry(ServiceDescriptor subscribeToDescriptor, ServiceDescriptor deliverToDescriptor)
-            throws IncompleteObjectException {
+        throws IncompleteObjectException {
 
         SystemWiringFactory swf = FabricRegistry.getSystemWiringFactory(QueryScope.LOCAL);
         SystemWiring sw = swf.create("DEFAULT", subscribeToDescriptor.platform(), subscribeToDescriptor.system(),
@@ -525,20 +525,23 @@ public class SystemServices extends FabricBus {
 
         try {
 
+            ISubscription inputSubscription = wiredInputFeeds.get(subscribeToDescriptorFromTaskDescriptor);
+
             /* If we are already subscribed to this feed... */
-            if (wiredInputFeeds.containsKey(subscribeToDescriptorFromTaskDescriptor)) {
+            if (inputSubscription != null) {
 
                 isNewSubscription = false;
 
-                logger.log(
-                        Level.FINEST,
-                        "Repeat subscription to remote feed \"%s\" (wired to local feed \"%s\") for service instance \"%s\":",
+                logger.log(Level.FINER,
+                        "Resending subscription to remote feed [{0]} (wired to local feed [{1}]) for service [{2}]",
                         new Object[] {subscribeToTaskDescriptor, deliverToDescriptor, systemRuntime.systemDescriptor()});
+
+                inputSubscription.resubscribe();
 
             } else {
 
                 /* Subscribe to the remote feed */
-                ISubscription inputSubscription = new Subscription(systemRuntime.fabricClient());
+                inputSubscription = new Subscription(systemRuntime.fabricClient());
                 inputSubscription.subscribe(subscribeToTaskDescriptor, systemRuntime);
 
                 /* Record the subscription */

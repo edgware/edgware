@@ -18,7 +18,6 @@ import fabric.bus.services.IClientService;
 import fabric.bus.services.IClientServiceDispatcher;
 import fabric.bus.services.IService;
 import fabric.client.FabricClient;
-import fabric.core.logging.FLog;
 
 /**
  * Base class for Fabric plug-in dispatchers.
@@ -111,8 +110,9 @@ public class ClientServiceDispatcher extends ServiceDispatcher implements IClien
 
         } catch (Throwable e) {
 
-            logger.log(Level.WARNING, "Cannot check type of service class \"{0}\": {1}", new Object[] {serviceName,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot check type of service class [{0}]: {1}", new Object[] {serviceName,
+                    e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
 

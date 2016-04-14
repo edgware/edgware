@@ -23,7 +23,6 @@ import fabric.bus.plugins.IPluginConfig;
 import fabric.bus.services.IBusServiceConfig;
 import fabric.bus.services.IConnectionManager;
 import fabric.bus.services.IPersistentService;
-import fabric.core.logging.FLog;
 
 /**
  * Handles connection/disconnection messages for the Fabric.
@@ -588,8 +587,9 @@ public class ConnectionManagerService extends BusService implements IPersistentS
             config.getFabricServices().sendServiceMessage(message, homeNode());
         } catch (Exception e) {
             /* Not much that we can do about this here, so report the error and move on */
-            logger.log(Level.WARNING, "Cannot push message onto bus:\n{0}\n{1}", new Object[] {message,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Cannot push message onto bus: {0}", e.getMessage());
+            logger.log(Level.FINEST, "Full exception: ", e);
+            logger.log(Level.FINEST, "Full message:\n{0}", message);
         }
     }
 

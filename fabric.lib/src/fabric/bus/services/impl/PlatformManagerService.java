@@ -112,8 +112,8 @@ public class PlatformManagerService extends BusService implements IPersistentSer
 
         String notificationTopic = config("fabric.commands.platforms", null, homeNode(), platform);
 
-        logger.log(Level.FINEST, "Delivering message to platform \"{0}\" via topic \"{1}\":\n{2}", new Object[] {
-                platform, notificationTopic, message.toString()});
+        logger.log(Level.FINEST, "Delivering message to platform [{0}] via topic [{1}]:\n{2}", new Object[] {platform,
+                notificationTopic, message.toString()});
 
         SharedChannel clientChannel = busServices.ioChannels().sendPlatformCommandsChannel;
         clientChannel.write(message.toWireBytes(), new OutputTopic(notificationTopic));
@@ -129,7 +129,7 @@ public class PlatformManagerService extends BusService implements IPersistentSer
 
         OutputTopic notificationTopic = new OutputTopic(config("fabric.commands.services", null, homeNode(), platform,
                 service));
-        logger.log(Level.FINEST, "Delivering message to system \"{0}/{1}\" using topic \"{2}\":\n{3}", new Object[] {
+        logger.log(Level.FINEST, "Delivering message to system [{0}/{1}] using topic [{2}]:\n{3}", new Object[] {
                 platform, service, notificationTopic, message.toString()});
 
         SharedChannel clientChannel = busServices.ioChannels().sendServiceCommandsChannel;

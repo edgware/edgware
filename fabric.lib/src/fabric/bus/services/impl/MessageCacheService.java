@@ -15,7 +15,6 @@ import fabric.bus.messages.INotificationMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.bus.messages.impl.CachableMessage;
 import fabric.bus.services.IPersistentService;
-import fabric.core.logging.FLog;
 import fabric.registry.CachedMessage;
 import fabric.registry.CachedMessageFactory;
 import fabric.registry.FabricRegistry;
@@ -69,8 +68,9 @@ public class MessageCacheService extends BusService implements IPersistentServic
                 FabricRegistry.save(cm);
                 logger.log(Level.FINEST, "Saved message {0} to cache", message.getUID());
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to save cachable message \"{0}\": {1}", new Object[] {
-                        message.getUID(), FLog.stackTrace(e)});
+                logger.log(Level.WARNING, "Failed to save cachable message [{0}]: {1}", new Object[] {message.getUID(),
+                        e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
         }
 

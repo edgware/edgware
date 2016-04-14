@@ -17,7 +17,6 @@ import fabric.bus.plugins.IFeedPlugin;
 import fabric.bus.plugins.IFeedPluginConfig;
 import fabric.bus.plugins.IFeedPluginHandler;
 import fabric.bus.routing.IRouting;
-import fabric.core.logging.FLog;
 
 /**
  * Class representing the Fablet plug-ins.
@@ -86,8 +85,9 @@ public class FeedPluginHandler extends PluginHandler implements IFeedPluginHandl
 
             } catch (Throwable t) {
 
-                logger.log(Level.WARNING, "Plugin initialization failed for class {0}, arguments \"{1}\": {2}",
-                        new Object[] {pluginConfig.getName(), pluginConfig.getArguments(), FLog.stackTrace(t)});
+                logger.log(Level.WARNING, "Plugin initialization failed for class [{0}], argument(s) [{1}]: {2}",
+                        new Object[] {pluginConfig.getName(), pluginConfig.getArguments(), t.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", t);
 
             }
         }

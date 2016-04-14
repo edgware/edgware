@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 
 import fabric.ServiceDescriptor;
 import fabric.SystemDescriptor;
-import fabric.core.logging.FLog;
 import fabric.registry.FabricRegistry;
 import fabric.registry.QueryScope;
 import fabric.registry.Service;
@@ -98,9 +97,14 @@ public class Systems extends Article {
 
                         JSON attr = op.getJSON(AdapterConstants.FIELD_ATTRIBUTES);
                         attr = (attr != null) ? attr : new JSON();
-                        attr.putString("persistent", "true");
-                        attr.putString("autoStart", "true");
-                        attr.putString("clientID", (clientID != null) ? clientID.toString() : "<unknown>");
+
+                        /* Set the default client ID if required */
+                        if ("true".equals(attr.getString("autoStart"))) {
+                            if (attr.getString("clientID") == null) {
+                                String id = (clientID != null) ? clientID.toString() : "$unknown";
+                                attr.putString("clientID", id);
+                            }
+                        }
 
                         /* Insert the system into the Registry */
                         SystemFactory systemFactory = FabricRegistry.getSystemFactory();
@@ -1029,7 +1033,7 @@ public class Systems extends Article {
             if (clientID == null) {
 
                 Logger logger = Logger.getLogger("fabric.services.jsonclient.articles");
-                logger.log(Level.INFO, "Disconnection message missing field \"{0}\":\n{1}", new Object[] {
+                logger.log(Level.INFO, "Disconnection message missing field [{0}]:\n{1}", new Object[] {
                         AdapterConstants.FIELD_CLIENT, op.toString()});
 
             } else {
@@ -1042,9 +1046,9 @@ public class Systems extends Article {
         } catch (Exception e) {
 
             Logger logger = Logger.getLogger("fabric.services.jsonclient.articles");
-            String message = e.getClass().getName() + ": " + e.getMessage();
-            logger.log(Level.WARNING, "Exception cleaning up after client \"{0}\": {1}", new Object[] {clientID,
-                    FLog.stackTrace(e)});
+            logger.log(Level.WARNING, "Exception cleaning up after client [{0}]: {1}", new Object[] {clientID,
+                    e.getMessage()});
+            logger.log(Level.FINEST, "Full exception: ", e);
 
         }
 
