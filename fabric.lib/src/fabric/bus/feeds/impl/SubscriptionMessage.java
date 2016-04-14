@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2009, 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -20,288 +20,288 @@ import fabric.core.xml.XML;
  */
 public class SubscriptionMessage extends ServiceMessage {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2012";
 
-	/*
-	 * Class constants
-	 */
+    /*
+     * Class constants
+     */
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public SubscriptionMessage() {
+    /**
+     * Constructs a new instance.
+     */
+    public SubscriptionMessage() {
 
-		super();
+        super();
 
-		construct();
-		setFeedList(new FeedList());
+        construct();
+        setFeedList(new FeedList());
 
-		/* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
-		metaResetModified();
+        /* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
+        metaResetModified();
 
-	}
+    }
 
-	/**
-	 * Initializes an instance.
-	 */
-	private void construct() {
+    /**
+     * Initializes an instance.
+     */
+    private void construct() {
 
-		/* Set the service name: i.e. indicate that this is a message for the feed manager */
-		setServiceName(FeedManagerService.class.getName());
+        /* Set the service name: i.e. indicate that this is a message for the feed manager */
+        setServiceName(FeedManagerService.class.getName());
 
-		/* Indicate that this is a built-in Fabric plug-in */
-		setServiceFamilyName(Fabric.FABRIC_PLUGIN_FAMILY);
+        /* Indicate that this is a built-in Fabric plug-in */
+        setServiceFamilyName(Fabric.FABRIC_PLUGIN_FAMILY);
 
-		/* Indicate that this message should be actioned along the route from subscriber to the publisher */
-		setActionEnRoute(true);
+        /* Indicate that this message should be actioned along the route from subscriber to the publisher */
+        setActionEnRoute(true);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.impl.FabricMessage#init(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void init(String element, XML messageXML) throws Exception {
+    /**
+     * @see fabric.bus.messages.impl.FabricMessage#init(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void init(String element, XML messageXML) throws Exception {
 
-		super.init(element, messageXML);
+        super.init(element, messageXML);
 
-		/* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
-		metaResetModified();
+        /* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
+        metaResetModified();
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.impl.FabricMessage#embed(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void embed(String element, XML messageXML) throws Exception {
+    /**
+     * @see fabric.bus.messages.impl.FabricMessage#embed(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void embed(String element, XML messageXML) throws Exception {
 
-		super.embed(element, messageXML);
+        super.embed(element, messageXML);
 
-	}
+    }
 
-	/**
-	 * Answers the actor ID associated with this message.
-	 * 
-	 * @return the actor ID.
-	 */
-	public String getActor() {
+    /**
+     * Answers the actor ID associated with this message.
+     *
+     * @return the actor ID.
+     */
+    public String getActor() {
 
-		return getProperty(PROPERTY_ACTOR);
+        return getProperty(PROPERTY_ACTOR);
 
-	}
+    }
 
-	/**
-	 * Sets the actor ID associated with this message.
-	 * 
-	 * @param actor
-	 *            the actor ID.
-	 */
-	public void setActor(String actor) {
+    /**
+     * Sets the actor ID associated with this message.
+     *
+     * @param actor
+     *            the actor ID.
+     */
+    public void setActor(String actor) {
 
-		setProperty(PROPERTY_ACTOR, actor);
+        setProperty(PROPERTY_ACTOR, actor);
 
-	}
+    }
 
-	/**
-	 * Answers the actor platform ID associated with this message.
-	 * 
-	 * @return the actor platform ID.
-	 */
-	public String getActorPlatform() {
+    /**
+     * Answers the actor platform ID associated with this message.
+     *
+     * @return the actor platform ID.
+     */
+    public String getActorPlatform() {
 
-		return getProperty(PROPERTY_ACTOR_PLATFORM);
+        return getProperty(PROPERTY_ACTOR_PLATFORM);
 
-	}
+    }
 
-	/**
-	 * Sets the actor platform ID associated with this message.
-	 * 
-	 * @param actorPlatform
-	 *            the actor platform ID.
-	 */
-	public void setActorPlatform(String actorPlatform) {
+    /**
+     * Sets the actor platform ID associated with this message.
+     *
+     * @param actorPlatform
+     *            the actor platform ID.
+     */
+    public void setActorPlatform(String actorPlatform) {
 
-		setProperty(PROPERTY_ACTOR_PLATFORM, actorPlatform);
+        setProperty(PROPERTY_ACTOR_PLATFORM, actorPlatform);
 
-	}
+    }
 
-	/**
-	 * Determines the node associated with the publisher.
-	 * 
-	 * @return the ID of the publisher's node.
-	 */
-	public String publisherNode() {
+    /**
+     * Determines the node associated with the publisher.
+     *
+     * @return the ID of the publisher's node.
+     */
+    public String publisherNode() {
 
-		/* To hold the result */
-		String publisherNode = null;
+        /* To hold the result */
+        String publisherNode = null;
 
-		/* If this is a regular subscription (the message flows from subscriber to publisher)... */
-		if (getAction().equals(ACTION_SUBSCRIBE)) {
+        /* If this is a regular subscription (the message flows from subscriber to publisher)... */
+        if (getAction().equals(ACTION_SUBSCRIBE)) {
 
-			publisherNode = getRouting().endNode();
+            publisherNode = getRouting().endNode();
 
-		}
-		/* Else if this is the restoration of a failed subscription (the message flows from publisher to subscriber)... */
-		else if (getAction().equals(ACTION_RESTORE_SUBSCRIPTION)) {
+        }
+        /* Else if this is the restoration of a failed subscription (the message flows from publisher to subscriber)... */
+        else if (getAction().equals(ACTION_RESTORE_SUBSCRIPTION)) {
 
-			publisherNode = getRouting().startNode();
+            publisherNode = getRouting().startNode();
 
-		} else {
+        } else {
 
-			logger.log(Level.WARNING,
-					"Internal error -- unsupported subscription message type \"{0}\" in method \"{1}\", message: {2}",
-					new Object[] {getAction(), "publisherNode()", toString()});
+            logger.log(Level.WARNING,
+                    "Internal error -- unsupported subscription message type [{0}] in method [{1}], message:\n{2}",
+                    new Object[] {getAction(), "publisherNode()", toString()});
 
-		}
+        }
 
-		return publisherNode;
+        return publisherNode;
 
-	}
+    }
 
-	/**
-	 * Determines the node associated with the subscriber.
-	 * 
-	 * @return the ID of the subscriber's node.
-	 */
-	public String subscriberNode() {
+    /**
+     * Determines the node associated with the subscriber.
+     *
+     * @return the ID of the subscriber's node.
+     */
+    public String subscriberNode() {
 
-		/* To hold the result */
-		String subscriberNode = null;
+        /* To hold the result */
+        String subscriberNode = null;
 
-		/* If this is a regular subscription (the message flows from subscriber to publisher)... */
-		if (getAction().equals(ACTION_SUBSCRIBE)) {
+        /* If this is a regular subscription (the message flows from subscriber to publisher)... */
+        if (getAction().equals(ACTION_SUBSCRIBE)) {
 
-			subscriberNode = getRouting().startNode();
+            subscriberNode = getRouting().startNode();
 
-		}
-		/* Else if this is the restoration of a failed subscription (the message flows from publisher to subscriber)... */
-		else if (getAction().equals(ACTION_RESTORE_SUBSCRIPTION)) {
+        }
+        /* Else if this is the restoration of a failed subscription (the message flows from publisher to subscriber)... */
+        else if (getAction().equals(ACTION_RESTORE_SUBSCRIPTION)) {
 
-			subscriberNode = getRouting().endNode();
+            subscriberNode = getRouting().endNode();
 
-		} else {
+        } else {
 
-			logger.log(Level.WARNING,
-					"Internal error -- unsupported subscription message type \"{0}\" in method \"{1}\", message: {2}",
-					new Object[] {getAction(), "subscriberNode()", toString()});
+            logger.log(Level.WARNING,
+                    "Internal error -- unsupported subscription message type [{0}] in method [{1}], message:\n{2}",
+                    new Object[] {getAction(), "subscriberNode()", toString()});
 
-		}
+        }
 
-		return subscriberNode;
+        return subscriberNode;
 
-	}
+    }
 
-	/**
-	 * Determines if this is the node to which the subscriber is attached.
-	 * 
-	 * @return <code>true</code> if this is the subscriber's node, <code>false</code> otherwise.
-	 */
-	public boolean isSubscriberNode() {
+    /**
+     * Determines if this is the node to which the subscriber is attached.
+     *
+     * @return <code>true</code> if this is the subscriber's node, <code>false</code> otherwise.
+     */
+    public boolean isSubscriberNode() {
 
-		String subscriberNode = subscriberNode();
-		boolean isSubscriberNode = homeNode().equals(subscriberNode) || subscriberNode == null;
-		return isSubscriberNode;
+        String subscriberNode = subscriberNode();
+        boolean isSubscriberNode = homeNode().equals(subscriberNode) || subscriberNode == null;
+        return isSubscriberNode;
 
-	}
+    }
 
-	/**
-	 * Determines if this is the node to which the published is attached.
-	 * 
-	 * @return <code>true</code> if this is the publisher's node, <code>false</code> otherwise.
-	 */
-	public boolean isPublisherNode() {
+    /**
+     * Determines if this is the node to which the published is attached.
+     *
+     * @return <code>true</code> if this is the publisher's node, <code>false</code> otherwise.
+     */
+    public boolean isPublisherNode() {
 
-		String publisherNode = publisherNode();
-		boolean isPublisherNode = homeNode().equals(publisherNode) || publisherNode == null;
-		return isPublisherNode;
+        String publisherNode = publisherNode();
+        boolean isPublisherNode = homeNode().equals(publisherNode) || publisherNode == null;
+        return isPublisherNode;
 
-	}
+    }
 
-	/**
-	 * Determines if this is the first node in the route.
-	 * 
-	 * @return <code>true</code> if this is the first node in the route, <code>false</code> otherwise.
-	 */
-	public boolean isFirstNode() {
+    /**
+     * Determines if this is the first node in the route.
+     *
+     * @return <code>true</code> if this is the first node in the route, <code>false</code> otherwise.
+     */
+    public boolean isFirstNode() {
 
-		/* To hold the result */
-		boolean isFirstNode = false;
+        /* To hold the result */
+        boolean isFirstNode = false;
 
-		/* If this is a regular subscription... */
-		if (getAction().equals(ACTION_SUBSCRIBE)) {
+        /* If this is a regular subscription... */
+        if (getAction().equals(ACTION_SUBSCRIBE)) {
 
-			isFirstNode = getRouting().previousNode() != null;
+            isFirstNode = getRouting().previousNode() != null;
 
-		}
-		/* Else if this is the restoration of a failed subscription... */
-		else if (getAction().equals(ACTION_RESTORE_SUBSCRIPTION)) {
+        }
+        /* Else if this is the restoration of a failed subscription... */
+        else if (getAction().equals(ACTION_RESTORE_SUBSCRIPTION)) {
 
-			isFirstNode = getRouting().previousNode() != null;
+            isFirstNode = getRouting().previousNode() != null;
 
-		} else {
+        } else {
 
-			logger.log(Level.WARNING,
-					"Internal error -- unsupported subscription message type \"{0}\" in method \"{1}\", message: {2}",
-					new Object[] {getAction(), "isFirstNode()", toString()});
+            logger.log(Level.WARNING,
+                    "Internal error -- unsupported subscription message type [{0}] in method [{1}], message:\n{2}",
+                    new Object[] {getAction(), "isFirstNode()", toString()});
 
-		}
+        }
 
-		return isFirstNode;
+        return isFirstNode;
 
-	}
+    }
 
-	/**
-	 * Determines the route along which feed messages will flow from the publisher to the subscriber.
-	 * <p>
-	 * There are two types of subscription message:
-	 * <ol>
-	 * <li>The initial subscription request sent by the subscriber: this is sent subscriber -> publisher, and therefore
-	 * the route for feed messages is the reverse of the route in the subscription message.</li>
-	 * <li>An attempt to restore a failed subscription: this is sent publisher -> subscriber, and therefore the route
-	 * for feed messages is the route in the subscription message.</li>
-	 * </ol>
-	 * </p>
-	 * 
-	 * @return the route for feed messages sent in response to this subscription.
-	 */
-	public IRouting feedRoute() {
+    /**
+     * Determines the route along which feed messages will flow from the publisher to the subscriber.
+     * <p>
+     * There are two types of subscription message:
+     * <ol>
+     * <li>The initial subscription request sent by the subscriber: this is sent subscriber -> publisher, and therefore
+     * the route for feed messages is the reverse of the route in the subscription message.</li>
+     * <li>An attempt to restore a failed subscription: this is sent publisher -> subscriber, and therefore the route
+     * for feed messages is the route in the subscription message.</li>
+     * </ol>
+     * </p>
+     *
+     * @return the route for feed messages sent in response to this subscription.
+     */
+    public IRouting feedRoute() {
 
-		/* To hold the result */
-		IRouting feedRoute = null;
+        /* To hold the result */
+        IRouting feedRoute = null;
 
-		IRouting subscriptionRouting = getRouting();
+        IRouting subscriptionRouting = getRouting();
 
-		/* If this is a regular subscription (the message flows from subscriber to publisher)... */
-		if (getAction().equals(IServiceMessage.ACTION_SUBSCRIBE)) {
+        /* If this is a regular subscription (the message flows from subscriber to publisher)... */
+        if (getAction().equals(IServiceMessage.ACTION_SUBSCRIBE)) {
 
-			feedRoute = subscriptionRouting.returnRoute();
+            feedRoute = subscriptionRouting.returnRoute();
 
-		}
-		/* Else if this is the restoration of a failed subscription (the message flows from publisher to subscriber)... */
-		else if (getAction().equals(IServiceMessage.ACTION_RESTORE_SUBSCRIPTION)) {
+        }
+        /* Else if this is the restoration of a failed subscription (the message flows from publisher to subscriber)... */
+        else if (getAction().equals(IServiceMessage.ACTION_RESTORE_SUBSCRIPTION)) {
 
-			feedRoute = subscriptionRouting;
+            feedRoute = subscriptionRouting;
 
-		} else {
+        } else {
 
-			logger.log(Level.WARNING,
-					"Internal error -- unsupported subscription message type \"{0}\" in method \"{1}\", message: {2}",
-					new Object[] {getAction(), "feedRoute()", toString()});
+            logger.log(Level.WARNING,
+                    "Internal error -- unsupported subscription message type [{0}] in method [{1}], message:\n{2}",
+                    new Object[] {getAction(), "feedRoute()", toString()});
 
-		}
+        }
 
-		return feedRoute;
+        return feedRoute;
 
-	}
+    }
 
 }
