@@ -20,7 +20,7 @@ Configurable Variables
 ======================
 The following variables are configurable and should match your installation. Exact locations for setting these variables are described in the section appropriate to your Linux Service Framework.
 
-FABRIC_HOME - location of your Edgware installation (/opt/ibm/edgware-0.4.0)
+FABRIC_HOME - location of your Edgware installation (/opt/ibm/edgware-0.4.1)
 
 REGISTRY_TYPE - type of registry installed distributed or gaian
 
