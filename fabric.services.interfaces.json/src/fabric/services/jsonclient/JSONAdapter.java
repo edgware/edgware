@@ -16,13 +16,17 @@ import fabric.FabricBus;
 import fabric.ServiceDescriptor;
 import fabric.bus.messages.IClientNotificationMessage;
 import fabric.bus.messages.IServiceMessage;
+import fabric.bus.routing.IRouting;
 import fabric.client.FabricPlatform;
+import fabric.client.services.IClientNotification;
 import fabric.client.services.IClientNotificationHandler;
-import fabric.client.services.ITopologyChange;
 import fabric.core.io.EndPoint;
 import fabric.core.io.IEndPointCallback;
 import fabric.core.io.mqtt.MqttConfig;
 import fabric.core.logging.FLog;
+import fabric.registry.FabricRegistry;
+import fabric.registry.QueryScope;
+import fabric.registry.SystemFactory;
 import fabric.services.json.JSON;
 import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.articles.Nodes;
@@ -35,7 +39,7 @@ import fabric.services.systems.RuntimeManager;
 /**
  * JSON interface for Fabric clients.
  */
-public abstract class JSONAdapter extends FabricBus implements ITopologyChange, IClientNotificationHandler,
+public abstract class JSONAdapter extends FabricBus implements IClientNotification, IClientNotificationHandler,
 IEndPointCallback {
 
     /** Copyright notice. */
@@ -100,9 +104,7 @@ IEndPointCallback {
         fabricPlatform.homeNodeEndPoint().register(this);
 
         /* Register to receive notifications if the home node is lost */
-        fabricPlatform.registerHomeNodeConnectivityCallback(this);
-
-        // TODO: register to receive topology notifications
+        fabricPlatform.registerClientNotificationCallback(this);
 
         /* Register this platform */
         if (adapterPlatformType == null) {
@@ -122,6 +124,57 @@ IEndPointCallback {
         Nodes.setNode(fabricPlatform.homeNode());
         Platforms.setNode(fabricPlatform.homeNode());
 
+    }
+
+    /**
+     * Restarts pre-registered systems.
+     */
+    protected void startSystems() {
+
+        if (config("fabric.adapters.json.restartSystems", "true").equals("true")) {
+
+            logger.info("Starting pre-registered systems");
+
+            try {
+
+                SystemFactory sf = FabricRegistry.getSystemFactory(QueryScope.LOCAL);
+                fabric.registry.System[] systems = sf.getSystems("attributes like '%%\"autoStart\":\"true\"%%'");
+
+                for (fabric.registry.System s : systems) {
+
+                    try {
+
+                        JSON systemAttr = new JSON(s.getAttributes());
+                        String clientID = systemAttr.getString("clientID");
+
+                        /* Build the start message */
+                        String opString = String.format(
+                                "{\"op\" : \"state:system\", \"id\" : \"%s/%s\", \"state\" : \"running\"}", s
+                                .getPlatformId(), s.getId());
+                        JSON op = new JSON(opString);
+
+                        /* Start the system */
+                        logger.log(Level.INFO, "Restarting system [{0}/{1}] (client ID [{2}])", new Object[] {
+                                s.getPlatformId(), s.getId(), clientID});
+                        handleAdapterMessage(op, null, clientID);
+
+                    } catch (Exception e) {
+                        logger.log(Level.WARNING, "Error restarting service [{0}]: {1}", new Object[] {s.getId(),
+                                e.getMessage()});
+                    }
+                }
+
+            } catch (Exception e) {
+
+                logger.log(Level.WARNING, "Error querying for restartable services: {0}", e.getMessage());
+
+            }
+
+        } else {
+
+            logger.fine("Pre-registered system start not requested");
+
+        }
     }
 
     public String getAdapterUserID() {
@@ -241,12 +294,12 @@ IEndPointCallback {
      * @param correlationID
      *            the operation's correlation ID, or <code>null</code> if none.
      *
-     * @param adapterClient
+     * @param clientID
      *            adapter-specific ID of the client, used to target messages sent to the client.
      *
      * @return the response message.
      */
-    public JSON handleAdapterMessage(JSON op, String correlationID, Object adapterClient) {
+    public JSON handleAdapterMessage(JSON op, String correlationID, Object clientID) {
 
         /* To hold the response message (if any) */
         JSON response = null;
@@ -259,7 +312,7 @@ IEndPointCallback {
 
             if (operation == null) {
 
-                logger.log(Level.WARNING, "Operation field (\"{0}\") missing, ignoring message:\n{1}", new Object[] {
+                logger.log(Level.WARNING, "Operation field ([{0}]) missing, ignoring message:\n{1}", new Object[] {
                         AdapterConstants.FIELD_OPERATION, op.toString()});
                 AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
                         AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_OPERATION, correlationID);
@@ -274,35 +327,26 @@ IEndPointCallback {
 
                     case AdapterConstants.OP_REGISTER:
 
-                        response = OperationDispatcher.registration(operation, op, true, correlationID);
+                        response = OperationDispatcher.registration(operation, op, true, correlationID, clientID);
                         break;
 
                     case AdapterConstants.OP_DEREGISTER:
 
-                        response = OperationDispatcher.registration(operation, op, false, correlationID);
+                        response = OperationDispatcher.registration(operation, op, false, correlationID, clientID);
                         break;
 
                     case AdapterConstants.OP_QUERY:
+                    case AdapterConstants.OP_SQL_DELETE:
+                    case AdapterConstants.OP_SQL_UPDATE:
+                    case AdapterConstants.OP_SQL_SELECT:
 
-                        response = OperationDispatcher.query(operation, op, correlationID);
+                        response = OperationDispatcher.sql(operation, op, correlationID);
                         break;
 
                     case AdapterConstants.OP_STATE:
 
-                        response = OperationDispatcher.stateChange(operation, adapterClient, op, runtimeManager,
+                        response = OperationDispatcher.stateChange(operation, clientID, op, runtimeManager,
                                 adapterProxy(), correlationID);
-                        break;
-
-                    case AdapterConstants.OP_SQL_DELETE:
-                        response = OperationDispatcher.query(operation, op, correlationID);
-                        break;
-
-                    case AdapterConstants.OP_SQL_UPDATE:
-                        response = OperationDispatcher.query(operation, op, correlationID);
-                        break;
-
-                    case AdapterConstants.OP_SQL_SELECT:
-                        response = OperationDispatcher.query(operation, op, correlationID);
                         break;
 
                     case AdapterConstants.OP_SERVICE_REQUEST:
@@ -329,8 +373,9 @@ IEndPointCallback {
 
         } catch (Exception e) {
 
-            logger.log(Level.FINER, "Exception handling message:\n{0}\n{1}", new Object[] {op.toString(),
-                    FLog.stackTrace(e)});
+            logger.log(Level.FINER, "Exception handling message: {0}", e.getMessage());
+            logger.log(Level.FINEST, "Full exception: ", e);
+            logger.log(Level.FINEST, "Full message:\n{0}", op.toString());
             AdapterStatus status = new AdapterStatus(AdapterConstants.ERROR_PARSE, AdapterConstants.OP_CODE_NONE,
                     AdapterConstants.ARTICLE_JSON, AdapterConstants.STATUS_MSG_BAD_JSON + ": " + e.getMessage(),
                     correlationID);
@@ -343,10 +388,10 @@ IEndPointCallback {
     }
 
     /**
-     * @see fabric.client.services.ITopologyChange#homeNodeUpdate(fabric.bus.messages.IServiceMessage)
+     * @see fabric.client.services.IClientNotification#homeNodeNotification(fabric.bus.messages.IServiceMessage)
      */
     @Override
-    public void homeNodeUpdate(final IServiceMessage message) {
+    public void homeNodeNotification(final IServiceMessage message) {
 
         logger.log(Level.FINE, "Change in connectivity status to home node:\n{0}", message.toString());
 
@@ -360,27 +405,85 @@ IEndPointCallback {
         }
     }
 
-    /** @see fabric.client.services.ITopologyChange#topologyUpdate(fabric.bus.messages.IServiceMessage) */
+    /** @see fabric.client.services.IClientNotification#topologyNotification(fabric.bus.messages.IServiceMessage) */
     @Override
-    public void topologyUpdate(IServiceMessage message) {
+    public void topologyNotification(IServiceMessage message) {
 
-        FLog.enter(logger, Level.FINE, this, "topologyUpdate", message.toString());
+        FLog.enter(logger, Level.FINER, this, "topologyUpdate", message.toString());
 
-        if ("disconnected".equals(message.getProperty(IServiceMessage.PROPERTY_EVENT))) {
+        String event = message.getProperty(IServiceMessage.PROPERTY_EVENT);
+        String node = message.getProperty(IServiceMessage.PROPERTY_NODE);
 
-            logger.log(Level.FINER, "Handling change in Fabric topology", message.toString());
-
-            String node = message.getProperty(IServiceMessage.PROPERTY_NODE);
+        if (event != null) {
 
             try {
-                // runtimeManager.pruneSubscriptions(node);
+
+                switch (event) {
+
+                    case "disconnected":
+
+                        logger.log(Level.FINE, "Node [{0}] disconnected, pruning its subscriptions", node);
+                        runtimeManager.pruneSubscriptions(node);
+                        break;
+
+                    case "connected":
+
+                        logger.log(Level.FINE, "Node [{0}] connected, re-matching all subscriptions", node);
+                        runtimeManager.pruneSubscriptions(node);
+                        runtimeManager.matchSubscriptions();
+                        break;
+                }
+
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "Excpetion handling change in Fabric topology for node [{0}]: {1}",
-                        new Object[] {node, FLog.stackTrace(e)});
+                logger.log(Level.SEVERE, "Exception handling connection message for node [{0}]: {1}", new Object[] {
+                        node, e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
             }
         }
 
-        FLog.exit(logger, Level.FINE, this, "topologyUpdate", null);
+        FLog.exit(logger, Level.FINER, this, "topologyUpdate", null);
+    }
+
+    /**
+     * @see fabric.client.services.IClientNotification#fabricNotification(fabric.bus.messages.IServiceMessage)
+     */
+    @Override
+    public void fabricNotification(IServiceMessage message) {
+
+        FLog.enter(logger, Level.FINER, this, "fabricNotification", message.toString());
+
+        String action = message.getProperty(IServiceMessage.PROPERTY_NOTIFICATION_ACTION);
+
+        switch ((action != null) ? action : "") {
+
+            case "unsubscribe":
+
+                IRouting route = message.getRouting();
+                String notifyingNode = message.getProperty(IServiceMessage.PROPERTY_NOTIFYING_NODE);
+                String startNode = route.startNode();
+
+                if (!homeNode().equals(notifyingNode) && startNode != null && !startNode.equals(homeNode())) {
+
+                    /* Clean up any subscriptions involving this node */
+                    try {
+                        runtimeManager.pruneSubscriptions(startNode);
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE, "Excpetion handling unsubscribe notification node [{0}]: {1}",
+                                new Object[] {startNode, e.getMessage()});
+                        logger.log(Level.FINEST, "Full exception: ", e);
+                    }
+                }
+
+                break;
+
+            case "subscribe":
+                break;
+
+            default:
+                break;
+        }
+
+        FLog.exit(logger, Level.FINER, this, "fabricNotification", null);
     }
 
     /**
@@ -391,8 +494,8 @@ IEndPointCallback {
     @Override
     public void handleNotification(final IClientNotificationMessage message) {
 
-        FLog.enter(logger, Level.FINE, this, "handleNotification", message.toString());
-        FLog.exit(logger, Level.FINE, this, "handleNotification", null);
+        FLog.enter(logger, Level.FINER, this, "handleNotification", message.toString());
+        FLog.exit(logger, Level.FINER, this, "handleNotification", null);
 
     }
 
