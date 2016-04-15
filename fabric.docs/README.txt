@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
-Edgware Fabric v0.4.0
+Edgware Fabric v0.4.1
 README
 -------------------------------------------------------------------------------
 
@@ -24,8 +24,12 @@ Edgware.
 
 Download the latest stable release of Edgware from http://edgware-fabric.org.
 The .zip or .gzip contains a top-level folder called edgware-X.Y.Z where X.Y.Z
-is the version number. Once extracted, from within that top-level folder, run
-the appropriate command for your operating system:
+is the version number.
+
+Note: always unpack the .zip/gzip into an empty folder.
+
+Once extracted, from within that top-level folder, run the appropriate command
+for your operating system:
 
 Linux and OS X:
 
@@ -61,7 +65,7 @@ The Edgware software stack consists of three main components:
 - An MQTT-enabled broker used to form the MQTT backbone of the bus
 
 In addition there is an optional Web server supporting the HTTP interface to
-Edgware.
+Edgware and its visualization/management tools.
 
 Each of these components can be started from either the command line or as
 system services. Using the command line, each component must be started
@@ -94,10 +98,6 @@ STARTING THE WEB SERVER (OPTIONAL):
 By default you can then access the Edgware Web server at
 http://localhost:8080/rest.
 
-If you would like to start the Edgware components as system services, see the
-readme.txt files under $FABRIC_HOME/server/linux or
-%FABRIC_HOME%\server\windows.
-
 
 3. EDGWARE LOG FILES
 
@@ -112,7 +112,7 @@ file in the following directory:
 3.1 CONFIGURING LOGGING
 
 The level of detail included in log output can be controlled via the
-configuration file fabricConfig_default.properties in the directory:
+configuration file logging.properties in the directory:
 
 	Windows: %FABRIC_HOME%\osgi\configuration
 
@@ -125,11 +125,13 @@ See the on-line Edgware documentation for more information.
 
 4.1 AUTO-DISCOVERY BROADCAST PROPAGATION
 
-The auto-discovery UDP broadcast used by Edgware to request a connection will
-typically only propagate as far as any routers in the network. Most routers
-will block broadcasts, thus restricting the visibility of the request. This is
-mitigated by use of multicast, andthe ability to statically define known nodes
-if required.
+Edgware nodes on a network will automatically discover each other to form the
+bus of systems and services. This is done using a UDP braodcast, however that
+broadcast will typically only propagate as far as any routers in the network
+(most routers will block broadcasts, thus restricting the visibility of
+discovery messages). This is mitigated to some extent by use of multicast,
+however Egware can also be configured with statically defined connections
+between nodes if required.
 
 
 5. KNOWN PROBLEMS

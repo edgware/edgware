@@ -1,6 +1,6 @@
 NOTICES AND INFORMATION
 
-Edgware Fabric - Version 0.4
+Edgware Fabric - Version 0.4.1
 
 These notices are provided for informational purposes.
 
@@ -9,16 +9,16 @@ SUMMARY OF THIRD PARTY COMPONENTS
 #############################################################################
 
 The following are third party components included:
-- Apache Commons CLI 1.2
-- Apache Commons Codec 1.8
+- Apache Commons CLI 1.3.1
+- Apache Commons Codec 1.10
 - Apache Commons Daemon 1.0.15
 - Apache Derby 10.8.3
 - D3.js 3.4.6
 - Equinox 3.6.0
-- Jackson 2.2.3
-- Jetty 9.1.5
+- Jackson 2.5.1
+- Jetty 9.2.9
 - JQuery 1.8.2
-- Paho Java MQTT Client 0.4.0
+- Paho Java MQTT Client 1.0.2
 
 ###############################################################################
 APACHE LICENSE 2.0 CODE
@@ -27,22 +27,22 @@ APACHE LICENSE 2.0 CODE
 Edgware Fabric includes some or all of the following obtained under the Apache
 License Version 2.0:
 
--------------------------------------------------------------------------------
-Apache Commons CLI 1.2
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Apache Commons CLI 1.3.1
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Apache Commons CLI
-Copyright 2001-2009 The Apache Software Foundation
+Copyright 2001-2015 The Apache Software Foundation
 
-This product includes software developed by
+This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
 
--------------------------------------------------------------------------------
-Apache Commons Codec 1.8
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Apache Commons Codec 1.10
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Apache Commons Codec
-Copyright 2002-2013 The Apache Software Foundation
+Copyright 2002-2014 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
@@ -51,9 +51,17 @@ src/test/org/apache/commons/codec/language/DoubleMetaphoneTest.java
 contains test data from http://aspell.net/test/orig/batch0.tab.
 Copyright (C) 2002 Kevin Atkinson (kevina@gnu.org)
 
--------------------------------------------------------------------------------
+===============================================================================
+
+The content of package org.apache.commons.codec.language.bm has been translated
+from the original php source code available at http://stevemorse.org/phoneticinfo.htm
+with permission from the original authors.
+Original source copyright:
+Copyright (c) 2008 Alexander Beider & Stephen P. Morse.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Apache Commons Daemon 1.0.15
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Apache Commons Daemon
 Copyright 1999-2013 The Apache Software Foundation
@@ -61,9 +69,9 @@ Copyright 1999-2013 The Apache Software Foundation
 This product includes software developed by
 The Apache Software Foundation (http://www.apache.org/).
 
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Apache Derby 10.8.3
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 =========================================================================
 ==  NOTICE file corresponding to section 4(d) of the Apache License,
@@ -248,9 +256,9 @@ project. The following notice covers the Xalan jar files:
      - software copyright (c) 2000 World Wide Web Consortium, http://www.w3.org
 
 
--------------------------------------------------------------------------------
-Jackson Annotations 2.2.3
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Jackson Annotations 2.5.1
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This copy of Jackson JSON processor annotations is licensed under the
 Apache (Software) License, version 2.0 ("the License").
@@ -261,9 +269,9 @@ You may obtain a copy of the License at:
 
 http://www.apache.org/licenses/LICENSE-2.0
 
--------------------------------------------------------------------------------
-Jackson Core 2.2.3
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Jackson Core 2.5.1
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This copy of Jackson JSON processor streaming parser/generator is licensed under the
 Apache (Software) License, version 2.0 ("the License").
@@ -297,9 +305,9 @@ A list of contributors may be found from CREDITS file, which is included
 in some artifacts (usually source distributions); but is always available
 from the source code management (SCM) system project uses.
 
--------------------------------------------------------------------------------
-Jackson Databind 2.2.3
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Jackson Databind 2.5.1
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This copy of Jackson JSON processor databind module is licensed under the
 Apache (Software) License, version 2.0 ("the License").
@@ -322,7 +330,7 @@ commercially by FasterXML.com.
 
 ## Licensing
 
-Jackson core and extension components may licensed under different licenses.
+Jackson core and extension components may be licensed under different licenses.
 To find the details that apply to this artifact see the accompanying LICENSE file.
 For more information, including possible other licensing options, contact
 FasterXML.com (http://fasterxml.com).
@@ -544,9 +552,9 @@ ECLIPSE PUBLIC LICENSE VERSION 1.0 CODE
 Edgware Fabric includes some or all of the following obtained under the Eclipse
 Public License Version 1.0:
 
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Equinox 3.6.0: org.apache.commons.codec_1.3.0.v20100518-1140
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 About This Content
 
@@ -582,9 +590,9 @@ http://www.apache.org/licenses/LICENSE-2.0.txt. (local copy)
 Original binaries and source are available from the Apache Commons Codec
 website.
 
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Equinox 3.6.0: org.eclipse.equinox.common_3.6.0.v20100503
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 About This Content
 
@@ -606,9 +614,10 @@ such license exists, contact the Redistributor. Unless otherwise indicated
 below, the terms and conditions of the EPL still apply to any source code in
 the Content and such source code may be obtained at http://www.eclipse.org.
 
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Equinox 3.6.0: org.eclipse.osgi_3.6.0.v20100517
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 About This Content
 
 August 25, 2006
@@ -674,9 +683,9 @@ countries. All other trademarks, registered trademarks, or service marks used
 in the Content are the property of their respective owners and are hereby
 recognized.
 
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Equinox 3.6.0: org.eclipse.osgi.services_3.2.100.v20100503
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 About This Content
 
@@ -742,9 +751,9 @@ countries. All other trademarks, registered trademarks, or service marks used
 in the Content are the property of their respective owners and are hereby
 recognized.
 
--------------------------------------------------------------------------------
-Jetty 9.1.5
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Jetty 9.2.9
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Eclipse Foundation Software User Agreement
 
@@ -779,7 +788,7 @@ archives ("Downloads").
 - Content may be structured and packaged into modules to facilitate delivering,
   extending, and upgrading the Content. Typical modules may include plug-ins
   ("Plug-ins"), plug-in fragments ("Fragments"), and features ("Features").
-- Each Plug-in or Fragment may be packaged as a sub-directory or JAR (Java(TM)
+- Each Plug-in or Fragment may be packaged as a sub-directory or JAR (Java™
   ARchive) in a directory named "plugins".
 - A Feature is a bundle of one or more Plug-ins and/or Fragments and associated
   material. Each Feature may be packaged as a sub-directory in a directory
@@ -850,9 +859,31 @@ this is permitted.
 Java and all Java-based trademarks are trademarks of Sun Microsystems, Inc. in
 the United States, other countries, or both.
 
--------------------------------------------------------------------------------
-Paho Java MQTT Client 0.4.0
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Paho Java MQTT Client 1.0.2
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+About This Content
+
+December 9, 2013
+
+License
+
+The Eclipse Foundation makes available all content in this plug-in ("Content").
+Unless otherwise indicated below, the Content is provided to you under the
+terms and conditions of the Eclipse Public License Version 1.0 ("EPL") and
+Eclipse Distribution License Version 1.0 ("EDL"). A copy of the EPL is
+available at http://www.eclipse.org/legal/epl-v10.html and a copy of the EDL is
+available at http://www.eclipse.org/org/documents/edl-v10.php. For purposes of
+the EPL, "Program" will mean the Content.
+
+If you did not receive this Content directly from the Eclipse Foundation, the
+Content is being redistributed by another party ("Redistributor") and different
+terms and conditions may apply to your use of any object code in the Content.
+Check the Redistributor's license that was provided with the Content. If no
+such license exists, contact the Redistributor. Unless otherwise indicated
+below, the terms and conditions of the EPL still apply to any source code in
+the Content and such source code may be obtained at http://www.eclipse.org.
 
 ###############################################################################
 
@@ -1076,9 +1107,9 @@ BSD LICENSE CODE
 Edgware Fabric includes some or all of the following obtained under the BSD
 license:
 
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 D3.js 3.4.6
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Copyright (c) 2010-2014, Michael Bostock
 All rights reserved.
@@ -1114,9 +1145,9 @@ MIT LICENSE CODE
 Edgware Fabric includes some or all of the following obtained under the MIT
 license:
 
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 JQuery 1.8.2
--------------------------------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Copyright 2012 jQuery Foundation and other contributors
 
