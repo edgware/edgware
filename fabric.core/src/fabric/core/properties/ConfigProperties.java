@@ -282,7 +282,7 @@ public class ConfigProperties {
     /**
      * Default Value for Interval (in millis) at which the sweeper checks for node neighbours that are no longer visible
      */
-    public static final String AUTO_DISCOVERY_SWEEPER_INTERVAL_DEFAULT = "5510";
+    public static final String AUTO_DISCOVERY_SWEEPER_INTERVAL_DEFAULT = "30000";
 
     /*
      * Class methods
