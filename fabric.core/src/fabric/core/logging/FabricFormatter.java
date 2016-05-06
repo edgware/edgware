@@ -100,12 +100,12 @@ public class FabricFormatter extends Formatter {
         /* Add the body of the message */
 
         logMessage.append(": ");
+        char startc = r.getMessage().charAt(0);
 
-        if (r.getLevel().intValue() < Level.FINE.intValue() && !r.getMessage().startsWith("-")
-                && !r.getMessage().startsWith("<")) {
+        if (startc == '-' || startc == '<') {
+            /* Nothing to add */
+        } else if (r.getLevel().intValue() <= Level.FINE.intValue()) {
             logMessage.append(FLog.indent());
-        } else {
-            logMessage.append("- ");
         }
 
         logMessage.append(formatMessage(r));
