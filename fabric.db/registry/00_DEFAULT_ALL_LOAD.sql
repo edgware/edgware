@@ -28,7 +28,7 @@ CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=false;user=fabric;password=fa
 insert into fabric.routes values ('*', '*', 999, 'factory=fabric.bus.routing.DynamicRoutingFactory');
 
 -- Default Fabric task
-insert into fabric.tasks values ('DEFAULT', null, null, 'Default task. All auto-discovered sensors are assigned to this task.', '{"persistent":"true"}', null);
+insert into fabric.tasks values ('$def', null, null, 'Default task. All auto-discovered sensors are assigned to this task.', '{"persistent":"true"}', null);
 
 -- Default node settings
 insert into fabric.default_config values ('node.port','1883');
@@ -287,7 +287,7 @@ insert into fabric.default_config values ('autodiscovery.port','61883');
 insert into fabric.default_config values ('autodiscovery.frequency','30000');
 insert into fabric.default_config values ('autodiscovery.timeout','64000');
 insert into fabric.default_config values ('autodiscovery.ttl','6');
-insert into fabric.default_config values ('autodiscovery.sweeper.interval','5510');
+insert into fabric.default_config values ('autodiscovery.sweeper.interval','30000');
 insert into fabric.default_config values ('autodiscovery.group','225.0.18.83');
 insert into fabric.default_config values ('autodiscovery.request','enabled');
 insert into fabric.default_config values ('autodiscovery.listen','enabled');
@@ -335,7 +335,7 @@ insert into fabric.default_config values ('fabric.adapters.mqtt.outtopic', '$fab
 --
 -- The value is in seconds, and a value of -1 indicates that periodic refresh
 -- is disabled.
-insert into fabric.default_config values ('fabric.runtimeManager.refreshInterval', '30');
+insert into fabric.default_config values ('fabric.runtimeManager.refreshInterval', '120');
 
 -- Flag indicating if Registry topology update messages are to be actioned:
 --
