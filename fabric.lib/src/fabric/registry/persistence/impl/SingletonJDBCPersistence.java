@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +50,9 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
 
     /** JDBC query timeout. */
     private int queryTimeout = 60;
+
+    /** Cache of JDBC Statements, one per thread. */
+    HashMap<String, Statement> statementCache = new HashMap<String, Statement>();
 
     /** Object used to synchronise Fabric Registry reconnection attempts. */
     private Object monitor = new Object();
@@ -130,15 +134,31 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
     private Statement createStatement() throws SQLException {
 
         Statement s = null;
+        String threadName = Thread.currentThread().getName();
 
         if (experimentalRegistryTimeoutMonitor) {
-            s = registryConnectionWithRefresh().createStatement();
-        } else {
-            s = registryConnection().createStatement();
-        }
 
-        if (queryTimeout != -1) {
-            s.setQueryTimeout(queryTimeout);
+            s = registryConnectionWithRefresh().createStatement();
+
+        } else {
+
+            s = registryConnection().createStatement();
+
+            //            synchronized (statementCache) {
+            //
+            //                s = statementCache.get(threadName);
+            //
+            //                if (s == null) {
+            //
+            //                    s = registryConnection().createStatement();
+            //
+            //                    if (queryTimeout != -1) {
+            //                        s.setQueryTimeout(queryTimeout);
+            //                    }
+            //
+            //                    statementCache.put(threadName, s);
+            //                }
+            //            }
         }
 
         return s;
@@ -415,13 +435,6 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
                     logger.log(Level.WARNING, "Error closing result set! ", thrownException);
                 }
             }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex2) {
-                    logger.log(Level.WARNING, "Error closing statement! ", thrownException);
-                }
-            }
         }
 
         if (thrownException != null) {
@@ -474,13 +487,6 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
                     rs.close();
                 } catch (SQLException ex1) {
                     logger.log(Level.WARNING, "Error closing result set! ", thrownException);
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex2) {
-                    logger.log(Level.WARNING, "Error closing statement! ", thrownException);
                 }
             }
         }
@@ -543,14 +549,6 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
                     // log.log(this, ILogger.ERROR, Fabric.message("registry.resultset.failed"));
                 }
             }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex2) {
-                    logger.log(Level.WARNING, "Error closing statement! ", thrownException);
-                    // log.log(this, ILogger.ERROR, Fabric.message("registry.statement.failed"));
-                }
-            }
         }
 
         if (thrownException != null) {
@@ -605,13 +603,6 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
                     rs.close();
                 } catch (SQLException ex1) {
                     logger.log(Level.WARNING, "Error closing result set! ", thrownException);
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex2) {
-                    logger.log(Level.WARNING, "Error closing statement! ", thrownException);
                 }
             }
         }
@@ -745,17 +736,6 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
 
                     }
                 }
-
-            } finally {
-
-                if (stmt != null) {
-
-                    try {
-                        stmt.close();
-                    } catch (SQLException e) {
-                        logger.log(Level.WARNING, "Error closing statement: ", e);
-                    }
-                }
             }
 
             return true;
@@ -832,14 +812,6 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
                 } catch (SQLException ex1) {
                     logger.log(Level.WARNING, "Error closing result set! ", thrownException);
                     // log.log(this, ILogger.ERROR, Fabric.message("registry.resultset.failed"));
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex2) {
-                    logger.log(Level.WARNING, "Error closing statement! ", thrownException);
-                    // log.log(this, ILogger.ERROR, Fabric.message("registry.statement.failed"));
                 }
             }
         }
