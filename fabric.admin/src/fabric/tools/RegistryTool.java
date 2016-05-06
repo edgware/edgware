@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2012, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -34,676 +34,818 @@ import org.apache.commons.cli.PosixParser;
  */
 public class RegistryTool {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012, 2014";
-
-	/*
-	 * Class constants
-	 */
-
-	private static final String OPT_LIST_NODES = "N";
-	private static final String OPT_LIST_PLATFORMS = "P";
-	private static final String OPT_LIST_SYSTEMS = "S";
-	private static final String OPT_LIST_IP_MAPPINGS = "I";
-	private static final String OPT_LIST_SERVICES = "SV";
-	private static final String OPT_LIST_TASK_SYSTEMS = "T";
-	private static final String OPT_LIST_NEIGHBOURS = "B";
-	private static final String OPT_LIST_TABLES = "t";
-	private static final String OPT_LIST_VIEWS = "v";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012, 2014";
 
-	private static final String OPT_LIST_DEFAULT_CONFIG = "d";
-	private static final String OPT_SET_DEFAULT_CONFIG = "sd";
-	private static final String OPT_UNSET_DEFAULT_CONFIG = "ud";
+    /*
+     * Class constants
+     */
 
-	private static final String OPT_LIST_NODE_CONFIG = "n";
-	private static final String OPT_SET_NODE_CONFIG = "sn";
-	private static final String OPT_UNSET_NODE_CONFIG = "un";
+    private static final String OPT_LIST_NODES = "N";
 
-	private static final String OPT_RUN = "r";
-
-	private static final String OPT_GAIAN = "g";
-
-	/*
-	 * Class fields
-	 */
-
-	private static Option optListNodes = null;
-	private static Option optListPlatforms = null;
-	private static Option optListSystems = null;
-	private static Option optListServices = null;
-	private static Option optListTaskSystems = null;
-	private static Option optListIPMappings = null;
-	private static Option optListNeighbours = null;
-	private static Option optListTables = null;
-	private static Option optListViews = null;
-	private static Option optListDefaultConfig = null;
-	private static Option optSetDefaultConfig = null;
-	private static Option optUnsetDefaultConfig = null;
-	private static Option optListNodeConfig = null;
-	private static Option optSetNodeConfig = null;
-	private static Option optUnsetNodeConfig = null;
-	private static Option optRun = null;
-	private static Option optGaian = null;
+    private static final String OPT_LIST_PLATFORM_TYPES = "PT";
+    private static final String OPT_LIST_PLATFORMS = "P";
 
-	private static Options options = new Options();
+    private static final String OPT_LIST_SYSTEM_TYPES = "SY";
+    private static final String OPT_LIST_SYSTEMS = "S";
 
-	/**
-	 * Main entry point.
-	 * 
-	 * @param args
-	 *            command line arguments.
-	 */
-	@SuppressWarnings("static-access")
-	public static void main(String[] args) {
+    private static final String OPT_LIST_IP_MAPPINGS = "I";
+    private static final String OPT_LIST_NEIGHBOURS = "B";
 
-		String message = null;
+    private static final String OPT_LIST_SERVICE_TYPES = "ST";
+    private static final String OPT_LIST_SERVICES = "SV";
+    private static final String OPT_LIST_TASK_SERVICES = "T";
 
-		/* Configure supported options */
+    private static final String OPT_LIST_WIRING = "W";
+    private static final String OPT_LIST_SUBSCRIPTIONS = "SU";
 
-		optListNodes = OptionBuilder.withDescription("list all Fabric nodes").withLongOpt("list-nodes").create(
-				OPT_LIST_NODES);
+    private static final String OPT_LIST_FABLETS = "F";
 
-		optListPlatforms = OptionBuilder.withDescription("list all Fabric platforms").withLongOpt("list-platforms")
-				.create(OPT_LIST_PLATFORMS);
+    private static final String OPT_LIST_TABLES = "t";
+    private static final String OPT_LIST_VIEWS = "v";
 
-		optListSystems = OptionBuilder.withDescription("list all Fabric systems").withLongOpt("list-systems").create(
-				OPT_LIST_SYSTEMS);
+    private static final String OPT_LIST_DEFAULT_CONFIG = "d";
+    private static final String OPT_SET_DEFAULT_CONFIG = "sd";
+    private static final String OPT_UNSET_DEFAULT_CONFIG = "ud";
 
-		optListServices = OptionBuilder.withDescription("list all Fabric services").withLongOpt("list-services")
-				.create(OPT_LIST_SERVICES);
+    private static final String OPT_LIST_NODE_CONFIG = "n";
+    private static final String OPT_SET_NODE_CONFIG = "sn";
+    private static final String OPT_UNSET_NODE_CONFIG = "un";
 
-		optListTaskSystems = OptionBuilder.withDescription("list all Fabric task systems").withLongOpt(
-				"list-task-systems").create(OPT_LIST_TASK_SYSTEMS);
+    private static final String OPT_RUN = "r";
 
-		optListIPMappings = OptionBuilder.withDescription("list all Fabric Node/IP mappings").withLongOpt("list-ip")
-				.create(OPT_LIST_IP_MAPPINGS);
+    private static final String OPT_GAIAN = "g";
 
-		optListNeighbours = OptionBuilder.withDescription("list all Fabric node neighbours").withLongOpt(
-				"list-neighbours").create(OPT_LIST_NEIGHBOURS);
+    /*
+     * Class fields
+     */
 
-		optListTables = OptionBuilder.withDescription("list all tables in the database FABRIC").withLongOpt(
-				"list-tables").create(OPT_LIST_TABLES);
+    private static Option optListNodes = null;
 
-		optListViews = OptionBuilder.withDescription("list all views in the database FABRIC").withLongOpt("list-views")
-				.create(OPT_LIST_VIEWS);
+    private static Option optListPlatformTypes = null;
+    private static Option optListPlatforms = null;
 
-		optListDefaultConfig = OptionBuilder.withDescription("list all default configuration settings").withLongOpt(
-				"list-default-config").create(OPT_LIST_DEFAULT_CONFIG);
+    private static Option optListSystemTypes = null;
+    private static Option optListSystems = null;
 
-		optSetDefaultConfig = OptionBuilder.hasArgs(2).withArgName("name> <value").withDescription(
-				"set a default configuration property").withLongOpt("set-default-config")
-				.create(OPT_SET_DEFAULT_CONFIG);
+    private static Option optListServiceTypes = null;
+    private static Option optListServices = null;
+    private static Option optListTaskServices = null;
 
-		optUnsetDefaultConfig = OptionBuilder.hasArgs(1).withArgName("name").withDescription(
-				"unset a default configuration property").withLongOpt("unset-default-config").create(
-				OPT_UNSET_DEFAULT_CONFIG);
+    private static Option optListIPMappings = null;
+    private static Option optListNeighbours = null;
 
-		optListNodeConfig = OptionBuilder.withDescription("list all node configuration settings").withLongOpt(
-				"list-node-config").create(OPT_LIST_NODE_CONFIG);
+    private static Option optListWiring = null;
+    private static Option optListSubscriptions = null;
 
-		optSetNodeConfig = OptionBuilder.hasArgs(3).withArgName("node> <name> <value").withDescription(
-				"set a node configuration property").withLongOpt("set-node-config").create(OPT_SET_NODE_CONFIG);
+    private static Option optListFablets = null;
 
-		optUnsetNodeConfig = OptionBuilder.hasArgs(2).withArgName("node> <name").withDescription(
-				"unset a node configuration property").withLongOpt("unset-node-config").create(OPT_UNSET_NODE_CONFIG);
+    private static Option optListTables = null;
+    private static Option optListViews = null;
 
-		optRun = OptionBuilder.withArgName("filename").hasArg().withDescription("run a file of SQL statements")
-				.withLongOpt("run-sql").create(OPT_RUN);
+    private static Option optListDefaultConfig = null;
+    private static Option optSetDefaultConfig = null;
+    private static Option optUnsetDefaultConfig = null;
+    private static Option optListNodeConfig = null;
+    private static Option optSetNodeConfig = null;
+    private static Option optUnsetNodeConfig = null;
 
-		optGaian = OptionBuilder.withDescription("execute queries against the Gaian Database").withLongOpt("gaian")
-				.create(OPT_GAIAN);
+    private static Option optRun = null;
+    private static Option optGaian = null;
 
-		OptionGroup optionGroup = new OptionGroup();
+    private static Options options = new Options();
 
-		optionGroup.addOption(optListNodes);
-		optionGroup.addOption(optListPlatforms);
-		optionGroup.addOption(optListSystems);
-		optionGroup.addOption(optListServices);
-		optionGroup.addOption(optListTaskSystems);
-		optionGroup.addOption(optListIPMappings);
-		optionGroup.addOption(optListNeighbours);
-		optionGroup.addOption(optListTables);
-		optionGroup.addOption(optListViews);
+    /**
+     * Main entry point.
+     *
+     * @param args
+     *            command line arguments.
+     */
+    @SuppressWarnings("static-access")
+    public static void main(String[] args) {
 
-		optionGroup.addOption(optListDefaultConfig);
-		optionGroup.addOption(optSetDefaultConfig);
-		optionGroup.addOption(optUnsetDefaultConfig);
+        String message = null;
 
-		optionGroup.addOption(optListNodeConfig);
-		optionGroup.addOption(optSetNodeConfig);
-		optionGroup.addOption(optUnsetNodeConfig);
+        /* Configure supported options */
 
-		optionGroup.addOption(optRun);
+        optListNodes = OptionBuilder.withDescription("list nodes").withLongOpt("list-nodes").create(OPT_LIST_NODES);
 
-		optionGroup.setRequired(true);
+        optListPlatformTypes = OptionBuilder.withDescription("list platform types").withLongOpt("list-platform-types")
+                .create(OPT_LIST_PLATFORM_TYPES);
 
-		options.addOptionGroup(optionGroup);
-		options.addOption(optGaian);
+        optListPlatforms = OptionBuilder.withDescription("list platforms").withLongOpt("list-platforms").create(
+                OPT_LIST_PLATFORMS);
 
-		/* Parse the command line arguments */
+        optListSystemTypes = OptionBuilder.withDescription("list system types").withLongOpt("list-system-types")
+                .create(OPT_LIST_SYSTEM_TYPES);
 
-		CommandLineParser parser = new PosixParser();
-		CommandLine line = null;
+        optListSystems = OptionBuilder.withDescription("list systems").withLongOpt("list-systems").create(
+                OPT_LIST_SYSTEMS);
 
-		try {
+        optListServiceTypes = OptionBuilder.withDescription("list service types").withLongOpt("list-service-types")
+                .create(OPT_LIST_SERVICE_TYPES);
 
-			line = parser.parse(options, args);
+        optListServices = OptionBuilder.withDescription("list services").withLongOpt("list-services").create(
+                OPT_LIST_SERVICES);
 
-		} catch (ParseException exp) {
+        optListTaskServices = OptionBuilder.withDescription("list task services").withLongOpt("list-task-services")
+                .create(OPT_LIST_TASK_SERVICES);
 
-			System.out.println(exp.getMessage() + '\n');
-			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("fabreg", options);
-			System.exit(1);
+        optListIPMappings = OptionBuilder.withDescription("list Node/IP mappings").withLongOpt("list-ip").create(
+                OPT_LIST_IP_MAPPINGS);
 
-		}
+        optListNeighbours = OptionBuilder.withDescription("list node neighbours").withLongOpt("list-neighbours")
+                .create(OPT_LIST_NEIGHBOURS);
 
-		/* If a SQL file is to be run... */
-		if (line.hasOption(OPT_RUN)) {
+        optListWiring = OptionBuilder.withDescription("list service wiring").withLongOpt("list-wiring").create(
+                OPT_LIST_WIRING);
 
-			try {
-				RegistryTool.run(new File(line.getOptionValue(OPT_RUN)), false);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+        optListSubscriptions = OptionBuilder.withDescription("list active Fabric subscriptions").withLongOpt(
+                "list-subscriptions").create(OPT_LIST_SUBSCRIPTIONS);
 
-		} else {
+        optListFablets = OptionBuilder.withDescription("list registered fablets").withLongOpt("list-fablets").create(
+                OPT_LIST_FABLETS);
 
-			/* Determine if queries are to be made against the Gaian Database (where appropriate) */
+        optListTables = OptionBuilder.withDescription("list all tables in the database FABRIC").withLongOpt(
+                "list-tables").create(OPT_LIST_TABLES);
 
-			String localDBConnect = "CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=false;user=fabric;password=fabric;';";
-			String distributedDBConnect = null;
-			boolean isGaian = false;
-			String fromSQL = null;
+        optListViews = OptionBuilder.withDescription("list all views in the database FABRIC").withLongOpt("list-views")
+                .create(OPT_LIST_VIEWS);
 
-			if (line.hasOption(OPT_GAIAN)) {
-				distributedDBConnect = "CONNECT 'jdbc:derby://localhost:6414/gaiandb;create=false;user=gaiandb;password=passw0rd;';";
-				isGaian = true;
-			} else {
-				distributedDBConnect = localDBConnect;
-			}
+        optListDefaultConfig = OptionBuilder.withDescription("list default configuration settings").withLongOpt(
+                "list-default-config").create(OPT_LIST_DEFAULT_CONFIG);
 
-			/* Initialise the SQL commands */
-			String[] script = new String[] {localDBConnect, null, "DISCONNECT;"};
-			String fallbackSQL = null;
+        optSetDefaultConfig = OptionBuilder.hasArgs(2).withArgName("name> <value").withDescription(
+                "set a default configuration property").withLongOpt("set-default-config")
+                .create(OPT_SET_DEFAULT_CONFIG);
 
-			/* Decode primary option and generate the required SQL */
+        optUnsetDefaultConfig = OptionBuilder.hasArgs(1).withArgName("name").withDescription(
+                "unset a default configuration property").withLongOpt("unset-default-config").create(
+                OPT_UNSET_DEFAULT_CONFIG);
 
-			if (line.hasOption(OPT_LIST_NODES)) {
+        optListNodeConfig = OptionBuilder.withDescription("list node configuration settings").withLongOpt(
+                "list-node-config").create(OPT_LIST_NODE_CONFIG);
 
-				listNodesSQL(distributedDBConnect, isGaian, script);
+        optSetNodeConfig = OptionBuilder.hasArgs(3).withArgName("node> <name> <value").withDescription(
+                "set a node configuration property").withLongOpt("set-node-config").create(OPT_SET_NODE_CONFIG);
 
-			} else if (line.hasOption(OPT_LIST_PLATFORMS)) {
+        optUnsetNodeConfig = OptionBuilder.hasArgs(2).withArgName("node> <name").withDescription(
+                "unset a node configuration property").withLongOpt("unset-node-config").create(OPT_UNSET_NODE_CONFIG);
 
-				listPlatformsSQL(distributedDBConnect, isGaian, script);
+        optRun = OptionBuilder.withArgName("filename").hasArg().withDescription("run a file of SQL statements")
+                .withLongOpt("run-sql").create(OPT_RUN);
 
-			} else if (line.hasOption(OPT_LIST_SYSTEMS)) {
+        optGaian = OptionBuilder.withDescription("make the selected query a distributed (global) query").withLongOpt(
+                "gaian").create(OPT_GAIAN);
 
-				listSystemsSQL(distributedDBConnect, isGaian, script);
+        OptionGroup optionGroup = new OptionGroup();
 
-			} else if (line.hasOption(OPT_LIST_SERVICES)) {
+        optionGroup.addOption(optListNodes);
 
-				listServicesSQL(distributedDBConnect, isGaian, script);
+        optionGroup.addOption(optListPlatforms);
+        optionGroup.addOption(optListPlatformTypes);
 
-			} else if (line.hasOption(OPT_LIST_IP_MAPPINGS)) {
+        optionGroup.addOption(optListSystemTypes);
+        optionGroup.addOption(optListSystems);
 
-				listIPMappingsSQL(distributedDBConnect, isGaian, script);
+        optionGroup.addOption(optListServiceTypes);
+        optionGroup.addOption(optListServices);
+        optionGroup.addOption(optListTaskServices);
 
-			} else if (line.hasOption(OPT_LIST_TASK_SYSTEMS)) {
+        optionGroup.addOption(optListIPMappings);
+        optionGroup.addOption(optListNeighbours);
 
-				listTaskSystemsSQL(distributedDBConnect, isGaian, script);
+        optionGroup.addOption(optListWiring);
+        optionGroup.addOption(optListSubscriptions);
 
-			} else if (line.hasOption(OPT_LIST_NEIGHBOURS)) {
+        optionGroup.addOption(optListFablets);
 
-				listNeighboursSQL(distributedDBConnect, isGaian, script);
+        optionGroup.addOption(optListTables);
+        optionGroup.addOption(optListViews);
 
-			} else if (line.hasOption(OPT_LIST_TABLES)) {
+        optionGroup.addOption(optListDefaultConfig);
+        optionGroup.addOption(optSetDefaultConfig);
+        optionGroup.addOption(optUnsetDefaultConfig);
 
-				script[1] = "show tables in FABRIC";
+        optionGroup.addOption(optListNodeConfig);
+        optionGroup.addOption(optSetNodeConfig);
+        optionGroup.addOption(optUnsetNodeConfig);
 
-			} else if (line.hasOption(OPT_LIST_VIEWS)) {
+        optionGroup.addOption(optRun);
 
-				script[1] = "show views in FABRIC";
+        optionGroup.setRequired(true);
 
-			} else if (line.hasOption(OPT_LIST_DEFAULT_CONFIG)) {
+        options.addOptionGroup(optionGroup);
+        options.addOption(optGaian);
 
-				script[1] = "select name, value from DEFAULT_CONFIG order by name";
+        /* Parse the command line arguments */
 
-			} else if (line.hasOption(OPT_SET_DEFAULT_CONFIG)) {
+        CommandLineParser parser = new PosixParser();
+        CommandLine line = null;
 
-				fallbackSQL = setDefaultConfigSQL(line, script);
+        try {
 
-			} else if (line.hasOption(OPT_UNSET_DEFAULT_CONFIG)) {
+            line = parser.parse(options, args);
 
-				unsetDefaultConfigSQL(line, script);
+        } catch (ParseException exp) {
 
-			} else if (line.hasOption(OPT_LIST_NODE_CONFIG)) {
+            System.out.println(exp.getMessage() + '\n');
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("fabreg", options);
+            System.exit(1);
 
-				script[1] = "select node_id, name, value from NODE_CONFIG order by node_id, name";
+        }
 
-			} else if (line.hasOption(OPT_SET_NODE_CONFIG)) {
+        /* If a SQL file is to be run... */
+        if (line.hasOption(OPT_RUN)) {
 
-				fallbackSQL = setNodeConfigSQL(line, script);
+            try {
+                RegistryTool.run(new File(line.getOptionValue(OPT_RUN)), false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-			} else if (line.hasOption(OPT_UNSET_NODE_CONFIG)) {
+        } else {
 
-				unsetNodeConfgSQL(line, script);
+            /* Determine if queries are to be made against the Gaian Database (where appropriate) */
 
-			}
+            String localDBConnect = "CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=false;user=fabric;password=fabric;';";
+            String distributedDBConnect = null;
+            boolean isGaian = false;
+            String fromSQL = null;
 
-			/* If we have some SQL... */
-			if (script[1] != null) {
+            if (line.hasOption(OPT_GAIAN)) {
+                distributedDBConnect = "CONNECT 'jdbc:derby://localhost:6414/gaiandb;create=false;user=gaiandb;password=passw0rd;';";
+                isGaian = true;
+            } else {
+                distributedDBConnect = localDBConnect;
+            }
 
-				try {
+            /* Initialise the SQL commands */
+            String[] script = new String[] {localDBConnect, null, "DISCONNECT;"};
+            String fallbackSQL = null;
 
-					/* Run it */
-					run(script, true, false);
+            /* Decode primary option and generate the required SQL */
 
-				} catch (Exception e) {
+            if (line.hasOption(OPT_LIST_NODES)) {
 
-					/* If an alternative statement has been generated (e.g. update versus insert)... */
-					if (fallbackSQL != null) {
+                listNodesSQL(distributedDBConnect, isGaian, script);
 
-						try {
+            } else if (line.hasOption(OPT_LIST_PLATFORM_TYPES)) {
 
-							/* Run it */
-							script[1] = fallbackSQL;
-							run(script, true, false);
+                listPlatformTypesSQL(distributedDBConnect, isGaian, script);
 
-						} catch (Exception e1) {
-							e1.printStackTrace();
-						}
+            } else if (line.hasOption(OPT_LIST_PLATFORMS)) {
 
-					} else {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
+                listPlatformsSQL(distributedDBConnect, isGaian, script);
 
-	private static void unsetNodeConfgSQL(CommandLine line, String[] script) {
+            } else if (line.hasOption(OPT_LIST_SYSTEM_TYPES)) {
 
-		String[] args = line.getOptionValues(OPT_UNSET_NODE_CONFIG);
+                listSystemTypesSQL(distributedDBConnect, isGaian, script);
 
-		if (args.length != 2) {
-			errorExit(String.format("Wrong number of option arguments (should be 2): %s", OPT_UNSET_NODE_CONFIG));
-		}
+            } else if (line.hasOption(OPT_LIST_SYSTEMS)) {
 
-		String node = args[0];
-		String name = args[1];
+                listSystemsSQL(distributedDBConnect, isGaian, script);
 
-		script[1] = String.format("delete from NODE_CONFIG where node_id = '%s' and name = '%s'", node, name);
-	}
+            } else if (line.hasOption(OPT_LIST_SERVICE_TYPES)) {
 
-	private static String setNodeConfigSQL(CommandLine line, String[] script) {
+                listServiceTypesSQL(distributedDBConnect, isGaian, script);
 
-		String fallbackSQL;
+            } else if (line.hasOption(OPT_LIST_SERVICES)) {
 
-		String[] args = line.getOptionValues(OPT_SET_NODE_CONFIG);
+                listServicesSQL(distributedDBConnect, isGaian, script);
 
-		if (args.length != 3) {
-			errorExit(String.format("Wrong number of option arguments (should be 3): %s", OPT_SET_NODE_CONFIG));
-		}
+            } else if (line.hasOption(OPT_LIST_IP_MAPPINGS)) {
 
-		String node = args[0];
-		String name = args[1];
-		String value = args[2];
+                listIPMappingsSQL(distributedDBConnect, isGaian, script);
 
-		script[1] = String.format("insert into NODE_CONFIG (node_id, name, value) values ('%s', '%s', '%s')", node,
-				name, value);
-		fallbackSQL = String.format("update NODE_CONFIG set value='%s' where node_id='%s' and name='%s'", value, node,
-				name);
-		return fallbackSQL;
-	}
+            } else if (line.hasOption(OPT_LIST_TASK_SERVICES)) {
 
-	private static void unsetDefaultConfigSQL(CommandLine line, String[] script) {
+                listTaskServicesSQL(distributedDBConnect, isGaian, script);
 
-		String[] args = line.getOptionValues(OPT_UNSET_DEFAULT_CONFIG);
+            } else if (line.hasOption(OPT_LIST_NEIGHBOURS)) {
 
-		if (args.length != 1) {
-			errorExit(String.format("Wrong number of option arguments (should be 1): %s", args.length,
-					OPT_UNSET_DEFAULT_CONFIG));
-		}
+                listNeighboursSQL(distributedDBConnect, isGaian, script);
 
-		String name = args[0];
+            } else if (line.hasOption(OPT_LIST_WIRING)) {
 
-		script[1] = String.format("delete from DEFAULT_CONFIG where name = '%s'", name);
-	}
+                listWiringSQL(distributedDBConnect, isGaian, script);
 
-	private static String setDefaultConfigSQL(CommandLine line, String[] script) {
+            } else if (line.hasOption(OPT_LIST_SUBSCRIPTIONS)) {
 
-		String fallbackSQL;
+                listSubscriptionsSQL(distributedDBConnect, isGaian, script);
 
-		String[] args = line.getOptionValues(OPT_SET_DEFAULT_CONFIG);
+            } else if (line.hasOption(OPT_LIST_FABLETS)) {
 
-		if (args.length != 2) {
-			errorExit(String.format("Wrong number of option arguments (should be 2): %s", OPT_SET_DEFAULT_CONFIG));
-		}
+                listFabletsSQL(distributedDBConnect, isGaian, script);
 
-		String name = args[0];
-		String value = args[1];
+            } else if (line.hasOption(OPT_LIST_TABLES)) {
 
-		script[1] = String.format("insert into DEFAULT_CONFIG (name, value) values ('%s', '%s')", name, value);
-		fallbackSQL = String.format("update DEFAULT_CONFIG set value='%s' where name='%s'", value, name);
+                script[1] = "show tables in FABRIC";
 
-		return fallbackSQL;
-	}
+            } else if (line.hasOption(OPT_LIST_VIEWS)) {
 
-	private static void listNeighboursSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+                script[1] = "show views in FABRIC";
 
-		String fromSQL;
-		script[0] = distributedDBConnect;
+            } else if (line.hasOption(OPT_LIST_DEFAULT_CONFIG)) {
 
-		fromSQL = isGaian ? ", gdb_node from NODE_NEIGHBOURS_P" : " from NODE_NEIGHBOURS";
-		script[1] = String.format("select node_id, neighbour_id, availability%s order by node_id, neighbour_id", fromSQL);
-	}
+                script[1] = "select name, value from DEFAULT_CONFIG order by name";
 
-	private static void listTaskSystemsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+            } else if (line.hasOption(OPT_SET_DEFAULT_CONFIG)) {
 
-		String fromSQL;
-		script[0] = distributedDBConnect;
+                fallbackSQL = setDefaultConfigSQL(line, script);
 
-		fromSQL = isGaian ? ", gdb_node from TASK_SERVICES_P" : " from  TASK_SERVICES";
-		script[1] = String
-				.format("select task_id, platform_id, service_id, data_feed_id%s order by task_id, platform_id, service_id, data_feed_id",
-						fromSQL);
-	}
+            } else if (line.hasOption(OPT_UNSET_DEFAULT_CONFIG)) {
 
-	private static void listIPMappingsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+                unsetDefaultConfigSQL(line, script);
 
-		String fromSQL;
-		script[0] = distributedDBConnect;
+            } else if (line.hasOption(OPT_LIST_NODE_CONFIG)) {
 
-		fromSQL = isGaian ? ", gdb_node from NODE_IP_MAPPING_P" : " from NODE_IP_MAPPING";
-		script[1] = String.format("select node_id, ip, port%s order by node_id", fromSQL);
-	}
+                script[1] = "select node_id, name, value from NODE_CONFIG order by node_id, name";
 
-	private static void listServicesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+            } else if (line.hasOption(OPT_SET_NODE_CONFIG)) {
 
-		String fromSQL;
-		script[0] = distributedDBConnect;
+                fallbackSQL = setNodeConfigSQL(line, script);
 
-		fromSQL = isGaian ? ", gdb_node from DATA_FEEDS_P" : " from DATA_FEEDS";
-		script[1] = String
-				.format("select platform_id, service_id, id, type_id, direction, availability, description%s order by platform_id, service_id, id",
-						fromSQL);
-	}
+            } else if (line.hasOption(OPT_UNSET_NODE_CONFIG)) {
 
-	private static void listSystemsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+                unsetNodeConfgSQL(line, script);
 
-		String fromSQL;
-		script[0] = distributedDBConnect;
+            }
 
-		fromSQL = isGaian ? ", gdb_node from SERVICES_P" : " from SERVICES";
-		script[1] = String.format(
-				"select platform_id, id, type_id, kind, availability, description%s order by platform_id, id", fromSQL);
-	}
+            /* If we have some SQL... */
+            if (script[1] != null) {
 
-	private static void listPlatformsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+                try {
 
-		String fromSQL;
-		script[0] = distributedDBConnect;
+                    /* Run it */
+                    run(script, true, false);
 
-		fromSQL = isGaian ? ", gdb_node from PLATFORMS_P" : " from PLATFORMS";
-		script[1] = String.format(
-				"select platform_id, type_id, node_id, affiliation, availability, description%s order by platform_id",
-				fromSQL);
-	}
+                } catch (Exception e) {
 
-	private static void listNodesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+                    /* If an alternative statement has been generated (e.g. update versus insert)... */
+                    if (fallbackSQL != null) {
 
-		String fromSQL;
-		script[0] = distributedDBConnect;
+                        try {
 
-		fromSQL = isGaian ? ", gdb_node from NODES_P" : " from NODES";
-		script[1] = String.format("select node_id, type_id, affiliation, availability, description%s order by node_id",
-				fromSQL);
-	}
+                            /* Run it */
+                            script[1] = fallbackSQL;
+                            run(script, true, false);
 
-	/**
-	 * Runs a set of SQL statements from the specified file.
-	 * 
-	 * @param file
-	 *            the file.
-	 * 
-	 * @param failOnError
-	 * 
-	 * @throws Exception
-	 */
-	public static void run(File file, boolean failOnError) throws Exception {
+                        } catch (Exception e1) {
+                            e1.printStackTrace();
+                        }
 
-		BufferedReader in = new BufferedReader(new FileReader(file));
-		ArrayList<String> list = new ArrayList<String>();
-		String currentLine = "";
-		String line;
+                    } else {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
 
-		while (true) {
+    private static void listNodesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from NODES_P" : " from NODES";
+        script[1] = String.format("select node_id, type_id, affiliation, availability, description%s order by node_id",
+                fromSQL);
+    }
 
-			line = in.readLine();
+    private static void listPlatformTypesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from PLATFORM_TYPES_P" : " from PLATFORM_TYPES";
+        script[1] = String.format("select type_id, attributes, description%s order by type_id", fromSQL);
+    }
 
-			if (line == null) {
-				break;
-			}
+    private static void listPlatformsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from PLATFORMS_P" : " from PLATFORMS";
+        script[1] = String
+                .format("select platform_id, type_id, node_id, affiliation, availability, attributes, description%s order by platform_id",
+                        fromSQL);
+    }
 
-			line = line.trim();
+    private static void listSystemTypesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from SERVICE_TYPES_P" : " from SERVICE_TYPES";
+        script[1] = String.format("select type_id, attributes, description%s order by type_id", fromSQL);
+    }
 
-			if (line.length() == 0) {
-				continue;
-			}
+    private static void listSystemsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from SERVICES_P" : " from SERVICES";
+        script[1] = String
+                .format("select platform_id, id, type_id, kind, availability, attributes, description%s order by platform_id, id",
+                        fromSQL);
+    }
 
-			if (line.startsWith("--")) {
-				continue;
-			}
+    private static void listServiceTypesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from FEED_TYPES_P" : " from FEED_TYPES";
+        script[1] = String.format("select type_id, attributes, description%s order by type_id", fromSQL);
+    }
 
-			currentLine += " " + line;
+    private static void listServicesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from DATA_FEEDS_P" : " from DATA_FEEDS";
+        script[1] = String
+                .format("select platform_id, service_id, id, type_id, direction, availability, attributes, description%s order by platform_id, service_id, id",
+                        fromSQL);
+    }
 
-			if (currentLine.endsWith(";")) {
-				list.add(currentLine);
-				currentLine = "";
-			}
-		}
+    private static void listTaskServicesSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from TASK_SERVICES_P" : " from  TASK_SERVICES";
+        script[1] = String
+                .format("select task_id, platform_id, service_id, data_feed_id%s order by task_id, platform_id, service_id, data_feed_id",
+                        fromSQL);
+    }
 
-		in.close();
+    private static void listFabletsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from FABLET_PLUGINS_P" : " from FABLET_PLUGINS";
+        script[1] = String.format(
+                "select node_id, family, name, arguments, description%s order by node_id, family, name", fromSQL);
+    }
 
-		run(list.toArray(new String[] {}), failOnError, true);
-	}
+    private static void listIPMappingsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from NODE_IP_MAPPING_P" : " from NODE_IP_MAPPING";
+        script[1] = String.format("select node_id, ip, port%s order by node_id", fromSQL);
+    }
 
-	/**
-	 * Runs a set of SQL statements.
-	 * 
-	 * @param cmds
-	 *            the SQL.
-	 * 
-	 * @param failOnError
-	 * 
-	 * @param verbose
-	 * 
-	 * @throws Exception
-	 */
-	public static void run(String[] cmds, boolean failOnError, boolean verbose) throws Exception {
+    private static void listNeighboursSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from NODE_NEIGHBOURS_P" : " from NODE_NEIGHBOURS";
+        script[1] = String.format("select node_id, neighbour_id, availability%s order by node_id, neighbour_id",
+                fromSQL);
+    }
 
-		String currentLine = "";
+    private static void listWiringSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+    
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from SERVICE_WIRING_P" : " from SERVICE_WIRING";
+        script[1] = String
+                .format("select composite_id, from_service_platform_id, from_service_id, from_interface_id, to_service_platform_id, to_service_id, to_interface_id%s order by composite_id, from_service_platform_id, from_service_id, from_interface_id",
+                        fromSQL);
+    
+    }
 
-		Connection conn = null;
+    private static void listSubscriptionsSQL(String distributedDBConnect, boolean isGaian, String[] script) {
+        String fromSQL;
+        script[0] = distributedDBConnect;
+    
+        fromSQL = isGaian ? ", gdb_node from TASK_SUBSCRIPTIONS_P" : " from TASK_SUBSCRIPTIONS";
+        script[1] = String
+                .format("select task_id, actor_id, actor_platform_id, platform_id, service_id, data_feed_id%s order by task_id, actor_id, actor_platform_id, platform_id, service_id, data_feed_id",
+                        fromSQL);
+    }
 
-		/* For each SQL statement... */
-		for (int j = 0; j < cmds.length; j++) {
+    private static String setDefaultConfigSQL(CommandLine line, String[] script) {
+    
+        String fallbackSQL;
+    
+        String[] args = line.getOptionValues(OPT_SET_DEFAULT_CONFIG);
+    
+        if (args.length != 2) {
+            errorExit(String.format("Wrong number of option arguments (should be 2): %s", OPT_SET_DEFAULT_CONFIG));
+        }
+    
+        String name = args[0];
+        String value = args[1];
+    
+        script[1] = String.format("insert into DEFAULT_CONFIG (name, value) values ('%s', '%s')", name, value);
+        fallbackSQL = String.format("update DEFAULT_CONFIG set value='%s' where name='%s'", value, name);
+    
+        return fallbackSQL;
+    }
 
-			currentLine = cmds[j].trim();
+    private static void unsetDefaultConfigSQL(CommandLine line, String[] script) {
+    
+        String[] args = line.getOptionValues(OPT_UNSET_DEFAULT_CONFIG);
+    
+        if (args.length != 1) {
+            errorExit(String.format("Wrong number of option arguments (should be 1): %s", args.length,
+                    OPT_UNSET_DEFAULT_CONFIG));
+        }
+    
+        String name = args[0];
+    
+        script[1] = String.format("delete from DEFAULT_CONFIG where name = '%s'", name);
+    }
 
-			if (currentLine.length() == 0 || currentLine.startsWith("-")) {
-				continue;
-			}
+    private static String setNodeConfigSQL(CommandLine line, String[] script) {
+    
+        String fallbackSQL;
+    
+        String[] args = line.getOptionValues(OPT_SET_NODE_CONFIG);
+    
+        if (args.length != 3) {
+            errorExit(String.format("Wrong number of option arguments (should be 3): %s", OPT_SET_NODE_CONFIG));
+        }
+    
+        String node = args[0];
+        String name = args[1];
+        String value = args[2];
+    
+        script[1] = String.format("insert into NODE_CONFIG (node_id, name, value) values ('%s', '%s', '%s')", node,
+                name, value);
+        fallbackSQL = String.format("update NODE_CONFIG set value='%s' where node_id='%s' and name='%s'", value, node,
+                name);
+        return fallbackSQL;
+    }
 
-			if (currentLine.endsWith(";")) {
-				currentLine = currentLine.substring(0, currentLine.length() - 1);
-			}
+    private static void unsetNodeConfgSQL(CommandLine line, String[] script) {
 
-			String action = currentLine.substring(0,
-					(currentLine.indexOf(" ") >= 0) ? currentLine.indexOf(" ") : currentLine.length()).toLowerCase();
+        String[] args = line.getOptionValues(OPT_UNSET_NODE_CONFIG);
 
-			if (action.equals("connect")) {
+        if (args.length != 2) {
+            errorExit(String.format("Wrong number of option arguments (should be 2): %s", OPT_UNSET_NODE_CONFIG));
+        }
 
-				int start = currentLine.indexOf("'");
-				int end = currentLine.lastIndexOf("'");
-				String connectURI = currentLine.substring(start + 1, end);
+        String node = args[0];
+        String name = args[1];
 
-				if (verbose) {
-					System.out.println("Connect [" + connectURI + "]");
-				}
+        script[1] = String.format("delete from NODE_CONFIG where node_id = '%s' and name = '%s'", node, name);
+    }
 
-				conn = DriverManager.getConnection(connectURI);
+    /**
+     * Runs a set of SQL statements from the specified file.
+     *
+     * @param file
+     *            the file.
+     *
+     * @param failOnError
+     *
+     * @throws Exception
+     */
+    public static void run(File file, boolean failOnError) throws Exception {
 
-			} else if (action.equals("disconnect")) {
+        BufferedReader in = new BufferedReader(new FileReader(file));
+        ArrayList<String> list = new ArrayList<String>();
+        String currentLine = "";
+        String line;
 
-				if (verbose) {
-					System.out.println("Disconnect");
-				}
+        while (true) {
 
-				conn.close();
+            line = in.readLine();
 
-			} else if (action.equals("exit")) {
+            if (line == null) {
+                break;
+            }
 
-			} else if (action.equals("select")) {
+            line = line.trim();
 
-				if (verbose) {
-					System.out.println(" - " + currentLine);
-				}
+            if (line.length() == 0) {
+                continue;
+            }
 
-				PreparedStatement s = conn.prepareStatement(currentLine, ResultSet.TYPE_SCROLL_INSENSITIVE,
-						ResultSet.CONCUR_READ_ONLY);
-				s.execute();
+            if (line.startsWith("--")) {
+                continue;
+            }
 
-				ResultSet rs = s.getResultSet();
-				printTable(rs);
+            currentLine += " " + line;
 
-			} else if (action.equals("show")) {
+            if (currentLine.endsWith(";")) {
+                list.add(currentLine);
+                currentLine = "";
+            }
+        }
 
-				String[] parts = currentLine.split(" ");
-				String type = "TABLE";
+        in.close();
 
-				if (parts[1].equals("tables")) {
-					type = "TABLE";
-				} else if (parts[1].equals("views")) {
-					type = "VIEW";
-				} else {
-					throw new Exception("Unsupported show type:" + type);
-				}
+        run(list.toArray(new String[] {}), failOnError, true);
+    }
 
-				DatabaseMetaData dbmd = conn.getMetaData();
-				ResultSet rs = dbmd.getTables(null, parts[3], null, new String[] {type});
+    /**
+     * Runs a set of SQL statements.
+     *
+     * @param cmds
+     *            the SQL.
+     *
+     * @param failOnError
+     *
+     * @param verbose
+     *
+     * @throws Exception
+     */
+    public static void run(String[] cmds, boolean failOnError, boolean verbose) throws Exception {
 
-				while (rs.next()) {
-					System.out.println(rs.getString("TABLE_NAME"));
-				}
+        String currentLine = "";
 
-			} else {
+        Connection conn = null;
 
-				if (verbose) {
-					System.out.println(" - " + currentLine);
-				}
+        /* For each SQL statement... */
+        for (int j = 0; j < cmds.length; j++) {
 
-				try {
-					PreparedStatement s = conn.prepareStatement(currentLine, ResultSet.TYPE_SCROLL_INSENSITIVE,
-							ResultSet.CONCUR_READ_ONLY);
-					s.execute();
-				} catch (SQLException sqle) {
-					if (failOnError) {
-						throw sqle;
-					}
-					System.out.println(sqle.getMessage());
-				}
-			}
+            currentLine = cmds[j].trim();
 
-			currentLine = "";
-		}
-	}
+            if (currentLine.length() == 0 || currentLine.startsWith("-")) {
+                continue;
+            }
 
-	private static void printTable(ResultSet rs) throws SQLException {
+            if (currentLine.endsWith(";")) {
+                currentLine = currentLine.substring(0, currentLine.length() - 1);
+            }
 
-		ResultSetMetaData rsmd = rs.getMetaData();
+            String action = currentLine.substring(0,
+                    (currentLine.indexOf(" ") >= 0) ? currentLine.indexOf(" ") : currentLine.length()).toLowerCase();
 
-		int cols = rsmd.getColumnCount();
-		int[] maxLengths = new int[cols];
+            if (action.equals("connect")) {
 
-		/* Determine the maximum width for each column */
+                int start = currentLine.indexOf("'");
+                int end = currentLine.lastIndexOf("'");
+                String connectURI = currentLine.substring(start + 1, end);
 
-		for (int c = 0; c < rsmd.getColumnCount(); c++) {
-			String nextHeading = rsmd.getColumnName(c + 1);
-			maxLengths[c] = nextHeading.length();
-		}
+                if (verbose) {
+                    System.out.println("Connect [" + connectURI + "]");
+                }
 
-		while (rs.next()) {
-			for (int i = 0; i < cols; i++) {
-				String nextField = rs.getString(i + 1);
-				maxLengths[i] = (nextField != null && (nextField.length() > maxLengths[i])) ? nextField.length()
-						: maxLengths[i];
-			}
-		}
+                conn = DriverManager.getConnection(connectURI);
 
-		/* Reset the result set cursor */
-		rs.absolute(0);
+            } else if (action.equals("disconnect")) {
 
-		/* Separator line */
+                if (verbose) {
+                    System.out.println("Disconnect");
+                }
 
-		StringBuilder sb = new StringBuilder("+");
+                conn.close();
 
-		for (int i = 0; i < cols; i++) {
-			for (int k = 0; k < maxLengths[i]; k++) {
-				sb.append('-');
-			}
-			sb.append('+');
-		}
+            } else if (action.equals("exit")) {
 
-		String lineSep = sb.toString();
+            } else if (action.equals("select")) {
 
-		System.out.println(lineSep);
+                if (verbose) {
+                    System.out.println(" - " + currentLine);
+                }
 
-		/* Rows */
+                PreparedStatement s = conn.prepareStatement(currentLine, ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
+                s.execute();
 
-		System.out.print("|");
+                ResultSet rs = s.getResultSet();
+                printTable(rs);
 
-		for (int i = 1; i <= cols; i++) {
-			if (i > 1) {
-				System.out.print("|");
-			}
-			System.out.print(String.format("%-" + maxLengths[i - 1] + "s", rsmd.getColumnLabel(i)));
-		}
+            } else if (action.equals("show")) {
 
-		System.out.println("|");
-		System.out.println(lineSep);
+                String[] parts = currentLine.split(" ");
+                String type = "TABLE";
 
-		while (rs.next()) {
+                if (parts[1].equals("tables")) {
+                    type = "TABLE";
+                } else if (parts[1].equals("views")) {
+                    type = "VIEW";
+                } else {
+                    throw new Exception("Unsupported show type:" + type);
+                }
 
-			System.out.print("|");
+                DatabaseMetaData dbmd = conn.getMetaData();
+                ResultSet rs = dbmd.getTables(null, parts[3], null, new String[] {type});
 
-			for (int i = 1; i <= cols; i++) {
+                while (rs.next()) {
+                    System.out.println(rs.getString("TABLE_NAME"));
+                }
 
-				if (i > 1) {
-					System.out.print("|");
-				}
+            } else {
 
-				System.out.print(String.format("%-" + maxLengths[i - 1] + "s", rs.getString(i)));
-			}
+                if (verbose) {
+                    System.out.println(" - " + currentLine);
+                }
 
-			System.out.println("|");
-		}
+                try {
+                    PreparedStatement s = conn.prepareStatement(currentLine, ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    s.execute();
+                } catch (SQLException sqle) {
+                    if (failOnError) {
+                        throw sqle;
+                    }
+                    System.out.println(sqle.getMessage());
+                }
+            }
 
-		/* Final seperator */
-		System.out.println(lineSep);
-	}
+            currentLine = "";
+        }
+    }
 
-	/**
-	 * Displays an error message and exits.
-	 * 
-	 * @param message
-	 */
-	private static void errorExit(String message) {
+    private static void printTable(ResultSet rs) throws SQLException {
 
-		System.out.println(message);
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp("fabreg", options, true);
-		System.exit(1);
-	}
+        ResultSetMetaData rsmd = rs.getMetaData();
+
+        int cols = rsmd.getColumnCount();
+        int[] maxLengths = new int[cols];
+
+        /* Determine the maximum width for each column */
+
+        for (int c = 0; c < rsmd.getColumnCount(); c++) {
+            String nextHeading = rsmd.getColumnName(c + 1);
+            maxLengths[c] = nextHeading.length();
+        }
+
+        while (rs.next()) {
+            for (int i = 0; i < cols; i++) {
+                String nextField = rs.getString(i + 1);
+                maxLengths[i] = (nextField != null && (nextField.length() > maxLengths[i])) ? nextField.length()
+                        : maxLengths[i];
+            }
+        }
+
+        /* Reset the result set cursor */
+        rs.absolute(0);
+
+        /* Separator line */
+
+        StringBuilder sb = new StringBuilder("+");
+
+        for (int i = 0; i < cols; i++) {
+            for (int k = 0; k < maxLengths[i]; k++) {
+                sb.append('-');
+            }
+            sb.append('+');
+        }
+
+        String lineSep = sb.toString();
+
+        System.out.println(lineSep);
+
+        /* Rows */
+
+        System.out.print("|");
+
+        for (int i = 1; i <= cols; i++) {
+            if (i > 1) {
+                System.out.print("|");
+            }
+            System.out.print(String.format("%-" + maxLengths[i - 1] + "s", rsmd.getColumnLabel(i)));
+        }
+
+        System.out.println("|");
+        System.out.println(lineSep);
+
+        while (rs.next()) {
+
+            System.out.print("|");
+
+            for (int i = 1; i <= cols; i++) {
+
+                if (i > 1) {
+                    System.out.print("|");
+                }
+
+                System.out.print(String.format("%-" + maxLengths[i - 1] + "s", rs.getString(i)));
+            }
+
+            System.out.println("|");
+        }
+
+        /* Final seperator */
+        System.out.println(lineSep);
+    }
+
+    /**
+     * Displays an error message and exits.
+     *
+     * @param message
+     */
+    private static void errorExit(String message) {
+
+        System.out.println(message);
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("fabreg", options, true);
+        System.exit(1);
+    }
 }
