@@ -46,7 +46,7 @@ public class DiscoverySweeper implements Runnable, ICallback {
     private int nodeTimeout = 0;
 
     /** Interval (in millis) at which the sweeper checks for node neighbours that are no longer visible */
-    private int listenTimeout = 5000;
+    private int listenTimeout = 30000;
 
     protected DiscoverySweeper(AutoDiscoveryListenerFablet myFablet) {
         this.myFablet = myFablet;
@@ -96,16 +96,19 @@ public class DiscoverySweeper implements Runnable, ICallback {
 
                     /* Check each node, if we've not seen a node for more than the node_timeout, delete it */
                     while (cache_it.hasNext()) {
+
                         NodeDescriptor n = cache_it.next();
+
                         if (current_time - myFablet.nodeLastSeen.get(n) > nodeTimeout) {
 
-                            // Tell the Fabric (AutoDiscoveryFablet) that the node has disappeared
-                            myFablet.publishMessage(myFablet.nodeMessageCache.get(n).getDiscoveryMessage(
-                                    MulticastNodeMessage.UNAVAILABLE));
                             logger.log(
                                     Level.INFO,
                                     "Neighbour [{0}] not observed for {1} milliseconds; requesting removal from the Registry",
-                                    new Object[] {n.toString(), Integer.toString(nodeTimeout)});
+                                    new Object[] {n, nodeTimeout});
+
+                            /* Tell the Fabric (AutoDiscoveryFablet) that the node has disappeared */
+                            myFablet.publishMessage(myFablet.nodeMessageCache.get(n).getDiscoveryMessage(
+                                    MulticastNodeMessage.UNAVAILABLE));
 
                             cache_it.remove(); /*
                              * must remove elements from the iterator rather than the hashtable
