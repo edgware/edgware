@@ -42,6 +42,9 @@
 	
 	<!-- OSGi version -->
 	<property name="osgi.version" value="3.6" />
+	
+	<!-- Jetty version -->
+	<property name="jetty.version" value="9.2.9.v20150224" />
 
 	<!-- Version number -->
 	<property name="release.major" value="0" />
@@ -236,11 +239,6 @@
 	<property name="project-bin.fabric.samples" value="${work.dir}/fabric.samples" />
 	<property name="project-bundle.fabric.samples" value="${fabric.samples.dir}/lib/plugins/fabric.samples_${fabric.jar.version}.jar" />
 
-	<!-- Project: fabric.tools.rest -->
-	<property name="project-src.fabric.tools.rest" value="${project.dir}/fabric.tools.rest" />
-	<property name="project-bin.fabric.tools.rest" value="${work.dir}/fabric.tools.rest" />
-	<property name="project-bundle.fabric.tools.rest" value="${staging.fabric.web}/fabric.tools.rest_${fabric.jar.version}.jar" />
-
 	<!-- Project: fabric.tools.script -->
 	<property name="project-src.fabric.tools.script" value="${project.dir}/fabric.tools.script" />
 	<property name="project-bin.fabric.tools.script" value="${work.dir}/fabric.tools.script" />
@@ -275,6 +273,11 @@
 	<property name="project-src.fabric.osgi" value="${project.dir}/fabric.osgi" />
 	<property name="project-src.fabric.osgi.config" value="${project-src.fabric.osgi}/configuration" />
 	<property name="project-src.fabric.osgi.bundles" value="${project-src.fabric.osgi}/${osgi.version}" />
+	
+	<!-- Project: fabric.tools.rest -->
+	<property name="project-src.fabric.tools.rest" value="${project.dir}/fabric.tools.rest" />
+	<property name="project-bin.fabric.tools.rest" value="${work.dir}/../../fabric.tools.rest/WebContent/WEB-INF/classes" />
+	<property name="project-bundle.fabric.tools.rest" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/jetty-annotations-${jetty.version}.jar" />
 
 	<!-- Project: fabric.test (src, bin, prereqs, logs, testarea, testarea/install, testarea/zip) -->
 	<!--<property name="fabric.test.dir" value="${eclipse.workspace}/fabric.tests"/>-->
@@ -293,7 +296,7 @@
 	<property name="fabric.tests.services.bin" value="${fabric.tests.services.dir}/bin" />
 
 	<!-- Jetty source directory -->
-	<property name="jetty.dir" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-9.2.9.v20150224" />
+	<property name="jetty.dir" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}" />
 
 	<!--****************************************************************************-->
 	<!-- Configure properties for classpath Jars                                    -->
@@ -318,8 +321,32 @@
 	<property name="jar.eclipse.osgi.core" value="${project-src.fabric.osgi.bundles}/org.eclipse.osgi_3.6.0.v20100517.jar" />
 
 	<!-- Package: Eclipse Jetty Web sockets -->
-	<property name="jar.eclipse.jetty.websockets" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-9.2.9.v20150224/lib/websocket/websocket-api-9.2.9.v20150224.jar" />
+	<property name="jar.eclipse.jetty.websockets" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/websocket-api-${jetty.version}.jar" />
 
+	<!-- Package: Eclipse Jetty Web client -->
+	<property name="jar.eclipse.jetty.websockets.client" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/websocket-client-${jetty.version}.jar" />
+	
+	<!-- Package: Eclipse Jetty Web common -->
+	<property name="jar.eclipse.jetty.websockets.common" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/websocket-common-${jetty.version}.jar" />
+
+	<!-- Package: Eclipse Jetty Web server -->
+	<property name="jar.eclipse.jetty.websockets.server" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/websocket-server-${jetty.version}.jar" />
+
+	<!-- Package: Eclipse Jetty Web servlet -->
+	<property name="jar.eclipse.jetty.websockets.servlet" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/websocket-servlet-${jetty.version}.jar" />
+
+	<!-- Package: Eclipse Jetty Javax api -->
+	<property name="jar.eclipse.jetty.websockets.javax.api" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/javax.websocket-api-1.0.jar" />
+	
+	<!-- Package: Eclipse Jetty Javax Client -->
+	<property name="jar.eclipse.jetty.websockets.javax.client" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/javax-websocket-client-impl-${jetty.version}.jar" />
+	
+	<!-- Package: Eclipse Jetty Javax server -->
+	<property name="jar.eclipse.jetty.websockets.javax.server" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/websocket/javax-websocket-server-impl-${jetty.version}.jar" />
+	
+	<!-- Package: Eclipse Jetty Servlet api -->
+	<property name="jar.eclipse.jetty.servlet.api" value="${project-src.fabric.prereqs}/Jetty/jetty-distribution-${jetty.version}/lib/servlet-api-3.1.jar" />
+	
 	<!-- Package: Jackson core -->
 	<property name="jar.jackson.core" value="${project-src.bundle.jackson}/jars/jackson-core-2.5.1.jar" />
 
@@ -331,6 +358,22 @@
 
 	<!-- Classpath fragment containing all of the JSON Jars -->
 	<property name="classpath.json" value="${jar.jackson.core};${jar.jackson.annotations};${jar.jackson.databind}" />
+
+	<!-- Classpath fragment containing all of the Jetty Jars -->
+	<property name="classpath.jetty" value="${jar.eclipse.jetty.websockets.javax.client};
+                                            ${jar.eclipse.jetty.websockets.javax.server};
+                                            ${jar.eclipse.jetty.websockets};
+                                            ${jar.eclipse.jetty.websockets.common};
+                                            ${jar.eclipse.jetty.websockets.client};
+                                            ${jar.eclipse.jetty.websockets.server};
+                                            ${jar.eclipse.jetty.websockets.servlet};
+                                            ${jar.eclipse.jetty.websockets.javax.api};
+                                            ${jar.eclipse.jetty.servlet.api};
+                                            ${classpath.json};
+                                            ${project-bundle.fabric.services.interfaces.json};
+                                            ${jar.paho.mqtt.java};
+                                            ${project-bundle.fabric.lib};
+                                            ${project-bundle.fabric.core};" />
 
 	<!--****************************************************************************-->
 	<!-- Build targets                                                              -->
@@ -598,6 +641,9 @@
 	<!-- Create the .war containining the Fabric tooling.	                        -->
 	<!--============================================================================-->
 	<target name="create.web" description="Creates the .war containing Fabric web tools">
+		
+		<mkdir dir="${project-bin.fabric.tools.rest}" />
+		<javac srcdir="${project-src.fabric.tools.rest}/src" destdir="${staging.fabric.web.tmp}/WebContent/WEB-INF/classes" classpath="${classpath.jetty}" debug="true" debuglevel="lines,vars,source" source="${fabric.javacSource.version}" target="${fabric.javacTarget.version}" includeAntRuntime="false" />
 
 		<!-- Project: fabric.tools.rest -->
 		<war destfile="${staging.fabric.web}/webapps/rest.war" webxml="${staging.fabric.web.tmp}/WebContent/WEB-INF/web.xml">
