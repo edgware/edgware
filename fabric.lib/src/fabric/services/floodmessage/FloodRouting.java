@@ -17,9 +17,9 @@ import fabric.bus.routing.impl.StaticRouting;
 import fabric.core.xml.XML;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodeNeighbour;
+import fabric.registry.QueryScope;
 import fabric.registry.Route;
 import fabric.registry.RouteFactory;
-import fabric.registry.QueryScope;
 
 /**
  * Implementation of routing that enables messages to be sent to all nodes in the fabric as efficiently as possible.
@@ -68,7 +68,7 @@ public class FloodRouting extends Routing {
 
     /**
      * Constructs a new instance based upon an existing instance.
-     * 
+     *
      * @param source
      *            the routing instance of replicate
      */
@@ -91,11 +91,11 @@ public class FloodRouting extends Routing {
         super.init(element, messageXML);
 
         /* Extract the routing specific properties from the message */
-        this.startNode = messageXML.get(element + "/f:routing/f:start");
-        this.previousNode = messageXML.get(element + "/f:routing/f:previous");
-        this.retained = messageXML.getBoolean(element + "/f:routing/f:retain");
+        this.startNode = messageXML.get(element + "/rt/strt");
+        this.previousNode = messageXML.get(element + "/rt/prev");
+        this.retained = messageXML.getBoolean(element + "/rt/retain");
 
-        String ttlString = messageXML.get(element + "/f:routing/f:ttl");
+        String ttlString = messageXML.get(element + "/rt/ttl");
         if (ttlString != null) {
             this.ttl = Long.parseLong(ttlString);
         } else {
@@ -108,7 +108,7 @@ public class FloodRouting extends Routing {
 
     /**
      * Sets the time-to-live value.
-     * 
+     *
      * @param ttl
      *            time-to-live, in milliseconds
      */
@@ -119,7 +119,7 @@ public class FloodRouting extends Routing {
 
     /**
      * Sets whether the message should be retained for future nodes. Not currently used.
-     * 
+     *
      * @param retained
      */
     public void setRetained(boolean retained) {
@@ -129,7 +129,7 @@ public class FloodRouting extends Routing {
 
     /**
      * Gets the time-to-live value.
-     * 
+     *
      * @return time-to-live, in milliseconds
      */
     public long getTTL() {
@@ -139,7 +139,7 @@ public class FloodRouting extends Routing {
 
     /**
      * Whether this message should be retained for future nodes. Not current used.
-     * 
+     *
      * @return retained
      */
     public boolean isRetained() {
@@ -155,13 +155,13 @@ public class FloodRouting extends Routing {
 
         super.embed(element, messageXML);
 
-        messageXML.set(element + "/f:routing/f:start", this.startNode);
-        messageXML.set(element + "/f:routing/f:previous", homeNode());
+        messageXML.set(element + "/rt/strt", this.startNode);
+        messageXML.set(element + "/rt/prev", homeNode());
         if (retained) {
             /* Only add this property if it is TRUE; XML.getBoolean defaults to FALSE if the property is not present */
-            messageXML.setBoolean(element + "/f:routing/f:retain", retained);
+            messageXML.setBoolean(element + "/rt/retain", retained);
         }
-        messageXML.set(element + "/f:routing/f:ttl", Long.toString(ttl));
+        messageXML.set(element + "/rt/ttl", Long.toString(ttl));
     }
 
     /**
@@ -198,8 +198,8 @@ public class FloodRouting extends Routing {
         if (nextNodes == null) {
 
             /* Get the complete set of unique node neighbours by 'best' interface */
-            NodeNeighbour[] nn = FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL).getUniqueNeighboursByNeighbourId(
-                    homeNode());
+            NodeNeighbour[] nn = FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL)
+                    .getUniqueNeighboursByNeighbourId(homeNode());
             ArrayList<String> neighbours = new ArrayList<String>();
 
             /* For each neighbour... */

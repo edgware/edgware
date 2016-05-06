@@ -36,7 +36,7 @@ public class MessagePayload extends Notifier implements IMessagePayload {
     public static final String PAYLOAD_UNKNOWN_STRING = "unknown";
 
     /** An ASCII payload */
-    public static final String PAYLOAD_TEXT_STRING = "text";
+    public static final String PAYLOAD_TEXT_STRING = "ascii";
 
     /** A binary (base 64) payload */
     public static final String PAYLOAD_BYTES_STRING = "binary";
@@ -160,7 +160,7 @@ public class MessagePayload extends Notifier implements IMessagePayload {
     private void getPayloadFromMessage(String element, XML messageXML) throws Exception {
 
         /* Get the encoding from the message */
-        String encodingString = messageXML.get(element + "/f:payload@enc");
+        String encodingString = messageXML.get(element + "/pay@enc");
 
         /* If there is a payload... */
         if (encodingString != null) {
@@ -170,19 +170,19 @@ public class MessagePayload extends Notifier implements IMessagePayload {
 
                 /* It's a simple ASCII string */
                 payloadEncoding = PAYLOAD_TEXT;
-                payload = messageXML.get(element + "/f:payload");
+                payload = messageXML.get(element + "/pay");
 
             } else if (encodingString.equals(PAYLOAD_BYTES_STRING)) {
 
                 /* It's a base 64 string */
                 payloadEncoding = PAYLOAD_BYTES;
-                payload = messageXML.getBytes(element + "/f:payload");
+                payload = messageXML.getBytes(element + "/pay");
 
             } else {
 
                 /* It's an encoded XML message; the encoding is the Java type name */
                 payloadEncoding = PAYLOAD_XML;
-                payload = EmbeddedXMLFactory.create(element + "/f:payload", messageXML);
+                payload = EmbeddedXMLFactory.create(element + "/pay", messageXML);
 
             }
         }
@@ -207,21 +207,21 @@ public class MessagePayload extends Notifier implements IMessagePayload {
 
                 case PAYLOAD_TEXT:
 
-                    messageXML.set(element + "/f:payload@enc", PAYLOAD_TEXT_STRING);
-                    messageXML.set(element + "/f:payload", (String) payload);
+                    messageXML.set(element + "/pay@enc", PAYLOAD_TEXT_STRING);
+                    messageXML.set(element + "/pay", (String) payload);
                     break;
 
                 case PAYLOAD_BYTES:
 
-                    messageXML.set(element + "/f:payload@enc", PAYLOAD_BYTES_STRING);
-                    messageXML.setBytes(element + "/f:payload", (byte[]) payload);
+                    messageXML.set(element + "/pay@enc", PAYLOAD_BYTES_STRING);
+                    messageXML.setBytes(element + "/pay", (byte[]) payload);
                     break;
 
                 case PAYLOAD_XML:
 
                     IEmbeddedXML embeddedXML = (IEmbeddedXML) payload;
-                    messageXML.set(element + "/f:payload@enc", payload.getClass().getName());
-                    embeddedXML.embed(element + "/f:payload", messageXML);
+                    messageXML.set(element + "/pay@enc", payload.getClass().getName());
+                    embeddedXML.embed(element + "/pay", messageXML);
                     break;
 
             }
@@ -254,7 +254,7 @@ public class MessagePayload extends Notifier implements IMessagePayload {
                 IEmbeddedXML embeddedXML = getPayloadXML();
 
                 try {
-                    embeddedXML.embed("/f:payload", payloadXML);
+                    embeddedXML.embed("/pay", payloadXML);
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Cannot convert payload to XML: ", e);
                     throw new IllegalStateException(e);

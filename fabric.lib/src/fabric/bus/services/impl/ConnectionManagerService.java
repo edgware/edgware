@@ -18,7 +18,6 @@ import fabric.bus.messages.IConnectionMessage;
 import fabric.bus.messages.INotificationMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.bus.messages.impl.ConnectionMessage;
-import fabric.bus.messages.impl.ServiceMessage;
 import fabric.bus.plugins.IPluginConfig;
 import fabric.bus.services.IBusServiceConfig;
 import fabric.bus.services.IConnectionManager;
@@ -29,7 +28,7 @@ import fabric.bus.services.IPersistentService;
  * <p>
  * This service can be used to pre-register Fabric service messages that are to be sent upon receipt of a
  * connection/disconnection message (one of the messages that are automatically sent when a Fabric client connects to,
- * or unexpectedly disconnects from, a Fabric broker) from a node, platform, service, feed or actor. Such messages are
+ * or unexpectedly disconnects from, a Fabric broker) from a node, platform, system, service or actor. Such messages are
  * used by the Fabric to trigger the correct handling of a connection status change event.
  * </p>
  * <p>
@@ -88,7 +87,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
     private class MessageRecord {
 
         /** The type of resource to which the message relates */
-        public int resourceType = IConnectionMessage.TYPE_UNKNOWN;
+        public String resourceType = IServiceMessage.TYPE_UNKNOWN;
 
         /** The ID of the node associated with this record (if any). */
         public String node = null;
@@ -99,8 +98,8 @@ public class ConnectionManagerService extends BusService implements IPersistentS
         /** The ID of the system associated with this record (if any). */
         public String system = null;
 
-        /** The ID of the feed associated with this record (if any). */
-        public String feed = null;
+        /** The ID of the service associated with this record (if any). */
+        public String service = null;
 
         /** The ID of the actor associated with this record (if any). */
         public String actor = null;
@@ -115,7 +114,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
          * The type of status change that triggers the sending of this message, one of <code>EVENT_CONNECTED</code> or
          * <code>EVENT_DISCONNECTED</code>.
          */
-        public int statusType = IConnectionMessage.TYPE_UNKNOWN;
+        public String event = IServiceMessage.EVENT_UNKNOWN;
 
         /** Flag indicating if this message is a single or multiple fire */
         public boolean singleFire = true;
@@ -131,15 +130,16 @@ public class ConnectionManagerService extends BusService implements IPersistentS
          *            <code>null</code> indicates all nodes.
          *
          * @param platform
-         *            the ID of the platform (required for platform, system, feed, and actor resource types).
+         *            the ID of the platform (required for platform, system, service, and actor resource types).
          *            <code>null</code> indicates all platforms.
          *
          * @param system
-         *            the ID of the system (required for system and feed resource types). <code>null</code> indicates
+         *            the ID of the system (required for system and service resource types). <code>null</code> indicates
          *            all systems.
          *
-         * @param feed
-         *            the ID of the feed (required just for feed resource types). <code>null</code> indicates all feeds.
+         * @param service
+         *            the ID of the service (required just for feed resource types). <code>null</code> indicates all
+         *            feeds.
          *
          * @param actor
          *            the ID of the actor (required just for actor resource types). <code>null</code> indicates all
@@ -148,52 +148,52 @@ public class ConnectionManagerService extends BusService implements IPersistentS
          * @param message
          *            the message.
          *
-         * @param statusType
+         * @param event
          *            the type of status change that triggered the sending of this message, one of
          *            <code>EVENT_CONNECTED</code> or <code>EVENT_DISCONNECTED</code>.
          *
          * @param singleFire
          *            flag indicating if this message is a single or multiple fire.
          */
-        public MessageRecord(int resourceType, String node, String platform, String system, String feed, String actor,
-                IServiceMessage message, int statusType, boolean singleFire) {
+        public MessageRecord(String resourceType, String node, String platform, String system, String service,
+                String actor, IServiceMessage message, String event, boolean singleFire) {
 
             this.message = (IServiceMessage) message.replicate();
             this.singleFire = singleFire;
-            this.statusType = statusType;
+            this.event = event;
             this.handle = FabricMessageFactory.generateUID();
             this.resourceType = resourceType;
 
             /* Decode the record subject... */
-            switch (resourceType) {
+            switch ((resourceType != null) ? resourceType : "") {
 
-                case IConnectionMessage.TYPE_NODE:
+                case IServiceMessage.TYPE_NODE:
 
                     this.node = node;
                     break;
 
-                case IConnectionMessage.TYPE_PLATFORM:
-
-                    this.node = node;
-                    this.platform = platform;
-                    break;
-
-                case IConnectionMessage.TYPE_SERVICE:
+                case IServiceMessage.TYPE_PLATFORM:
 
                     this.node = node;
                     this.platform = platform;
-                    this.system = system;
                     break;
 
-                case IConnectionMessage.TYPE_FEED:
+                case IServiceMessage.TYPE_SYSTEM:
 
                     this.node = node;
                     this.platform = platform;
                     this.system = system;
-                    this.feed = feed;
                     break;
 
-                case IConnectionMessage.TYPE_ACTOR:
+                case IServiceMessage.TYPE_SERVICE:
+
+                    this.node = node;
+                    this.platform = platform;
+                    this.system = system;
+                    this.service = service;
+                    break;
+
+                case IServiceMessage.TYPE_ACTOR:
 
                     this.node = node;
                     this.platform = platform;
@@ -240,7 +240,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
                     "Connection/disconnection messages will not be actioned (configuration property fabric.connectionManager.fireActionMessages=false)");
         }
 
-        logger.log(Level.FINE, "Service [{0}] in family [{1}] initialised", new Object[] {config.getName(),
+        logger.log(Level.FINE, "Service [{0}] initialised (family [{1}])", new Object[] {config.getName(),
                 config.getFamilyName()});
 
     }
@@ -256,25 +256,25 @@ public class ConnectionManagerService extends BusService implements IPersistentS
         IConnectionMessage message = (IConnectionMessage) request;
 
         /* Extract the message details */
-        int event = message.getEvent();
-        int resourceType = message.getResourceType();
+        String event = message.getEvent();
+        String resourceType = message.getResourceType();
         String node = message.getNode();
         String platform = message.getPlatform();
-        String system = message.getService();
-        String feed = message.getFeed();
+        String system = message.getSystem();
+        String service = message.getService();
         String actor = message.getActor();
 
         /* TODO: sometimes useful to make this "INFO" for debug */
-        logger.log(Level.FINE, "Connection manager message: " + "event [{0}], type [{1}], node [{2}], feed [{3}]",
+        logger.log(Level.FINE, "Connection manager message: event [{0}], type [{1}], node [{2}], service [{3}]",
                 new Object[] {message.getProperty(ConnectionMessage.PROPERTY_EVENT),
-                        message.getProperty(ConnectionMessage.PROPERTY_RESOURCE_TYPE), node, feed});
+                        message.getProperty(ConnectionMessage.PROPERTY_RESOURCE_TYPE), node, service});
 
         /* Fire the "all node" messages */
-        doAction(ACTION_FIRE, resourceType, "", platform, system, feed, actor, event);
+        doAction(ACTION_FIRE, resourceType, "", platform, system, service, actor, event);
 
         /* If this message is targeted at a specific node... */
         if (node != null) {
-            doAction(ACTION_FIRE, resourceType, node, platform, system, feed, actor, event);
+            doAction(ACTION_FIRE, resourceType, node, platform, system, service, actor, event);
         }
 
         return message;
@@ -294,15 +294,16 @@ public class ConnectionManagerService extends BusService implements IPersistentS
      *            <code>null</code> indicates all nodes.
      *
      * @param platform
-     *            the ID of the platform (required for platform, system, feed, and actor resource types).
+     *            the ID of the platform (required for platform, system, service, and actor resource types).
      *            <code>null</code> indicates all platforms.
      *
      * @param system
-     *            the ID of the system (required for system and feed resource types). <code>null</code> indicates all
+     *            the ID of the system (required for system and service resource types). <code>null</code> indicates all
      *            systems.
      *
-     * @param feed
-     *            the ID of the feed (required just for feed resource types). <code>null</code> indicates all feeds.
+     * @param service
+     *            the ID of the service (required just for service resource types). <code>null</code> indicates all
+     *            services.
      *
      * @param actor
      *            the ID of the actor (required just for actor resource types). <code>null</code> indicates all actors.
@@ -311,8 +312,8 @@ public class ConnectionManagerService extends BusService implements IPersistentS
      *            the type of event that triggered the sending of this message, one of <code>EVENT_CONNECTED</code> or
      *            <code>EVENT_DISCONNECTED</code>.
      */
-    private void doAction(int action, int resourceType, String node, String platform, String system, String feed,
-            String actor, int event) {
+    private void doAction(int action, String resourceType, String node, String platform, String system, String service,
+            String actor, String event) {
 
         /* Get the message table corresponding to the event type */
         HashMap<String, ArrayList<MessageRecord>> messageTable = messageTable(event);
@@ -330,12 +331,12 @@ public class ConnectionManagerService extends BusService implements IPersistentS
             boolean doAction = false;
 
             /* Decode the resource type... */
-            switch (resourceType) {
+            switch ((resourceType != null) ? resourceType : "") {
 
-                case IConnectionMessage.TYPE_ACTOR:
+                case IServiceMessage.TYPE_ACTOR:
 
                     /* If this is an actor record... */
-                    if (nextRecord.resourceType == IConnectionMessage.TYPE_ACTOR) {
+                    if (IServiceMessage.TYPE_ACTOR.equals(nextRecord.resourceType)) {
 
                         /* If this record matches the actor... */
                         if (actor == null || nextRecord.actor == null || nextRecord.actor.equals(actor)) {
@@ -343,22 +344,21 @@ public class ConnectionManagerService extends BusService implements IPersistentS
                         } else {
                             doAction = false;
                         }
-
                     }
 
                     break;
 
-                case IConnectionMessage.TYPE_FEED:
+                case IServiceMessage.TYPE_SERVICE:
 
-                    /* If this record matches the feed... */
-                    if (feed == null || nextRecord.feed == null || nextRecord.feed.equals(feed)) {
+                    /* If this record matches the service... */
+                    if (service == null || nextRecord.service == null || nextRecord.service.equals(service)) {
                         doAction = true;
                     } else {
                         doAction = false;
-                        break; // Only break if the feed does not match, otherwise we need to check the system next
+                        break; // Only break if the service does not match, otherwise we need to check the system next
                     }
 
-                case IConnectionMessage.TYPE_SERVICE:
+                case IServiceMessage.TYPE_SYSTEM:
 
                     /* If this record matches the system... */
                     if (system == null || nextRecord.system == null || nextRecord.system.equals(system)) {
@@ -368,7 +368,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
                         break; // Only break if the system does not match, otherwise we need to check the platform next
                     }
 
-                case IConnectionMessage.TYPE_PLATFORM:
+                case IServiceMessage.TYPE_PLATFORM:
 
                     /* If this record matches the platform... */
                     if (platform == null || nextRecord.platform == null || nextRecord.platform.equals(platform)) {
@@ -378,7 +378,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
                     }
                     break;
 
-                case IConnectionMessage.TYPE_NODE:
+                case IServiceMessage.TYPE_NODE:
 
                     /* These records are always actioned */
                     doAction = true;
@@ -386,9 +386,8 @@ public class ConnectionManagerService extends BusService implements IPersistentS
 
                 default:
 
-                    String message = format("Internal error: invalid resource type (%d); no action will be taken",
+                    logger.log(Level.WARNING, "Internal error: invalid resource type ([{0}]); no action will be taken",
                             resourceType);
-                    logger.log(Level.WARNING, message);
                     break;
 
             }
@@ -411,14 +410,13 @@ public class ConnectionManagerService extends BusService implements IPersistentS
                         if (doFireMessages) {
 
                             IServiceMessage messageToSend = (IServiceMessage) nextRecord.message.replicate();
-                            messageToSend.setProperty("f:event:event", ServiceMessage.getEventName(event));
-                            messageToSend.setProperty("f:event:resourceType", ServiceMessage
-                                    .getResourceName(resourceType));
-                            messageToSend.setProperty("f:event:node", node);
-                            messageToSend.setProperty("f:event:platform", platform);
-                            messageToSend.setProperty("f:event:service", system);
-                            messageToSend.setProperty("f:event:feed", feed);
-                            messageToSend.setProperty("f:event:actor", actor);
+                            messageToSend.setProperty("event:" + IServiceMessage.PROPERTY_EVENT, event);
+                            messageToSend.setProperty("event:" + IServiceMessage.PROPERTY_RESOURCE_TYPE, resourceType);
+                            messageToSend.setProperty("event:" + IServiceMessage.PROPERTY_NODE, node);
+                            messageToSend.setProperty("event:" + IServiceMessage.PROPERTY_PLATFORM, platform);
+                            messageToSend.setProperty("event:" + IServiceMessage.PROPERTY_SYSTEM, system);
+                            messageToSend.setProperty("event:" + IServiceMessage.PROPERTY_SERVICE, service);
+                            messageToSend.setProperty("event:" + IServiceMessage.PROPERTY_ACTOR, actor);
 
                             /* Fire the message */
                             send(messageToSend);
@@ -454,20 +452,21 @@ public class ConnectionManagerService extends BusService implements IPersistentS
      *            <code>null</code> indicates all nodes.
      *
      * @param platform
-     *            the ID of the platform (required for platform, system, feed, and actor resource types).
+     *            the ID of the platform (required for platform, system, service, and actor resource types).
      *            <code>null</code> indicates all platforms.
      *
      * @param system
-     *            the ID of the system (required for system and feed resource types). <code>null</code> indicates all
+     *            the ID of the system (required for system and service resource types). <code>null</code> indicates all
      *            systems.
      *
-     * @param feed
-     *            the ID of the feed (required just for feed resource types). <code>null</code> indicates all feeds.
+     * @param service
+     *            the ID of the service (required just for service resource types). <code>null</code> indicates all
+     *            services.
      *
      * @param actor
      *            the ID of the actor (required just for actor resource types). <code>null</code> indicates all actors.
      *
-     * @param statusType
+     * @param event
      *            the type of status change that triggered the sending of this message, one of
      *            <code>EVENT_CONNECTED</code> or <code>EVENT_DISCONNECTED</code>.
      *
@@ -477,11 +476,11 @@ public class ConnectionManagerService extends BusService implements IPersistentS
      * @param singleFire
      *            flag indicating if this message is a single or multiple fire.
      */
-    private String addMessage(int resourceType, String node, String platform, String system, String feed, String actor,
-            IServiceMessage message, int statusType, boolean singleFire) {
+    private String addMessage(String resourceType, String node, String platform, String system, String service,
+            String actor, IServiceMessage message, String event, boolean singleFire) {
 
         /* Get the message table corresponding to the status type */
-        HashMap<String, ArrayList<MessageRecord>> messageTable = messageTable(statusType);
+        HashMap<String, ArrayList<MessageRecord>> messageTable = messageTable(event);
 
         /* To hold the record for this message */
         MessageRecord newRecord = null;
@@ -493,7 +492,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
             ArrayList<MessageRecord> nodeMessages = messageList(node, messageTable);
 
             /* Record the new message in the list for the specified node */
-            newRecord = new MessageRecord(resourceType, node, platform, system, feed, actor, message, statusType,
+            newRecord = new MessageRecord(resourceType, node, platform, system, service, actor, message, event,
                     singleFire);
             nodeMessages.add(newRecord);
 
@@ -516,21 +515,21 @@ public class ConnectionManagerService extends BusService implements IPersistentS
      *
      * @return the message table.
      */
-    private HashMap<String, ArrayList<MessageRecord>> messageTable(int event) {
+    private HashMap<String, ArrayList<MessageRecord>> messageTable(String event) {
 
         /* To hold the result */
         HashMap<String, ArrayList<MessageRecord>> messageTable = null;
 
         /* Decode the status type... */
-        switch (event) {
+        switch ((event != null) ? event : "") {
 
-            case IConnectionMessage.EVENT_CONNECTED:
+            case IServiceMessage.EVENT_CONNECTED:
 
                 /* We need the connection message table */
                 messageTable = connectionMessages;
                 break;
 
-            case IConnectionMessage.EVENT_DISCONNECTED:
+            case IServiceMessage.EVENT_DISCONNECTED:
 
                 /* We need the disconnection message table */
                 messageTable = disconnectionMessages;
@@ -538,7 +537,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
 
             default:
 
-                String errorMessage = format("Internal error: invalid status type (%d)", event);
+                String errorMessage = format("Internal error: invalid status type (%s)", event);
                 logger.log(Level.WARNING, errorMessage);
                 break;
 
@@ -604,63 +603,61 @@ public class ConnectionManagerService extends BusService implements IPersistentS
 
     /**
      * @see fabric.bus.services.IConnectionManager#addNodeMessage(java.lang.String, fabric.bus.messages.IServiceMessage,
-     *      int, boolean)
+     *      java.lang.String, boolean)
      */
     @Override
-    public String addNodeMessage(String node, IServiceMessage message, int statusType, boolean singleFire) {
+    public String addNodeMessage(String node, IServiceMessage message, String event, boolean singleFire) {
 
-        return addMessage(IConnectionMessage.TYPE_NODE, node, null, null, null, null, message, statusType, singleFire);
+        return addMessage(IServiceMessage.TYPE_NODE, node, null, null, null, null, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addPlatformMessage(java.lang.String, java.lang.String,
-     *      fabric.bus.messages.IServiceMessage, int, boolean)
+     *      fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
-    public String addPlatformMessage(String node, String platform, IServiceMessage message, int statusType,
+    public String addPlatformMessage(String node, String platform, IServiceMessage message, String event,
             boolean singleFire) {
 
-        return addMessage(IConnectionMessage.TYPE_PLATFORM, node, platform, null, null, null, message, statusType,
-                singleFire);
+        return addMessage(IServiceMessage.TYPE_PLATFORM, node, platform, null, null, null, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addServiceMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
+     *      java.lang.String, fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
-    public String addServiceMessage(String node, String platform, String system, IServiceMessage message,
-            int statusType, boolean singleFire) {
+    public String addServiceMessage(String node, String platform, String system, IServiceMessage message, String event,
+            boolean singleFire) {
 
-        return addMessage(IConnectionMessage.TYPE_SERVICE, node, platform, system, null, null, message, statusType,
-                singleFire);
+        return addMessage(IServiceMessage.TYPE_SYSTEM, node, platform, system, null, null, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addFeedMessage(java.lang.String, java.lang.String, java.lang.String,
-     *      java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
+     *      java.lang.String, fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
-    public String addFeedMessage(String node, String platform, String system, String feed, IServiceMessage message,
-            int statusType, boolean singleFire) {
+    public String addFeedMessage(String node, String platform, String system, String service, IServiceMessage message,
+            String event, boolean singleFire) {
 
-        return addMessage(IConnectionMessage.TYPE_FEED, node, platform, system, feed, null, message, statusType,
+        return addMessage(IServiceMessage.TYPE_SERVICE, node, platform, system, service, null, message, event,
                 singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addActorMessage(java.lang.String, java.lang.String, java.lang.String,
-     *      fabric.bus.messages.IServiceMessage, int, boolean)
+     *      fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
-    public String addActorMessage(String node, String platform, String actor, IServiceMessage message, int statusType,
+    public String addActorMessage(String node, String platform, String actor, IServiceMessage message, String event,
             boolean singleFire) {
 
-        return addMessage(IConnectionMessage.TYPE_ACTOR, node, platform, null, null, actor, message, statusType,
+        return addMessage(IServiceMessage.TYPE_ACTOR, node, platform, null, null, actor, message, event,
                 singleFire);
 
     }
@@ -678,7 +675,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
         if (record != null) {
 
             /* Get the message table corresponding to the status type */
-            HashMap<String, ArrayList<MessageRecord>> messageTable = messageTable(record.statusType);
+            HashMap<String, ArrayList<MessageRecord>> messageTable = messageTable(record.event);
 
             /* Get the list of messages for this node */
             ArrayList<MessageRecord> nodeMessages = messageList(record.node, messageTable);
@@ -709,55 +706,56 @@ public class ConnectionManagerService extends BusService implements IPersistentS
     }
 
     /**
-     * @see fabric.bus.services.IConnectionManager#removeNodeMessage(java.lang.String, int)
+     * @see fabric.bus.services.IConnectionManager#removeNodeMessage(java.lang.String, java.lang.String)
      */
     @Override
-    public void removeNodeMessage(String node, int statusType) {
+    public void removeNodeMessage(String node, String event) {
 
-        doAction(ACTION_REMOVE, IConnectionMessage.TYPE_NODE, node, null, null, null, null, statusType);
+        doAction(ACTION_REMOVE, IServiceMessage.TYPE_NODE, node, null, null, null, null, event);
 
     }
 
     /**
-     * @see fabric.bus.services.IConnectionManager#removePlatformMessage(java.lang.String, java.lang.String, int)
+     * @see fabric.bus.services.IConnectionManager#removePlatformMessage(java.lang.String, java.lang.String,
+     *      java.lang.String)
      */
     @Override
-    public void removePlatformMessage(String node, String platform, int statusType) {
+    public void removePlatformMessage(String node, String platform, java.lang.String event) {
 
-        doAction(ACTION_REMOVE, IConnectionMessage.TYPE_PLATFORM, node, platform, null, null, null, statusType);
+        doAction(ACTION_REMOVE, IServiceMessage.TYPE_PLATFORM, node, platform, null, null, null, event);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#removeServiceMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, int)
+     *      java.lang.String, java.lang.String)
      */
     @Override
-    public void removeServiceMessage(String node, String platform, String system, int statusType) {
+    public void removeServiceMessage(String node, String platform, String system, String event) {
 
-        doAction(ACTION_REMOVE, IConnectionMessage.TYPE_SERVICE, node, platform, system, null, null, statusType);
+        doAction(ACTION_REMOVE, IServiceMessage.TYPE_SYSTEM, node, platform, system, null, null, event);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#removeFeedMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, java.lang.String, int)
+     *      java.lang.String, java.lang.String, java.lang.String)
      */
     @Override
-    public void removeFeedMessage(String node, String platform, String system, String feed, int statusType) {
+    public void removeFeedMessage(String node, String platform, String system, String service, String event) {
 
-        doAction(ACTION_REMOVE, IConnectionMessage.TYPE_FEED, node, platform, system, feed, null, statusType);
+        doAction(ACTION_REMOVE, IServiceMessage.TYPE_SERVICE, node, platform, system, service, null, event);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#removeActorMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, int)
+     *      java.lang.String, java.lang.String)
      */
     @Override
-    public void removeActorMessage(String node, String platform, String actor, int statusType) {
+    public void removeActorMessage(String node, String platform, String actor, String event) {
 
-        doAction(ACTION_REMOVE, IConnectionMessage.TYPE_ACTOR, node, platform, null, null, actor, statusType);
+        doAction(ACTION_REMOVE, IServiceMessage.TYPE_ACTOR, node, platform, null, null, actor, event);
 
     }
 }

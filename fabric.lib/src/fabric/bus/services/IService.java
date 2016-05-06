@@ -37,7 +37,7 @@ public interface IService {
 	public static final int NOTIFICATION_TIMEOUT = 2;
 
 	/** The index of the "handled en route" client notification message in the list passed to invokeService(). */
-	public static final int NOTIFICATION_SUCCESS_EN_ROUTE = 3;
+	public static final int NOTIFICATION_SUCCESS_IN_FLIGHT = 3;
 
 	/*
 	 * Interface methods
@@ -84,7 +84,7 @@ public interface IService {
 	 * <p>
 	 * Upon receipt of an <code>INotificationMessage</code> on the originating node, with a status of success or
 	 * failure, the corresponding <code>IClientNotificationMessage</code> message is delivered to the caller. Before
-	 * delivery the properties, payload and feed list of the <code>INotificationMessage</code> are recorded in the
+	 * delivery the properties, payload and service list of the <code>INotificationMessage</code> are recorded in the
 	 * <code>IClientNotificationMessage</code> (in a separate part of the message to the
 	 * <code>IClientNotificationMessage</code>'s own properties and payload). The third
 	 * <code>IClientNotificationMessage</code> message is delivered if no <code>IClientNotificationMessage</code> is

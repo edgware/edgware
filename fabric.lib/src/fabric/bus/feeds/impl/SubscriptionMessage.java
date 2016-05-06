@@ -43,7 +43,7 @@ public class SubscriptionMessage extends ServiceMessage {
         super();
 
         construct();
-        setFeedList(new FeedList());
+        setServiceList(new ServiceList());
 
         /* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
         metaResetModified();
@@ -261,47 +261,45 @@ public class SubscriptionMessage extends ServiceMessage {
     }
 
     /**
-     * Determines the route along which feed messages will flow from the publisher to the subscriber.
+     * Determines the route along which messages will flow from the publisher to the subscriber.
      * <p>
      * There are two types of subscription message:
      * <ol>
-     * <li>The initial subscription request sent by the subscriber: this is sent subscriber -> publisher, and therefore
-     * the route for feed messages is the reverse of the route in the subscription message.</li>
+     * <li>The initial subscription request sent by the subscriber: this is sent subscriber -> publisher, and the route
+     * for messages is considered to be the reverse of the route in the subscription message.</li>
      * <li>An attempt to restore a failed subscription: this is sent publisher -> subscriber, and therefore the route
-     * for feed messages is the route in the subscription message.</li>
+     * for messages is the route in the subscription message.</li>
      * </ol>
      * </p>
      *
-     * @return the route for feed messages sent in response to this subscription.
+     * @return the route for messages sent in response to this subscription.
      */
-    public IRouting feedRoute() {
+    public IRouting route() {
 
         /* To hold the result */
-        IRouting feedRoute = null;
+        IRouting route = null;
 
         IRouting subscriptionRouting = getRouting();
 
         /* If this is a regular subscription (the message flows from subscriber to publisher)... */
         if (getAction().equals(IServiceMessage.ACTION_SUBSCRIBE)) {
 
-            feedRoute = subscriptionRouting.returnRoute();
+            route = subscriptionRouting.returnRoute();
 
         }
         /* Else if this is the restoration of a failed subscription (the message flows from publisher to subscriber)... */
         else if (getAction().equals(IServiceMessage.ACTION_RESTORE_SUBSCRIPTION)) {
 
-            feedRoute = subscriptionRouting;
+            route = subscriptionRouting;
 
         } else {
 
             logger.log(Level.WARNING,
                     "Internal error -- unsupported subscription message type [{0}] in method [{1}], message:\n{2}",
-                    new Object[] {getAction(), "feedRoute()", toString()});
+                    new Object[] {getAction(), "route()", toString()});
 
         }
 
-        return feedRoute;
-
+        return route;
     }
-
 }

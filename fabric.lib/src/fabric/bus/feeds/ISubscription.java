@@ -10,7 +10,7 @@ package fabric.bus.feeds;
 import fabric.TaskServiceDescriptor;
 
 /**
- * Interface for classes managing a single client subscription to a Fabric data feed.
+ * Interface for classes managing a single client subscription to a service.
  */
 public interface ISubscription {
 
@@ -18,14 +18,14 @@ public interface ISubscription {
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
 
     /**
-     * Subscribes to the specified Fabric feed.
+     * Subscribes to the specified service.
      * <p>
      * This method will send a subscription request onto the Fabric (via the local Fabric Manager) to establish a
      * connection (multi-hop if necessary, using the <em>default</em> -- i.e. the first -- route from the Fabric
-     * Registry) from the local node to the target node connected to the feed.
+     * Registry) from the local node to the target node connected to the service.
      * </p>
      * <p>
-     * All parameters must be specified as this subscription must point at an existing feed.
+     * All parameters must be specified as this subscription must point at an existing service.
      * </p>
      *
      * @param task
@@ -37,78 +37,78 @@ public interface ISubscription {
      * @param system
      *            the ID of the required system.
      *
-     * @param feedType
-     *            the ID of the required feed type.
+     * @param service
+     *            the ID of the required service.
      *
      * @param callback
-     *            the callback to be invoked when a Fabric message arrives from the feed(s).
+     *            the callback to be invoked when a message arrives from the service(s).
      *
-     * @return the feed to which a subscription has been made.
+     * @return the service to which a subscription has been made.
      *
      * @throws IllegalArgumentException
-     *             thrown if the arguments do not represent a single feed
+     *             thrown if the arguments do not represent a single service.
      *
      * @throws Exception
      *             thrown if the subscription fails.
      */
-    public TaskServiceDescriptor subscribe(String task, String platform, String system, String feed,
+    public TaskServiceDescriptor subscribe(String task, String platform, String system, String service,
             ISubscriptionCallback callback) throws IllegalArgumentException, Exception;
 
     /**
-     * Subscribes to the specified Fabric feed.
+     * Subscribes to the specified service.
      * <p>
      * This method will send a subscription request onto the Fabric (via the local Fabric Manager) to establish a
      * connection (multi-hop if necessary, using the <em>default</em> -- i.e. the first -- route from the Fabric
-     * Registry) from the local node to the target node connected to the feed.
+     * Registry) from the local node to the target node connected to the service.
      * </p>
      * <p>
-     * The fields of <code>feedPattern</code> must identify a specific feed.
+     * The fields of <code>service</code> must identify a specific service.
      * </p>
      *
-     * @param feed
-     *            the feed that will be used for this subscription.
+     * @param service
+     *            the service that will be used for this subscription.
      *
      * @param callback
-     *            the callback to be invoked when a Fabric message arrives from the feed.
+     *            the callback to be invoked when a message arrives from the service.
      *
-     * @return the feed to which a subscription has been made.
+     * @return the service to which a subscription has been made.
      *
      * @throws IllegalArgumentException
-     *             thrown if the feed does not represent a single feed
+     *             thrown if the service does not represent a single service
      *
      * @throws Exception
      *             thrown if the subscription fails.
      */
-    public TaskServiceDescriptor subscribe(TaskServiceDescriptor feed, ISubscriptionCallback callback)
+    public TaskServiceDescriptor subscribe(TaskServiceDescriptor service, ISubscriptionCallback callback)
         throws IllegalArgumentException, Exception;
 
     /**
-     * Subscribes to the specified Fabric feed using the specified route to the end node
+     * Subscribes to the specified service using the specified route to the end node
      * <p>
      * This method will send a subscription request onto the Fabric (via the local Fabric Manager) to establish a
      * connection. It will use the specified list of nodes as the route from the local node to the target node connected
-     * to the feed.
+     * to the service.
      * </p>
      * <p>
-     * The fields of <code>feedPattern</code> must identify a specific feed.
+     * The fields of <code>service</code> must identify a specific service.
      * </p>
      *
-     * @param feed
-     *            the feed that will be used for this subscription.
+     * @param service
+     *            the service that will be used for this subscription.
      * @param nodes
      *            the nodes to route the subscription through
      * @param callback
-     *            the callback to be invoked when a Fabric message arrives from the feed.
+     *            the callback to be invoked when a message arrives from the service.
      *
-     * @return the feed to which a subscription has been made.
+     * @return the service to which a subscription has been made.
      *
      * @throws IllegalArgumentException
-     *             thrown if the feed does not represent a single feed
+     *             thrown if the service does not represent a single service
      *
      * @throws Exception
      *             thrown if the subscription fails.
      */
-    public TaskServiceDescriptor subscribe(TaskServiceDescriptor feed, String[] route, ISubscriptionCallback callback)
+    public TaskServiceDescriptor subscribe(TaskServiceDescriptor service, String[] route, ISubscriptionCallback callback)
         throws IllegalArgumentException, Exception;
 
     /**
@@ -121,10 +121,10 @@ public interface ISubscription {
     public void resubscribe() throws Exception;
 
     /**
-     * Tear down the subscription to the active Fabric feed managed by this instance.
+     * Tear down the subscription managed by this instance.
      * <p>
      * This method will send an <em>unsubscribe</em> command to the local Fabric Manager to tear down the multi-hop
-     * connection from the local node to the target node connected to the feed.
+     * connection from the local node to the target node connected to the service.
      * </p>
      *
      * @throws Exception
@@ -140,11 +140,11 @@ public interface ISubscription {
     public String correlationID();
 
     /**
-     * Answers the feed to which this instance is subscribed (or to which it is attempting to subscribe).
+     * Answers the service to which this instance is subscribed (or to which it is attempting to subscribe).
      *
-     * @return the feed.
+     * @return the service.
      */
-    public TaskServiceDescriptor feed();
+    public TaskServiceDescriptor service();
 
     /**
      * Answers the route (list of Fabric nodes) between the publisher and the subscriber.

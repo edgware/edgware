@@ -161,8 +161,8 @@ public class BusMessageHandler extends Fabric {
                             IServiceMessage.EVENT_MESSAGE_FAILED, request);
                     clientResponses[IService.NOTIFICATION_TIMEOUT] = new ClientNotificationMessage(
                             IServiceMessage.EVENT_MESSAGE_TIMEOUT, request);
-                    clientResponses[IService.NOTIFICATION_SUCCESS_EN_ROUTE] = new ClientNotificationMessage(
-                            IServiceMessage.EVENT_MESSAGE_HANDLED_EN_ROUTE, request);
+                    clientResponses[IService.NOTIFICATION_SUCCESS_IN_FLIGHT] = new ClientNotificationMessage(
+                            IServiceMessage.EVENT_MESSAGE_HANDLED_IN_FLIGHT, request);
 
                 }
 

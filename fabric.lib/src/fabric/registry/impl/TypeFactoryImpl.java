@@ -7,10 +7,12 @@
 
 package fabric.registry.impl;
 
+import java.util.logging.Level;
+
 import fabric.Fabric;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.Type;
 import fabric.registry.TypeFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -176,7 +178,7 @@ public class TypeFactoryImpl extends AbstractFactory implements TypeFactory {
         } else if (tableName.equals("SERVICE_TYPES") || tableName.equals("STLT")) {
             classifier = Type.TYPE_SERVICE;
         } else {
-            logger.warning("CAN'T MAP " + tableName + " to a type");
+            logger.log(Level.WARNING, "Cannot map table name [{0}] to a type", tableName);
         }
         return classifier;
     }
@@ -485,7 +487,7 @@ public class TypeFactoryImpl extends AbstractFactory implements TypeFactory {
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof Type) {
             return super.insert(obj, this);

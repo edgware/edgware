@@ -124,7 +124,7 @@ public class SharedEndPoint extends EndPoint {
     public void connect(Object address, Object config) throws UnsupportedOperationException, IOException {
 
         endpoint.connect(address, config);
-        logger.log(Level.FINE, "Connected to endpoint [{0}]", address);
+        logger.log(Level.FINER, "Connected to endpoint [{0}]", address);
 
     }
 
@@ -156,7 +156,7 @@ public class SharedEndPoint extends EndPoint {
      * @throws UnsupportedOperationException
      */
     public SharedChannel openInputChannel(InputTopic inputTopic, ICallback callback) throws IOException,
-        UnsupportedOperationException {
+    UnsupportedOperationException {
 
         return openIOChannel(inputTopic, null, callback);
     }
@@ -196,7 +196,7 @@ public class SharedEndPoint extends EndPoint {
      * @throws UnsupportedOperationException
      */
     public SharedChannel openIOChannel(InputTopic inputTopic, OutputTopic outputTopic, ICallback callback)
-        throws IOException, UnsupportedOperationException {
+            throws IOException, UnsupportedOperationException {
 
         logger.log(Level.FINEST, "Opening channel; local topic [{0}], remote topic [{1}], callback [{2}]",
                 new Object[] {inputTopic, outputTopic, callback});
@@ -274,7 +274,7 @@ public class SharedEndPoint extends EndPoint {
      * @throws UnsupportedOperationException
      */
     public void closeChannel(SharedChannel sharedChannel, boolean doForceClose) throws IOException,
-        UnsupportedOperationException {
+    UnsupportedOperationException {
 
         /* If the channel exists... */
         if (sharedChannel != null) {
@@ -465,7 +465,7 @@ public class SharedEndPoint extends EndPoint {
      */
     @Override
     public Channel channel(InputTopic inputTopic, OutputTopic outputTopic) throws IOException,
-        UnsupportedOperationException {
+    UnsupportedOperationException {
 
         Channel newChannel = openIOChannel(inputTopic, outputTopic, null);
         return newChannel;

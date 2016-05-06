@@ -137,25 +137,34 @@ public class ClientServiceDispatcher extends ServiceDispatcher implements IClien
             if (handledMessage instanceof IConnectionMessage) {
 
                 /* Determine what happened */
-                int event = requestIn.getEvent();
+                String event = requestIn.getEvent();
 
                 /* Determine to whom it happened */
                 String node = requestIn.getProperty(IServiceMessage.PROPERTY_NODE);
 
                 /* If this is a change in the Fabric topology... */
-                if ((event == IServiceMessage.EVENT_DISCONNECTED || event == IServiceMessage.EVENT_CONNECTED)) {
+                if ((IServiceMessage.EVENT_DISCONNECTED.equals(event) || IServiceMessage.EVENT_CONNECTED
+                        .equals(event))) {
+
                     if (homeNode().equals(node)) {
+
                         if (client != null) {
                             client.homeNodeNotification(requestIn);
                         }
+
                     } else {
+
                         if (client != null) {
                             client.topologyNotification(requestIn);
                         }
+
                     }
+
                 } else {
+
                     /* Pass all others through to the client */
                     client.fabricNotification(requestIn);
+
                 }
 
             } else {

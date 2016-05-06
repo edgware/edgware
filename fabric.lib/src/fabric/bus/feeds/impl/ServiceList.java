@@ -1,6 +1,6 @@
 /*
- * (C) Copyright IBM Corp. 2009, 2012
- * 
+ * (C) Copyright IBM Corp. 2009, 2016
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -19,202 +19,201 @@ import fabric.bus.messages.IReplicate;
 import fabric.core.xml.XML;
 
 /**
- * Class representing the list of Fabric data feeds embedded in a subscription message.
- * 
+ * Class representing the list of Fabric services embedded in a subscription message.
+ *
  */
-public class FeedList extends Notifier implements IEmbeddedXML {
+public class ServiceList extends Notifier implements IEmbeddedXML {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2016";
 
-	/*
-	 * Class constants
-	 */
+    /*
+     * Class constants
+     */
 
-	/** The feed list. */
-	private ArrayList<TaskServiceDescriptor> feedList = new ArrayList<TaskServiceDescriptor>();
+    /** The service list. */
+    private ArrayList<TaskServiceDescriptor> serviceList = new ArrayList<TaskServiceDescriptor>();
 
-	/** Cache of the XML form of the message. */
-	private XML xmlCache = null;
+    /** Cache of the XML form of the message. */
+    private XML xmlCache = null;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public FeedList() {
+    /**
+     * Constructs a new instance.
+     */
+    public ServiceList() {
 
-		super(Logger.getLogger("fabric.bus.feeds"));
-		addChangeListener(this);
+        super(Logger.getLogger("fabric.bus.feeds"));
+        addChangeListener(this);
 
-	}
+    }
 
-	/**
-	 * Constructs a new instance, initialized from the specified instance.
-	 * 
-	 * @param source
-	 *            the instance to copy.
-	 */
-	public FeedList(FeedList source) {
+    /**
+     * Constructs a new instance, initialized from the specified instance.
+     *
+     * @param source
+     *            the instance to copy.
+     */
+    public ServiceList(ServiceList source) {
 
-		this();
-		feedList = (ArrayList<TaskServiceDescriptor>) source.feedList.clone();
-		xmlCache = null;
+        this();
+        serviceList = (ArrayList<TaskServiceDescriptor>) source.serviceList.clone();
+        xmlCache = null;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void init(String element, XML messageXML) throws Exception {
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void init(String element, XML messageXML) throws Exception {
 
-		feedList.clear();
+        serviceList.clear();
 
-		/* Get the XML paths for the feeds */
-		String elementPath = XML.expandPath(element);
-		elementPath = XML.regexpEscape(elementPath);
-		String[] propertyPaths = messageXML.getPaths(elementPath + "/f:feeds\\[.*\\]/f:feed\\[.*\\]");
+        /* Get the XML paths for the services */
+        String elementPath = XML.expandPath(element);
+        elementPath = XML.regexpEscape(elementPath);
+        String[] propertyPaths = messageXML.getPaths(elementPath + "/srvs\\[.*\\]/srv\\[.*\\]");
 
-		/* For each feed... */
-		for (int p = 0; p < propertyPaths.length; p++) {
+        /* For each service... */
+        for (int p = 0; p < propertyPaths.length; p++) {
 
-			/* Get and record the next feed */
+            /* Get and record the next service */
 
-			String task = messageXML.get(propertyPaths[p] + "@task");
-			String platform = messageXML.get(propertyPaths[p] + "@platform");
-			String system = messageXML.get(propertyPaths[p] + "@system");
-			String feed = messageXML.get(propertyPaths[p] + "@feed");
+            String task = messageXML.get(propertyPaths[p] + "@tsk");
+            String platform = messageXML.get(propertyPaths[p] + "@plt");
+            String system = messageXML.get(propertyPaths[p] + "@sys");
+            String service = messageXML.get(propertyPaths[p] + "@srv");
 
-			TaskServiceDescriptor nextFeed = new TaskServiceDescriptor(task, platform, system, feed);
+            TaskServiceDescriptor nextService = new TaskServiceDescriptor(task, platform, system, service);
 
-			feedList.add(nextFeed);
+            serviceList.add(nextService);
 
-		}
+        }
 
-		xmlCache = null;
+        xmlCache = null;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void embed(String element, XML messageXML) throws Exception {
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void embed(String element, XML messageXML) throws Exception {
 
-		/* For each feed... */
-		for (int f = 0; f < feedList.size(); f++) {
+        /* For each service... */
+        for (int s = 0; s < serviceList.size(); s++) {
 
-			/* Serialize the feed to the XML */
+            /* Serialize the service to the XML */
 
-			TaskServiceDescriptor nextFeed = feedList.get(f);
+            TaskServiceDescriptor nextService = serviceList.get(s);
 
-			messageXML.set(element + "/f:feeds/f:feed[%d]@task", nextFeed.task(), f);
-			messageXML.set(element + "/f:feeds/f:feed[%d]@platform", nextFeed.platform(), f);
-			messageXML.set(element + "/f:feeds/f:feed[%d]@system", nextFeed.system(), f);
-			messageXML.set(element + "/f:feeds/f:feed[%d]@feed", nextFeed.service(), f);
+            messageXML.set(element + "/srvs/srv[%d]@tsk", nextService.task(), s);
+            messageXML.set(element + "/srvs/srv[%d]@plt", nextService.platform(), s);
+            messageXML.set(element + "/srvs/srv[%d]@sys", nextService.system(), s);
+            messageXML.set(element + "/srvs/srv[%d]@srv", nextService.service(), s);
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * Answers the list of feeds.
-	 * 
-	 * @return the feed list.
-	 */
-	public TaskServiceDescriptor[] getFeeds() {
+    /**
+     * Answers the list of services.
+     *
+     * @return the service list.
+     */
+    public TaskServiceDescriptor[] getServices() {
 
-		TaskServiceDescriptor[] feeds = new TaskServiceDescriptor[feedList.size()];
-		feeds = feedList.toArray(feeds);
-		return feeds;
+        TaskServiceDescriptor[] services = new TaskServiceDescriptor[serviceList.size()];
+        services = serviceList.toArray(services);
+        return services;
 
-	}
+    }
 
-	/**
-	 * Sets the list of feeds.
-	 * 
-	 * @param feeds
-	 *            the feed list.
-	 */
-	public void setFeeds(TaskServiceDescriptor[] feeds) {
+    /**
+     * Sets the list of services.
+     *
+     * @param services
+     *            the service list.
+     */
+    public void setServices(TaskServiceDescriptor[] services) {
 
-		ArrayList<TaskServiceDescriptor> oldFeedList = (ArrayList<TaskServiceDescriptor>) feedList.clone();
+        ArrayList<TaskServiceDescriptor> oldServiceList = (ArrayList<TaskServiceDescriptor>) serviceList.clone();
 
-		feedList.clear();
-		feedList.addAll(Arrays.asList(feeds));
+        serviceList.clear();
+        serviceList.addAll(Arrays.asList(services));
 
-		fireChangeNotification("feedList", oldFeedList, feedList);
+        fireChangeNotification("serviceList", oldServiceList, serviceList);
 
-	}
+    }
 
-	public void addFeed(TaskServiceDescriptor feed) {
+    public void addService(TaskServiceDescriptor service) {
 
-		ArrayList<TaskServiceDescriptor> oldFeedList = (ArrayList<TaskServiceDescriptor>) feedList.clone();
-		feedList.add(feed);
-		fireChangeNotification("feedList", oldFeedList, feedList);
-	}
+        ArrayList<TaskServiceDescriptor> oldServiceList = (ArrayList<TaskServiceDescriptor>) serviceList.clone();
+        serviceList.add(service);
+        fireChangeNotification("serviceList", oldServiceList, serviceList);
+    }
 
-	/**
-	 * Answers the number of elements in the feed list.
-	 * 
-	 * @return the number of feeds in the list.
-	 */
-	public int size() {
+    /**
+     * Answers the number of elements in the service list.
+     *
+     * @return the number of services in the list.
+     */
+    public int size() {
 
-		return feedList.size();
+        return serviceList.size();
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#toString()
-	 */
-	@Override
-	public String toString() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#toString()
+     */
+    @Override
+    public String toString() {
 
-		String toString = null;
+        String toString = null;
 
-		try {
+        try {
 
-			if (xmlCache == null) {
+            if (xmlCache == null) {
 
-				xmlCache = new XML();
-				embed("", xmlCache);
+                xmlCache = new XML();
+                embed("", xmlCache);
 
-			}
+            }
 
-			toString = xmlCache.toString();
+            toString = xmlCache.toString();
 
-		} catch (Exception e) {
+        } catch (Exception e) {
 
-			e.printStackTrace();
-			toString = super.toString();
+            e.printStackTrace();
+            toString = super.toString();
 
-		}
+        }
 
-		return toString;
+        return toString;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IReplicate#replicate()
-	 */
-	@Override
-	public IReplicate replicate() {
+    /**
+     * @see fabric.bus.messages.IReplicate#replicate()
+     */
+    @Override
+    public IReplicate replicate() {
 
-		return new FeedList(this);
+        return new ServiceList(this);
 
-	}
+    }
 
-	/**
-	 * @see fabric.Notifier#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent event) {
+    /**
+     * @see fabric.Notifier#propertyChange(java.beans.PropertyChangeEvent)
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
 
-		super.propertyChange(event);
+        super.propertyChange(event);
 
-		/* Something has changed, so invalidate the cached XML form of this instance */
-		xmlCache = null;
+        /* Something has changed, so invalidate the cached XML form of this instance */
+        xmlCache = null;
 
-	}
-
+    }
 }

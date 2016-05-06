@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2007, 2012
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -10,6 +10,7 @@ package fabric.bus.routing.impl;
 import java.beans.PropertyChangeEvent;
 import java.util.logging.Logger;
 
+import fabric.Fabric;
 import fabric.Notifier;
 import fabric.bus.messages.IFabricMessage;
 import fabric.bus.messages.impl.MessageProperties;
@@ -21,172 +22,182 @@ import fabric.core.xml.XML;
  */
 public abstract class Routing extends Notifier implements IRouting {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2007, 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2007, 2012";
 
-	/*
-	 * Class constants
-	 */
+    /*
+     * Class constants
+     */
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/** The type of the route */
-	private String type = null;
+    /** The type (class name) of the routing algorithm. */
+    private String type = null;
 
-	/** The route's properties (a table of name/value pairs) */
-	private MessageProperties properties = new MessageProperties();
+    /** The short form of the type (class name) of the message. */
+    private String compactType = null;
 
-	/** Cache of the XML form of the message. */
-	private XML xmlCache = null;
+    /** The route's properties (a table of name/value pairs) */
+    private MessageProperties properties = new MessageProperties();
 
-	private String currentNode;
+    /** Cache of the XML form of the message. */
+    private XML xmlCache = null;
 
-	/*
-	 * Class methods
-	 */
+    private String currentNode;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public Routing() {
+    /*
+     * Class methods
+     */
 
-		super(Logger.getLogger("fabric.bus.routing"));
-		this.currentNode = homeNode();
-		type = getClass().getName();
-		addChangeListener(this);
+    /**
+     * Constructs a new instance.
+     */
+    public Routing() {
 
-	}
+        super(Logger.getLogger("fabric.bus.routing"));
 
-	/**
-	 * Constructs a new instance, initialized from the specified instance.
-	 * 
-	 * @param source
-	 *            the instance to copy.
-	 */
-	public Routing(Routing source) {
+        this.currentNode = homeNode();
 
-		this();
-		properties = (MessageProperties) source.properties.replicate();
-		xmlCache = null;
+        type = getClass().getName();
+        String shortName = Fabric.shortName(type);
+        compactType = (shortName != null) ? shortName : type;
 
-	}
+        addChangeListener(this);
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void init(String element, XML messageXML) throws Exception {
+    }
 
-		/* Get the message type */
-		type = messageXML.get(element + "/f:routing@type", type);
+    /**
+     * Constructs a new instance, initialized from the specified instance.
+     *
+     * @param source
+     *            the instance to copy.
+     */
+    public Routing(Routing source) {
 
-		/* Get the message properties */
-		properties.init(element + "/f:routing", messageXML);
+        this();
+        properties = (MessageProperties) source.properties.replicate();
+        xmlCache = null;
 
-		xmlCache = null;
+    }
 
-	}
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void init(String element, XML messageXML) throws Exception {
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void embed(String element, XML messageXML) throws Exception {
+        /* Get the message type */
+        compactType = messageXML.get(element + "/rt@t");
+        String type = Fabric.longName(compactType);
+        this.type = (type != null) ? type : compactType;
 
-		/* Set the message type */
-		messageXML.set(element + "/f:routing@type", type);
+        /* Get the message properties */
+        properties.init(element + "/rt", messageXML);
 
-		/* Set the message properties */
-		properties.embed(element + "/f:routing", messageXML);
+        xmlCache = null;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.routing.IRouting#getProperty(java.lang.String)
-	 */
-	@Override
-	public String getProperty(String key) {
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void embed(String element, XML messageXML) throws Exception {
 
-		return properties.getProperty(key);
+        /* Set the message type */
+        messageXML.set(element + "/rt@t", compactType);
 
-	}
+        /* Set the message properties */
+        properties.embed(element + "/rt", messageXML);
 
-	/**
-	 * @see fabric.bus.routing.IRouting#setProperty(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public void setProperty(String key, String value) {
+    }
 
-		String oldValue = properties.getProperty(key);
+    /**
+     * @see fabric.bus.routing.IRouting#getProperty(java.lang.String)
+     */
+    @Override
+    public String getProperty(String key) {
 
-		properties.setProperty(key, value);
+        return properties.getProperty(key);
 
-		fireChangeNotification("properties", oldValue, value);
+    }
 
-	}
+    /**
+     * @see fabric.bus.routing.IRouting#setProperty(java.lang.String, java.lang.String)
+     */
+    @Override
+    public void setProperty(String key, String value) {
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
+        String oldValue = properties.getProperty(key);
 
-		String toString = null;
+        properties.setProperty(key, value);
 
-		try {
+        fireChangeNotification("properties", oldValue, value);
 
-			if (xmlCache == null) {
+    }
 
-				xmlCache = new XML();
-				embed("", xmlCache);
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
 
-			}
+        String toString = null;
 
-			toString = xmlCache.toString();
+        try {
 
-		} catch (Exception e) {
+            if (xmlCache == null) {
 
-			e.printStackTrace();
-			toString = super.toString();
+                xmlCache = new XML();
+                embed("", xmlCache);
 
-		}
+            }
 
-		return toString;
+            toString = xmlCache.toString();
 
-	}
+        } catch (Exception e) {
 
-	/**
-	 * @see fabric.Notifier#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent event) {
+            e.printStackTrace();
+            toString = super.toString();
 
-		super.propertyChange(event);
+        }
 
-		/* Something has changed, so invalidate the cached XML form of this instance */
-		xmlCache = null;
+        return toString;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.routing.IRouting#isDuplicate(IFabricMessage)
-	 */
-	@Override
-	public boolean isDuplicate(IFabricMessage message) {
-		// Most routing implementations are never expected to cause duplicate messages
-		return false;
-	}
+    /**
+     * @see fabric.Notifier#propertyChange(java.beans.PropertyChangeEvent)
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
 
-	/**
-	 * @see fabric.bus.routing.IRouting#currentNode()
-	 */
-	@Override
-	public String currentNode() throws UnsupportedOperationException {
+        super.propertyChange(event);
 
-		return currentNode;
+        /* Something has changed, so invalidate the cached XML form of this instance */
+        xmlCache = null;
 
-	}
+    }
+
+    /**
+     * @see fabric.bus.routing.IRouting#isDuplicate(IFabricMessage)
+     */
+    @Override
+    public boolean isDuplicate(IFabricMessage message) {
+        // Most routing implementations are never expected to cause duplicate messages
+        return false;
+    }
+
+    /**
+     * @see fabric.bus.routing.IRouting#currentNode()
+     */
+    @Override
+    public String currentNode() throws UnsupportedOperationException {
+
+        return currentNode;
+
+    }
 
 }

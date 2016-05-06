@@ -22,8 +22,8 @@ public class CachableMessage extends ServiceMessage {
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
 
 	// Property names
-	private static final String SOURCE = "f:src";
-	private static final String DESTINATION = "f:dst";
+	private static final String SOURCE = "src";
+	private static final String DESTINATION = "dst";
 	
 	
 	/**

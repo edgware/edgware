@@ -19,10 +19,11 @@ import fabric.bus.feeds.ISubscriptionCollection;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.client.FabricClient;
+import fabric.core.logging.FLog;
 import fabric.registry.FabricRegistry;
 import fabric.registry.FeedRoutes;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.FactoryCreationException;
 import fabric.registry.exception.PersistenceException;
 import fabric.registry.impl.FeedRoutesFactoryImpl;
@@ -108,14 +109,14 @@ public abstract class SubscriptionCollection implements ISubscriptionCollection,
 
     /**
      * Get all the FeedRoute objects represented by the specified feed pattern.
-     * 
+     *
      * @param feedPattern
      * @return
      * @throws PersistenceException
      * @throws FactoryCreationException
      */
     protected FeedRoutes[] getFeedRoutes(TaskServiceDescriptor feedPattern) throws PersistenceException,
-            FactoryCreationException {
+        FactoryCreationException {
 
         // Query not restricted to just local
         RegistryObject[] objects = FabricRegistry.runQuery(FeedRoutesFactoryImpl.getRouteQuery(feedPattern.task(),
@@ -153,38 +154,54 @@ public abstract class SubscriptionCollection implements ISubscriptionCollection,
     @Override
     public void cancelSubscriptionCallback() {
 
+        FLog.enter(logger, Level.FINER, this, "cancelSubscriptionCallback", null);
+
         if (this.callback != null) {
             this.callback.cancelSubscriptionCallback();
         }
+
+        FLog.exit(logger, Level.FINER, this, "cancelSubscriptionCallback", null);
     }
 
     @Override
-    public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
+    public void handleSubscriptionEvent(ISubscription subscription, String event, IServiceMessage message) {
+
+        FLog.enter(logger, Level.FINER, this, "handleSubscriptionEvent", subscription, event, message);
 
         /* Remove the subscription from our table of managed subscriptions */
-        if (event == IServiceMessage.EVENT_SUBSCRIPTION_LOST) {
-            subscriptions.remove(subscription.feed());
+        if (IServiceMessage.EVENT_SUBSCRIPTION_LOST.equals(event)) {
+            subscriptions.remove(subscription.service());
         }
 
         if (this.callback != null) {
             this.callback.handleSubscriptionEvent(subscription, event, message);
         }
+
+        FLog.exit(logger, Level.FINER, this, "handleSubscriptionEvent", null);
     }
 
     @Override
     public void handleSubscriptionMessage(IFeedMessage message) {
 
+        FLog.enter(logger, Level.FINER, this, "handleSubscriptionMessage", message);
+
         if (this.callback != null) {
             this.callback.handleSubscriptionMessage(message);
         }
+
+        FLog.exit(logger, Level.FINER, this, "handleSubscriptionMessage", null);
     }
 
     @Override
     public void startSubscriptionCallback() {
 
+        FLog.enter(logger, Level.FINER, this, "startSubscriptionCallback", null);
+
         if (this.callback != null) {
             this.callback.startSubscriptionCallback();
         }
+
+        FLog.exit(logger, Level.FINER, this, "startSubscriptionCallback", null);
     }
 
 }

@@ -61,13 +61,13 @@ public class FabletDispatcher extends PluginDispatcher implements IFabletDispatc
 
     /**
      * Loads and registers a list of Fablet plug-ins.
-     * 
+     *
      * @param plugins
      *            the list of plug-ins to load.
-     * 
+     *
      * @param busServices
      *            the interface to management services.
-     * 
+     *
      * @return the plug-in dispatcher responsible for managing the plug-ins.
      */
     public static IFabletDispatcher fabletFactory(String homeNode, FabricPlugin[] plugins, IBusServices busServices) {
@@ -82,7 +82,7 @@ public class FabletDispatcher extends PluginDispatcher implements IFabletDispatc
         for (int p = 0; p < plugins.length; p++) {
 
             /* Create and initialize the plug-in */
-            myLogger.log(Level.INFO, "Starting fablet [{0}], family [{1}]", new Object[] {plugins[p].getName(),
+            myLogger.log(Level.INFO, "Starting fablet [{0}] (family [{1}])", new Object[] {plugins[p].getName(),
                     plugins[p].getFamilyName()});
 
             IPluginConfig pluginConfig = dispatcher.initPluginConfig();

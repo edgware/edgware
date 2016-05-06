@@ -280,7 +280,7 @@ public class FabricClientTester extends FabricBus implements ISubscriptionCallba
 
         /* Set the target feed */
         ServiceDescriptor publishToDescriptor = new ServiceDescriptor("EXTRACTION", "ENTITY", "ENTITY");
-        serviceMessage.setProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED, publishToDescriptor.toString());
+        serviceMessage.setProperty(IServiceMessage.PROPERTY_DELIVER_TO_SERVICE, publishToDescriptor.toString());
 
         /* Store the notification payload in the notification message */
         IMessagePayload messagePayload = new MessagePayload();
@@ -341,12 +341,12 @@ public class FabricClientTester extends FabricBus implements ISubscriptionCallba
         return routeNodes;
     }
 
-    private void traceFeedList(TaskServiceDescriptor[] feedList) {
+    private void traceFeedList(TaskServiceDescriptor[] serviceList) {
 
         logger.log(Level.INFO, "Feed list:");
 
-        for (int f = 0; feedList != null && f < feedList.length; f++) {
-            logger.log(Level.INFO, "[{0}] {1}", new Object[] {f, feedList[f]});
+        for (int f = 0; serviceList != null && f < serviceList.length; f++) {
+            logger.log(Level.INFO, "[{0}] {1}", new Object[] {f, serviceList[f]});
         }
     }
 
@@ -431,10 +431,11 @@ public class FabricClientTester extends FabricBus implements ISubscriptionCallba
     }
 
     /**
-     * @see fabric.bus.feeds.ISubscriptionCallback#handleDisconnectMessage(fabric.bus.messages.IServiceMessage)
+     * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription,
+     *      java.lang.String, fabric.bus.messages.IServiceMessage)
      */
     @Override
-    public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
+    public void handleSubscriptionEvent(ISubscription subscription, String event, IServiceMessage message) {
 
         logger.log(Level.FINE, "handleSubscriptionEvent(): {0} type={1}", new Object[] {subscription.toString(), event});
 
@@ -488,31 +489,14 @@ public class FabricClientTester extends FabricBus implements ISubscriptionCallba
 
         try {
 
-            if (IServiceMessage.EVENT_CONNECTED == message.getNotificationEvent()) {
+            if (IServiceMessage.EVENT_CONNECTED.equals(message.getNotificationEvent())) {
+
                 logger.log(Level.INFO, "Connected to home node");
 
                 feedSubscription1 = new WildcardSubscription(fabricClient);
                 ((WildcardSubscription) feedSubscription1).subscribe(feed1, this);
 
-                /* Example for how to regularly refresh the subscription collection every 5 seconds */
-                // new Thread() { public void run() {
-                // while(true) {
-                // try {
-                // Thread.sleep(5000);
-                // System.out.println("----");
-                // for (ISubscription sub : feedSubscription1.subscriptions()) {
-                // System.out.println(" -"+sub);
-                // }
-                // System.out.println("----");
-                // feedSubscription1.refresh();
-                // }catch(Exception e) {
-                // e.printStackTrace();
-                // }
-                // }
-                //
-                // }}.start();
-
-            } else if (IServiceMessage.EVENT_DISCONNECTED == message.getEvent()) {
+            } else if (IServiceMessage.EVENT_DISCONNECTED.equals(message.getEvent())) {
                 logger.log(Level.INFO, "Disconnected from home node");
 
             }

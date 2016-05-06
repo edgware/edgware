@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fabric.Fabric;
 import fabric.bus.messages.IClientNotificationMessage;
 import fabric.bus.messages.INotificationMessage;
 import fabric.bus.messages.IServiceMessage;
@@ -60,7 +61,7 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
             logger.log(Level.FINER, "Service [{0}] registered in family [{1}] with arguments [{2}]", new Object[] {
                     name, familyName, arguments});
         } else {
-            logger.log(Level.WARNING, "Registration of Service [{0}] in family [{1}] with arguments [{2}] failed",
+            logger.log(Level.WARNING, "Registration of Service [{0}], arguments [{2}], failed (family [{1}])",
                     new Object[] {name, familyName, arguments});
         }
         return ep;
@@ -83,13 +84,22 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
         /* Get the name of the service */
         String name = requestIn.getServiceName();
 
+        /* If no service type has been specified... */
+        if (name == null) {
+            throw new IllegalArgumentException("No service name attribute in Fabric service message");
+        }
+
+        /* Make sure that we have the full class name */
+        String longName = Fabric.longName(name);
+        String className = (longName != null) ? longName : name;
+
         /* Get the service family name */
         String familyName = requestIn.getServiceFamilyName();
 
-        logger.log(Level.FINEST, "Handling message for service [{0}], family [{1}]", new Object[] {name, familyName});
+        logger.log(Level.FINEST, "Handling message for service [{0}], family [{1}]", new Object[] {className, familyName});
 
         /* Get the active, or a new, instance of the service handler */
-        IService service = serviceInstance(name, null, familyName, null);
+        IService service = serviceInstance(className, null, familyName, null);
 
         /* If we have successfully obtained a handler... */
         if (service != null) {
@@ -97,12 +107,12 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
             try {
 
                 /* Handle the request */
-                logger.log(Level.FINEST, "Invoking message handler for service [{0}]", name);
+                logger.log(Level.FINEST, "Invoking message handler for service [{0}]", className);
                 requestOut = service.handleServiceMessage(requestIn, response, clientResponses);
 
             } catch (Exception e) {
 
-                logger.log(Level.WARNING, "Exception handling message in service [0]: {1}", new Object[] {name,
+                logger.log(Level.WARNING, "Exception handling message in service [0]: {1}", new Object[] {className,
                         e.getMessage()});
                 logger.log(Level.FINEST, "Full exception: ", e);
 
@@ -110,7 +120,7 @@ public class ServiceDispatcher extends Dispatcher implements IServiceDispatcher 
 
         } else {
 
-            logger.log(Level.FINEST, "Service handler [{0}] not available from [{1}]", new Object[] {name,
+            logger.log(Level.FINEST, "Service handler [{0}] not available from [{1}]", new Object[] {className,
                     this.getClass().getName()});
 
         }

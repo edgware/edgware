@@ -42,7 +42,7 @@ public class Fabric {
      */
 
     /** The family name for built-in Fabric services */
-    public static final String FABRIC_PLUGIN_FAMILY = "f:fabricPluginFamily";
+    public static final String FABRIC_PLUGIN_FAMILY = "fab";
 
     /*
      * Class static fields
@@ -63,12 +63,67 @@ public class Fabric {
     /** Build version number for the fabric */
     private String buildVersion = null;
 
+    /** The OSGi plugin registry */
     private static IPluginRegistry pluginRegistry = null;
 
-    public static void setPluginRegistry(IPluginRegistry reg) {
+    /** Table mapping short class names to their full paths (used to expand short names used in Fabric messages) */
+    private static HashMap<String, String> shortNames = new HashMap<String, String>();
 
-        Fabric.pluginRegistry = reg;
+    /** Table mapping full class names to their short names (used to compact names used in Fabric messages) */
+    private static HashMap<String, String> longNames = new HashMap<String, String>();
+
+    /**
+     * Static configuration
+     */
+
+    static {
+
+        /* Populate the class short-name/long-name and long-name/short-name maps */
+
+        longNames.put("ClientNotificationMessage", "fabric.bus.messages.impl.ClientNotificationMessage");
+        shortNames.put("fabric.bus.messages.impl.ClientNotificationMessage", "ClientNotificationMessage");
+
+        longNames.put("ClientNotificationService", "fabric.client.services.ClientNotificationService");
+        shortNames.put("fabric.client.services.ClientNotificationService", "ClientNotificationService");
+
+        longNames.put("ConnectionManagerService", "fabric.bus.services.impl.ConnectionManagerService");
+        shortNames.put("fabric.bus.services.impl.ConnectionManagerService", "ConnectionManagerService");
+
+        longNames.put("ConnectionMessage", "fabric.bus.messages.impl.ConnectionMessage");
+        shortNames.put("fabric.bus.messages.impl.ConnectionMessage", "ConnectionMessage");
+
+        longNames.put("FeedManagerService", "fabric.bus.feeds.impl.FeedManagerService");
+        shortNames.put("fabric.bus.feeds.impl.FeedManagerService", "FeedManagerService");
+
+        longNames.put("FeedMessage", "fabric.bus.messages.impl.FeedMessage");
+        shortNames.put("fabric.bus.messages.impl.FeedMessage", "FeedMessage");
+
+        longNames.put("FloodRouting", "fabric.services.floodmessage.FloodRouting");
+        shortNames.put("fabric.services.floodmessage.FloodRouting", "FloodRouting");
+
+        longNames.put("NotificationManagerService", "fabric.bus.services.impl.NotificationManagerService");
+        shortNames.put("fabric.bus.services.impl.NotificationManagerService", "NotificationManagerService");
+
+        longNames.put("NotificationMessage", "fabric.bus.messages.impl.NotificationMessage");
+        shortNames.put("fabric.bus.messages.impl.NotificationMessage", "NotificationMessage");
+
+        longNames.put("ProxyPublisherService", "fabric.services.proxypublisher.ProxyPublisherService");
+        shortNames.put("fabric.services.proxypublisher.ProxyPublisherService", "ProxyPublisherService");
+
+        longNames.put("ServiceMessage", "fabric.bus.messages.impl.ServiceMessage");
+        shortNames.put("fabric.bus.messages.impl.ServiceMessage", "ServiceMessage");
+
+        longNames.put("StaticRouting", "fabric.bus.routing.impl.StaticRouting");
+        shortNames.put("fabric.bus.routing.impl.StaticRouting", "StaticRouting");
+
+        longNames.put("SubscriptionMessage", "fabric.bus.feeds.impl.SubscriptionMessage");
+        shortNames.put("fabric.bus.feeds.impl.SubscriptionMessage", "SubscriptionMessage");
+
     }
+
+    /*
+     * Class methods
+     */
 
     protected Logger logger;
 
@@ -210,9 +265,9 @@ public class Fabric {
         }
 
         /* Lower the logging level for the Paho MQTT client */
-        //        Logger mqttLogger = Logger.getLogger("org.eclipse.paho.client.mqttv3");
-        //        Level mqttLevel = Level.parse(config("org.eclipse.paho.client.mqttv3.level", "INFO"));
-        //        mqttLogger.setLevel(mqttLevel);
+        // Logger mqttLogger = Logger.getLogger("org.eclipse.paho.client.mqttv3");
+        // Level mqttLevel = Level.parse(config("org.eclipse.paho.client.mqttv3.level", "INFO"));
+        // mqttLogger.setLevel(mqttLevel);
     }
 
     /**
@@ -332,6 +387,17 @@ public class Fabric {
     }
 
     /**
+     * Sets the OSGi plugin registry.
+     *
+     * @param reg
+     *            the registry.
+     */
+    public static void setPluginRegistry(IPluginRegistry reg) {
+
+        Fabric.pluginRegistry = reg;
+    }
+
+    /**
      * Instantiates the named class using the configured class loader.
      *
      * @param className
@@ -349,7 +415,7 @@ public class Fabric {
      *             thrown if the class cannot be instantiated (for example, if there is no default constructor).
      */
     public static Object instantiate(String className) throws ClassNotFoundException, IllegalAccessException,
-    InstantiationException {
+        InstantiationException {
 
         Object instantiatedClass = null;
 
@@ -538,5 +604,23 @@ public class Fabric {
         Formatter f = new Formatter();
         f.format(format, inserts);
         return f.toString();
+    }
+
+    /**
+     * Answers the long name (package name plus class name) for a class.
+     *
+     * @return the long name for the class, or <code>null</code> if one has not been registered.
+     */
+    public static String longName(String shortName) {
+        return longNames.get(shortName);
+    }
+
+    /**
+     * Answers the short name (class name) for a full name (package name plus class name).
+     *
+     * @return the short name for the class, or <code>null</code> if one has not been registered.
+     */
+    public static String shortName(String longName) {
+        return shortNames.get(longName);
     }
 }

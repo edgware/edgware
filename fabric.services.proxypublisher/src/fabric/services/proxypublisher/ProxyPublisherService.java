@@ -101,7 +101,7 @@ public class ProxyPublisherService extends BusService {
 
         /* Build the bus topic to which the payload is to be published */
         OutputTopic busTopic = new OutputTopic(busBaseTopic.name() + '/'
-                + serviceMessage.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED));
+                + serviceMessage.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_SERVICE));
 
         /* Publish the message */
         logger.log(Level.FINEST, "Publishing message to bus topic [{0}]:\n{1}", new Object[] {busTopic,

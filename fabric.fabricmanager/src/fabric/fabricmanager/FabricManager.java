@@ -12,6 +12,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -233,13 +234,15 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
         name = homeNode();
 
         String signon1 = "Edgware Fabric Manager";
-        String signon2 = String.format("(build %s)", getBuildVersion());
-        String signon3 = String.format("Starting node: %s", name);
+        String signon2 = String.format("Build %s", getBuildVersion());
+        String signon3 = String.format("Node [%s]", name);
         System.out.println(signon1 + '\n' + signon2 + '\n' + signon3);
 
         /* We can now access enough configuration information to start logging */
         initLogging("fabric.fabricmanager", name);
-        logger.log(Level.INFO, "\n{0}\n{1}\n{2}", new Object[] {signon1, signon2, signon3});
+        logger.log(Level.INFO, signon1);
+        logger.log(Level.INFO, signon2);
+        logger.log(Level.INFO, signon3);
 
         /* Establish a connection to the Fabric Registry database */
         initRegistry();
@@ -255,9 +258,9 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
          */
 
         /* Connect to the local broker */
-        IConnectionMessage connectionMessage = new ConnectionMessage(homeNode(), IConnectionMessage.EVENT_CONNECTED);
+        IConnectionMessage connectionMessage = new ConnectionMessage(homeNode(), IServiceMessage.EVENT_CONNECTED);
         IConnectionMessage disconnectionMessage = new ConnectionMessage(homeNode(),
-                IConnectionMessage.EVENT_DISCONNECTED);
+                IServiceMessage.EVENT_DISCONNECTED);
         initConnectionMessage(connectionMessage, disconnectionMessage);
         connectFabric();
 
@@ -290,8 +293,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
         /* Register this instance with the shutdown hook */
         shutdownHook.addAction(this);
 
-        /* Initialize Fabric trace */
-        logger.log(Level.INFO, "Fabric Manager on [{0}] started", name);
+        logger.log(Level.INFO, "Fabric Manager on [{0}] running", name);
 
     }
 
@@ -319,7 +321,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
             logger.info("Cleaning Registry");
 
-            String template = "DELETE FROM %s WHERE %s IS NULL OR NOT %s LIKE '%%\"persistent\":\"true\"%%'";
+            String template = "DELETE FROM %s WHERE ( %s IS NULL OR NOT %s LIKE '%%\"persistent\":\"true\"%%' )";
 
             String[] updates = new String[] {String.format(template, "ACTORS", "ATTRIBUTES", "ATTRIBUTES"),
                     String.format(template, "BEARERS", "ATTRIBUTES", "ATTRIBUTES"),
@@ -424,26 +426,41 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
                 /* Add the node/IP mapping */
 
                 NetworkInterface networkInterface = NetworkInterface.getByName(interfaceName);
+
                 if (networkInterface == null) {
+
                     logger.log(Level.WARNING, "Interface [{0}] not found, defaulting to [{1}]", new Object[] {
                             interfaceName, ConfigProperties.NODE_INTERFACES_DEFAULT});
                     interfaceName = ConfigProperties.NODE_INTERFACES_DEFAULT;
                     networkInterface = NetworkInterface.getByName(interfaceName);
+
                 }
+
                 if (networkInterface != null) {
+
                     Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+                    List<String> interfaceAddresses = new ArrayList<String>();
+
                     while (addresses.hasMoreElements()) {
                         InetAddress address = addresses.nextElement();
                         if (address instanceof Inet4Address) {
-                            interfaceAddress = address.getHostAddress();
-                            break;
+                            String nextAddress = address.getHostAddress();
+                            logger.log(Level.FINER, "Found address for interface [{0}]: {1}", new Object[] {
+                                    interfaceName, nextAddress});
+                            interfaceAddresses.add(nextAddress);
                         }
+                    }
+
+                    if (interfaceAddresses.size() > 0) {
+                        interfaceAddress = interfaceAddresses.get(0);
                     }
                 }
             } catch (SocketException e1) {
                 e1.printStackTrace();
             }
-            logger.finest("Network Interface to use = " + interfaceName + " : " + interfaceAddress);
+
+            logger.log(Level.FINE, "Using address [{1}] via interface [{0}]", new Object[] {interfaceName,
+                    interfaceAddress});
             NodeIpMapping ipMapping = FabricRegistry.getNodeIpMappingFactory().createNodeIpMapping(homeNode(),
                     interfaceName, interfaceAddress, Integer.parseInt(config(ConfigProperties.NODE_PORT, "1883")));
 
@@ -613,7 +630,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
      */
     @Override
     public NeighbourChannels disconnectNeighbour(NodeDescriptor nodeDescriptor, boolean doRetry)
-            throws UnsupportedOperationException, IOException {
+        throws UnsupportedOperationException, IOException {
 
         return busIO.disconnectNeighbour(nodeDescriptor, doRetry);
     }
@@ -667,82 +684,82 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
 
     /**
      * @see fabric.bus.services.IConnectionManager#addActorMessage(java.lang.String, java.lang.String, java.lang.String,
-     *      fabric.bus.messages.IServiceMessage, int, boolean)
+     *      fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
-    public String addActorMessage(String node, String platform, String actor, IServiceMessage message, int statusType,
+    public String addActorMessage(String node, String platform, String actor, IServiceMessage message, String event,
             boolean singleFire) {
 
-        return connectionManager.addActorMessage(node, platform, actor, message, statusType, singleFire);
+        return connectionManager.addActorMessage(node, platform, actor, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addFeedMessage(java.lang.String, java.lang.String, java.lang.String,
-     *      java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
+     *      java.lang.String, fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
     public String addFeedMessage(String node, String platform, String system, String feed, IServiceMessage message,
-            int statusType, boolean singleFire) {
+            String event, boolean singleFire) {
 
-        return connectionManager.addFeedMessage(node, platform, system, feed, message, statusType, singleFire);
+        return connectionManager.addFeedMessage(node, platform, system, feed, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addNodeMessage(java.lang.String, fabric.bus.messages.IServiceMessage,
-     *      int, boolean)
+     *      java.lang.String, boolean)
      */
     @Override
-    public String addNodeMessage(String node, IServiceMessage message, int statusType, boolean singleFire) {
+    public String addNodeMessage(String node, IServiceMessage message, String event, boolean singleFire) {
 
-        return connectionManager.addNodeMessage(node, message, statusType, singleFire);
+        return connectionManager.addNodeMessage(node, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addPlatformMessage(java.lang.String, java.lang.String,
-     *      fabric.bus.messages.IServiceMessage, int, boolean)
+     *      fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
-    public String addPlatformMessage(String node, String platform, IServiceMessage message, int statusType,
+    public String addPlatformMessage(String node, String platform, IServiceMessage message, String event,
             boolean singleFire) {
 
-        return connectionManager.addPlatformMessage(node, platform, message, statusType, singleFire);
+        return connectionManager.addPlatformMessage(node, platform, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#addServiceMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
+     *      java.lang.String, fabric.bus.messages.IServiceMessage, java.lang.String, boolean)
      */
     @Override
-    public String addServiceMessage(String node, String platform, String system, IServiceMessage message,
-            int statusType, boolean singleFire) {
+    public String addServiceMessage(String node, String platform, String system, IServiceMessage message, String event,
+            boolean singleFire) {
 
-        return connectionManager.addServiceMessage(node, platform, system, message, statusType, singleFire);
+        return connectionManager.addServiceMessage(node, platform, system, message, event, singleFire);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#removeActorMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, int)
+     *      java.lang.String, java.lang.String)
      */
     @Override
-    public void removeActorMessage(String node, String platform, String actor, int statusType) {
+    public void removeActorMessage(String node, String platform, String actor, String event) {
 
-        connectionManager.removeActorMessage(node, platform, actor, statusType);
+        connectionManager.removeActorMessage(node, platform, actor, event);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionManager#removeFeedMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, java.lang.String, int)
+     *      java.lang.String, java.lang.String, java.lang.String)
      */
     @Override
-    public void removeFeedMessage(String node, String platform, String system, String feed, int statusType) {
+    public void removeFeedMessage(String node, String platform, String system, String feed, String event) {
 
-        connectionManager.removeFeedMessage(node, platform, system, feed, statusType);
+        connectionManager.removeFeedMessage(node, platform, system, feed, event);
 
     }
 
@@ -757,33 +774,34 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
     }
 
     /**
-     * @see fabric.bus.services.IConnectionManager#removeNodeMessage(java.lang.String, int)
+     * @see fabric.bus.services.IConnectionManager#removeNodeMessage(java.lang.String, java.lang.String)
      */
     @Override
-    public void removeNodeMessage(String node, int statusType) {
+    public void removeNodeMessage(String node, String event) {
 
-        connectionManager.removeNodeMessage(node, statusType);
+        connectionManager.removeNodeMessage(node, event);
 
     }
 
     /**
-     * @see fabric.bus.services.IConnectionManager#removePlatformMessage(java.lang.String, java.lang.String, int)
+     * @see fabric.bus.services.IConnectionManager#removePlatformMessage(java.lang.String, java.lang.String,
+     *      java.lang.String)
      */
     @Override
-    public void removePlatformMessage(String node, String platform, int statusType) {
+    public void removePlatformMessage(String node, String platform, String event) {
 
-        connectionManager.removePlatformMessage(node, platform, statusType);
+        connectionManager.removePlatformMessage(node, platform, event);
 
     }
 
     /**
      * @see fabric.bus.services.IConnectionNotificationManager#removeServiceMessage(java.lang.String, java.lang.String,
-     *      java.lang.String, int)
+     *      java.lang.String, java.lang.String)
      */
     @Override
-    public void removeServiceMessage(String node, String platform, String system, int statusType) {
+    public void removeServiceMessage(String node, String platform, String system, String event) {
 
-        connectionManager.removeServiceMessage(node, platform, system, statusType);
+        connectionManager.removeServiceMessage(node, platform, system, event);
 
     }
 
@@ -838,8 +856,8 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
                     while (addresses.hasMoreElements()) {
                         InetAddress address = addresses.nextElement();
                         if (address instanceof Inet4Address) {
-                            logger.finest("Available interface: " + myInterface.getName() + " : "
-                                    + address.getHostAddress());
+                            logger.log(Level.FINEST, "Available interface: {0}:{1}", new Object[] {
+                                    myInterface.getName(), address.getHostAddress()});
                         }
                     }
                 }

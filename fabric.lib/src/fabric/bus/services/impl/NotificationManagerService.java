@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import fabric.ServiceDescriptor;
 import fabric.TaskServiceDescriptor;
 import fabric.bus.IBusServices;
-import fabric.bus.feeds.impl.FeedList;
+import fabric.bus.feeds.impl.ServiceList;
 import fabric.bus.messages.IClientNotificationMessage;
 import fabric.bus.messages.INotificationMessage;
 import fabric.bus.messages.IServiceMessage;
@@ -30,7 +30,7 @@ import fabric.core.io.OutputTopic;
  * Class handling service acknowledgment messages for the Fabric.
  */
 public class NotificationManagerService extends BusService implements Runnable, IPersistentService,
-INotificationManager {
+        INotificationManager {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2010, 2012";
@@ -81,7 +81,7 @@ INotificationManager {
         public IServiceMessage message = null;
 
         /** The event ID associated with this message. */
-        public int event = IServiceMessage.EVENT_UNKNOWN;
+        public String event = IServiceMessage.EVENT_UNKNOWN;
 
         /** The timeout period for this notification (<code>null</code> indicates no timeout). */
         public long timeout = 0;
@@ -119,8 +119,8 @@ INotificationManager {
          *            or removed automatically when any other notification for this correlation ID is fired (
          *            <code>false</code> ).
          */
-        public NotificationRecord(String correlationID, ServiceDescriptor serviceDescriptor, int event, String actor,
-                String actorPlatform, IServiceMessage message, int timeout, boolean retained) {
+        public NotificationRecord(String correlationID, ServiceDescriptor serviceDescriptor, String event,
+                String actor, String actorPlatform, IServiceMessage message, int timeout, boolean retained) {
 
             this.correlationID = correlationID;
             this.serviceDescriptor = serviceDescriptor;
@@ -214,12 +214,13 @@ INotificationManager {
                             /* If this record has timed-out... */
                             if (nextRecord.timeout != 0 && nextRecord.timeout < currentTime) {
 
-                                logger.log(Level.FINE,
-                                        "Timout; firing notification for correlation ID [{0}], service ID [{1}]",
-                                        new Object[] {nextRecord.correlationID, nextRecord.serviceDescriptor});
-                                logger.log(Level.FINE, "Notification message [{0}] bytes:\n", new Object[] {
-                                        (nextRecord.message != null) ? nextRecord.message.toString().length() : 0,
-                                                (nextRecord.message != null) ? nextRecord.message.toString() : ""});
+                                logger.log(
+                                        Level.FINE,
+                                        "Timeout triggered: firing notification for correlation ID [{0}], event [{1}], service ID [{2}], actor [{3}], platform [{4}]",
+                                        new Object[] {nextRecord.correlationID, nextRecord.event,
+                                                nextRecord.serviceDescriptor, nextRecord.actor,
+                                                nextRecord.actorPlatform});
+                                logger.log(Level.FINEST, "Full message:\n{0}", nextRecord.message);
                                 deliverNotification(nextRecord.actor, nextRecord.actorPlatform, null,
                                         nextRecord.message, null);
 
@@ -266,8 +267,8 @@ INotificationManager {
 
         /* Extract the message details */
         String correlationID = message.getCorrelationID();
-        int event = message.getEvent();
-        FeedList feedList = request.getFeedList();
+        String event = message.getEvent();
+        ServiceList serviceList = request.getServiceList();
 
         /* Extract the notification-specific arguments from the message, to be added to the client message */
         String notificationArgs = message.getNotificationArgs();
@@ -275,14 +276,14 @@ INotificationManager {
         synchronized (threadSync) {
 
             /* If there are no feeds in the list... */
-            if (feedList.size() == 0) {
+            if (serviceList.size() == 0) {
 
                 /* Fire the notifications */
                 fireNotifications(correlationID, event, notificationArgs, message);
 
             } else {
 
-                TaskServiceDescriptor[] feeds = feedList.getFeeds();
+                TaskServiceDescriptor[] feeds = serviceList.getServices();
 
                 /* For each feed... */
                 for (int f = 0; f < feeds.length; f++) {
@@ -315,11 +316,11 @@ INotificationManager {
     }
 
     /**
-     * @see fabric.bus.services.INotificationManager#addNotification(java.lang.String, int, java.lang.String,
-     *      java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
+     * @see fabric.bus.services.INotificationManager#addNotification(java.lang.String, java.lang.String,
+     *      java.lang.String, java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
      */
     @Override
-    public void addNotification(String correlationID, int event, String actor, String actorPlatform,
+    public void addNotification(String correlationID, java.lang.String event, String actor, String actorPlatform,
             IServiceMessage message, int timeout, boolean retained) {
 
         addNotification(correlationID, null, event, actor, actorPlatform, message, timeout, retained);
@@ -327,11 +328,11 @@ INotificationManager {
     }
 
     /**
-     * @see fabric.bus.services.INotificationManager#addNotification(java.lang.String, fabric.ServiceDescriptor, int,
-     *      java.lang.String, java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
+     * @see fabric.bus.services.INotificationManager#addNotification(java.lang.String, fabric.ServiceDescriptor,
+     *      java.lang.String, java.lang.String, java.lang.String, fabric.bus.messages.IServiceMessage, int, boolean)
      */
     @Override
-    public void addNotification(String correlationID, ServiceDescriptor serviceDescriptor, int event, String actor,
+    public void addNotification(String correlationID, ServiceDescriptor serviceDescriptor, String event, String actor,
             String actorPlatform, IServiceMessage message, int timeout, boolean retained) {
 
         NotificationRecord newRecord = new NotificationRecord(correlationID, serviceDescriptor, event, actor,
@@ -426,23 +427,23 @@ INotificationManager {
     }
 
     /**
-     * @see fabric.bus.services.INotificationManager#fireNotifications(java.lang.String, int, java.lang.String,
-     *      fabric.bus.messages.INotificationMessage)
+     * @see fabric.bus.services.INotificationManager#fireNotifications(java.lang.String, java.lang.String,
+     *      java.lang.String, fabric.bus.messages.INotificationMessage)
      */
     @Override
-    public void fireNotifications(String correlationID, int event, String notificationArgs, INotificationMessage trigger)
-            throws Exception {
+    public void fireNotifications(String correlationID, String event, String notificationArgs,
+            INotificationMessage trigger) throws Exception {
 
         fireNotifications(correlationID, null, event, notificationArgs, trigger);
 
     }
 
     /**
-     * @see fabric.bus.services.INotificationManager#fireNotifications(java.lang.String, fabric.ServiceDescriptor, int,
-     *      java.lang.String, fabric.bus.messages.INotificationMessage)
+     * @see fabric.bus.services.INotificationManager#fireNotifications(java.lang.String, fabric.ServiceDescriptor,
+     *      java.lang.String, java.lang.String, fabric.bus.messages.INotificationMessage)
      */
     @Override
-    public void fireNotifications(String correlationID, ServiceDescriptor serviceDescriptor, int event,
+    public void fireNotifications(String correlationID, ServiceDescriptor serviceDescriptor, String event,
             String notificationArgs, INotificationMessage trigger) throws Exception {
 
         synchronized (threadSync) {
@@ -458,7 +459,7 @@ INotificationManager {
                 for (NotificationRecord record : recordList) {
 
                     /* If the next record matches the specified event... */
-                    if (record.event == event) {
+                    if (record.event.equals(event)) {
 
                         /* Fire the notification */
                         deliverNotification(record.actor, record.actorPlatform, notificationArgs, record.message,
@@ -468,7 +469,7 @@ INotificationManager {
                 }
 
                 /* If the notification event indicates that the message has been handled... */
-                if (event == IServiceMessage.EVENT_MESSAGE_HANDLED) {
+                if (IServiceMessage.EVENT_MESSAGE_HANDLED.equals(event)) {
 
                     /* We can remove any pending messages that don't need to be retained */
                     removeNotifications(correlationID, serviceDescriptor, false);

@@ -298,9 +298,9 @@ public class FabricBus extends Fabric {
         } else {
 
             logger.log(Level.FINE,
-                    "Establishing connection to broker for node [{0}] via interface [{1}] at address [{2}:{3}]",
+                    "Establishing connection to broker for node [{0}] at address [{2}:{3}] via interface [{1}]",
                     new Object[] {nodeDescriptor.name(), nodeDescriptor.networkInterface(), nodeDescriptor.address(),
-                    "" + nodeDescriptor.port()});
+                            "" + nodeDescriptor.port()});
 
             try {
 
@@ -356,7 +356,7 @@ public class FabricBus extends Fabric {
                     /* Record the connection */
                     connectedNodes.put(nodeDescriptor, sharedEndPoint);
 
-                    logger.log(Level.INFO, "Connected to broker for node [{0}]", nodeID);
+                    logger.log(Level.FINE, "Connected to broker for node [{0}]", nodeID);
 
                 } else {
 
@@ -475,12 +475,12 @@ public class FabricBus extends Fabric {
         routeXML.parseString(route);
 
         /* Get the XML paths for the route nodes */
-        String[] nodePaths = routeXML.getPaths("/f:route\\[.*\\]/f:node\\[.*\\]");
+        String[] nodePaths = routeXML.getPaths("/route\\[.*\\]/nd\\[.*\\]");
 
         /* For each node... */
         for (int n = 0; n < nodePaths.length; n++) {
 
-            /* Get the node ID (with a path of the form "/route/node[n]@to") */
+            /* Get the node ID (with a path of the form "/route/nd[n]@to") */
             String nodeID = routeXML.get(nodePaths[n] + "@to", n);
 
             /* Record it */

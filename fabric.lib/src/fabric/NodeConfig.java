@@ -111,7 +111,8 @@ public class NodeConfig extends LocalConfig {
             /* Query the node configuration properties table in the Registry */
             propertyValue = FabricRegistry.runStringQuery("select VALUE from " + FabricRegistry.NODE_CONFIG
                     + " where NODE_ID='" + node + "' and NAME='" + key + "'", queryScope);
-            logger.log(Level.FINEST, "Registry lookup for key [{0}] returned [{1}]", new Object[] {key, propertyValue});
+            logger.log(Level.FINEST, "Node configuration lookup for key [{0}] returned [{1}]", new Object[] {key,
+                    propertyValue});
 
             /* If we didn't find a value... */
             if (propertyValue == null) {

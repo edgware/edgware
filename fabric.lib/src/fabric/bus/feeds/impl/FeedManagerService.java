@@ -22,7 +22,6 @@ import fabric.TaskServiceDescriptor;
 import fabric.bus.IBusServices;
 import fabric.bus.feeds.IFeedManager;
 import fabric.bus.messages.IClientNotificationMessage;
-import fabric.bus.messages.IConnectionMessage;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.INotificationMessage;
 import fabric.bus.messages.IServiceMessage;
@@ -391,7 +390,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
      * @throws Exception
      */
     private void handleFeedForTaskList(IFeedMessage message, Iterator<String> tasks, FeedHandlingMetaData fhmd)
-            throws Exception {
+        throws Exception {
 
         /*
          * Initialize a table recoding the nodes to which this message is to be sent next. The key for each entry in the
@@ -512,7 +511,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             SubscriptionRecord nextSubscription = s.next();
 
             /* If it is for the current task and actor... */
-            if (nextSubscription.feed().task().equals(task)
+            if (nextSubscription.service().task().equals(task)
                     && (actorList == null || actorList.contains(nextSubscription.actor()))) {
 
                 /* Actor instrumentation */
@@ -758,7 +757,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
      * @throws Exception
      */
     private FeedPluginDispatcher actorDispatcherFactory(String actor, TaskServiceDescriptor taskFeed, String type)
-            throws Exception {
+        throws Exception {
 
         /* Get the list of plug-ins for this task/feed/node combination (local query only) */
         String predicate = format("(actor_id='%s' or actor_id='*') and (task_id='%s' or task_id='*') and "
@@ -793,8 +792,13 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         String actorPlatform = message.getProperty(IServiceMessage.PROPERTY_ACTOR_PLATFORM);
 
         /* Get the list of feeds */
-        FeedList feedList = message.getFeedList();
-        TaskServiceDescriptor[] feeds = feedList.getFeeds();
+        ServiceList serviceList = message.getServiceList();
+        TaskServiceDescriptor[] feeds = serviceList.getServices();
+
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, "Actioning subscription to service(s) [{0}] (actor [{1}], platform [{2}])",
+                    new Object[] {FLog.arrayAsString(serviceList.getServices()), actor, actorPlatform});
+        }
 
         /* For each feed... */
         for (int f = 0; f < feeds.length; f++) {
@@ -824,12 +828,12 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             nm.setEvent(IServiceMessage.EVENT_MESSAGE_TIMEOUT);
 
             /* Indicate who this message is for */
-            nm.setActor(message.getProperty("f:actor"));
-            nm.setActorPlatform(message.getProperty("f:actorPlatform"));
+            nm.setActor(message.getProperty(IServiceMessage.PROPERTY_ACTOR));
+            nm.setActorPlatform(message.getProperty(IServiceMessage.PROPERTY_ACTOR_PLATFORM));
 
-            /* Set the feed(s) */
-            FeedList feedListCopy = (FeedList) feedList.replicate();
-            nm.setFeedList(feedListCopy);
+            /* Set the service(s) */
+            ServiceList serviceListCopy = (ServiceList) serviceList.replicate();
+            nm.setServiceList(serviceListCopy);
 
             /* Register the "subscription timeout" notification */
             busServices.notificationManager().addNotification(nm.getCorrelationID(), nm.getEvent(), nm.getActor(),
@@ -876,8 +880,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         /* If this subscription is not already active... */
         if (!activeSubscriptionIDs.containsKey(subscriptionID)) {
 
-            logger.log(Level.FINER, "Creating subscription for actor [{0}] on platform [{1}], task [{2}]",
-                    new Object[] {actor, actorPlatform, taskFeed.task()});
+            logger.log(Level.FINE, "New subscription to [{0}]", taskFeed);
 
             /* Determine the QoS for this feed */
             lookupFeedQoS(feed);
@@ -895,7 +898,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             ArrayList<String> cleanupMessageHandles = registerCleanupMessages(message, taskFeed);
 
             /* Determine the route for the feed messages associated with this subscription */
-            IRouting feedRouting = message.feedRoute();
+            IRouting feedRouting = message.route();
 
             /* Get the list of active subscriptions for this feed */
             ArrayList<SubscriptionRecord> feedSubscriptions = lookupSublist(feed.toString(), activeSubscriptions);
@@ -910,7 +913,8 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
         } else {
 
-            logger.log(Level.FINE, "Ignoring subscription for [{0}], already subscribed", subscriptionID);
+            logger.log(Level.FINE, "Skipping subscription to [{0}], already subscribed for this actor/platform",
+                    taskFeed);
 
         }
     }
@@ -1003,8 +1007,8 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         StaticRouting subscriptionRouting = (StaticRouting) message.getRouting();
 
         /* Create template clean-up messages */
-        SubscriptionMessage downstreamCleanupMessage = cleanupMessageForFeed(message, taskFeed, true);
-        SubscriptionMessage upstreamCleanupMessage = cleanupMessageForFeed(message, taskFeed, false);
+        SubscriptionMessage downstreamCleanupMessage = createCleanupMessage(message, taskFeed, true);
+        SubscriptionMessage upstreamCleanupMessage = createCleanupMessage(message, taskFeed, false);
 
         String handle = null;
 
@@ -1025,7 +1029,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                         nextNodes[n]);
 
                 handle = busServices.addFeedMessage(nextNodes[n], taskFeed.platform(), taskFeed.system(), taskFeed
-                        .service(), downstreamCleanupMessage, IConnectionMessage.EVENT_DISCONNECTED, true);
+                        .service(), downstreamCleanupMessage, IServiceMessage.EVENT_DISCONNECTED, true);
                 cleanupMessageHandles.add(handle);
 
             }
@@ -1044,7 +1048,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                     subscriptionRouting.previousNode());
 
             handle = busServices.addFeedMessage(subscriptionRouting.previousNode(), taskFeed.platform(), taskFeed
-                    .system(), taskFeed.service(), upstreamCleanupMessage, IConnectionMessage.EVENT_DISCONNECTED, true);
+                    .system(), taskFeed.service(), upstreamCleanupMessage, IServiceMessage.EVENT_DISCONNECTED, true);
             cleanupMessageHandles.add(handle);
 
         }
@@ -1060,7 +1064,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
             String actor = message.getProperty(SubscriptionMessage.PROPERTY_ACTOR);
             String actorPlatform = message.getProperty(SubscriptionMessage.PROPERTY_ACTOR_PLATFORM);
             handle = busServices.addActorMessage(homeNode(), actorPlatform, actor, upstreamCleanupMessage,
-                    IConnectionMessage.EVENT_DISCONNECTED, true);
+                    IServiceMessage.EVENT_DISCONNECTED, true);
             cleanupMessageHandles.add(handle);
 
             /*
@@ -1079,9 +1083,9 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
             /* Set the feed */
             TaskServiceDescriptor[] feedAsArray = new TaskServiceDescriptor[] {taskFeed};
-            FeedList feedList = new FeedList();
-            feedList.setFeeds(feedAsArray);
-            nm.setFeedList(feedList);
+            ServiceList serviceList = new ServiceList();
+            serviceList.setServices(feedAsArray);
+            nm.setServiceList(serviceList);
 
             handle = busServices.addFeedMessage(homeNode(), taskFeed.platform(), taskFeed.system(), taskFeed.service(),
                     nm, IServiceMessage.EVENT_DISCONNECTED, true);
@@ -1099,7 +1103,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                     message.publisherNode());
 
             handle = busServices.addFeedMessage(homeNode(), taskFeed.platform(), taskFeed.system(), taskFeed.service(),
-                    downstreamCleanupMessage, IConnectionMessage.EVENT_DISCONNECTED, true);
+                    downstreamCleanupMessage, IServiceMessage.EVENT_DISCONNECTED, true);
             cleanupMessageHandles.add(handle);
 
         }
@@ -1125,14 +1129,14 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         nm.setEvent(IServiceMessage.EVENT_SUBSCRIPTION_LOST);
 
         /* Indicate who this message is for */
-        nm.setActor(message.getProperty("f:actor"));
-        nm.setActorPlatform(message.getProperty("f:actorPlatform"));
+        nm.setActor(message.getProperty(IServiceMessage.PROPERTY_ACTOR));
+        nm.setActorPlatform(message.getProperty(IServiceMessage.PROPERTY_ACTOR_PLATFORM));
 
         /* Set the feed */
         TaskServiceDescriptor[] feedAsArray = new TaskServiceDescriptor[] {taskFeed};
-        FeedList feedList = new FeedList();
-        feedList.setFeeds(feedAsArray);
-        nm.setFeedList(feedList);
+        ServiceList serviceList = new ServiceList();
+        serviceList.setServices(feedAsArray);
+        nm.setServiceList(serviceList);
 
         /* Register the "subscription lost" notification */
         busServices.notificationManager().addNotification(nm.getCorrelationID(), taskFeed, nm.getEvent(),
@@ -1155,7 +1159,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
      *
      * @return the template message.
      */
-    private SubscriptionMessage cleanupMessageForFeed(SubscriptionMessage message, TaskServiceDescriptor taskFeed,
+    private SubscriptionMessage createCleanupMessage(SubscriptionMessage message, TaskServiceDescriptor taskFeed,
             boolean reverseRoute) {
 
         /* Initialize the template unsubscribe message */
@@ -1171,9 +1175,9 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
         }
 
-        /* Set the feed list */
-        FeedList unsubscribeFeedList = cleanupTemplate.getFeedList();
-        unsubscribeFeedList.setFeeds(new TaskServiceDescriptor[] {taskFeed});
+        /* Set the service list */
+        ServiceList unsubscribeFeedList = cleanupTemplate.getServiceList();
+        unsubscribeFeedList.setServices(new TaskServiceDescriptor[] {taskFeed});
 
         return cleanupTemplate;
 
@@ -1194,14 +1198,18 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         String actorPlatform = message.getProperty(SubscriptionMessage.PROPERTY_ACTOR_PLATFORM);
 
         /* Get the list of feeds */
-        FeedList feedList = message.getFeedList();
-        TaskServiceDescriptor[] feeds = feedList.getFeeds();
+        ServiceList serviceList = message.getServiceList();
+        TaskServiceDescriptor[] services = serviceList.getServices();
 
-        /* For each feed... */
-        for (int f = 0; f < feeds.length; f++) {
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, "Actioning unsubscription from service(s) [{0}] (actor [{1}], platform [{2}])",
+                    new Object[] {FLog.arrayAsString(serviceList.getServices()), actor, actorPlatform});
+        }
 
-            /* Set up the feed subscription */
-            unsubscribeFromFeed(message.getCorrelationID(), message.getEvent(), actor, actorPlatform, feeds[f]);
+        /* For each service... */
+        for (int s = 0; s < services.length; s++) {
+
+            unsubscribeFromFeed(message.getCorrelationID(), message.getEvent(), actor, actorPlatform, services[s]);
 
         }
 
@@ -1216,18 +1224,21 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
      * @param correlationID
      *            the correlation ID for this unsubscribe command.
      *
+     * @param event
+     *            the event that triggered the unsubscription.
+     *
      * @param actor
-     *            the name of the feed actor.
+     *            the name of the actor.
      *
      * @param actorPlatform
      *            the ID of the platform via which the actor is connected to the Fabric.
      *
-     * @param feed
-     *            the name of the feed.
+     * @param taskFeed
+     *            the name of the task and feed.
      *
      * @throws IOException
      */
-    private void unsubscribeFromFeed(String correlationID, int event, String actor, String actorPlatform,
+    private void unsubscribeFromFeed(String correlationID, String event, String actor, String actorPlatform,
             TaskServiceDescriptor taskFeed) throws IOException {
 
         /* Generate the ID for this subscription */
@@ -1237,8 +1248,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
         /* If this subscription is active... */
         if (activeSubscriptionIDs.containsKey(subscriptionID)) {
 
-            logger.log(Level.FINER, "Stopping subscription for actor [{0}], task [{1}]", new Object[] {actor,
-                    taskFeed.task()});
+            logger.log(Level.FINE, "Stopping subscription to service [{0}]", taskFeed);
 
             /* Get the list of active subscriptions for this feed */
             ArrayList<SubscriptionRecord> feedSubscriptions = lookupSublist(feed.toString(), activeSubscriptions);
@@ -1251,7 +1261,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
                 /* If this is the subscription we want... */
                 if (nextSubscription.actor().equals(actor) && nextSubscription.actorPlatform().equals(actorPlatform)
-                        && nextSubscription.feed().task().equals(taskFeed.task())) {
+                        && nextSubscription.service().task().equals(taskFeed.task())) {
 
                     /* Stop the actor plug-ins */
                     nextSubscription.inboundActorDispatcher().stopDispatcher();
@@ -1262,7 +1272,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                         busServices.removeMessage(i.next());
                     }
 
-                    fireSubscriberNotifications(correlationID, nextSubscription.feed(), event);
+                    fireSubscriberNotifications(correlationID, nextSubscription.service(), event);
 
                     /* Remove the subscription */
                     feedSubscriptions.remove(s);
@@ -1304,7 +1314,8 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
         } else {
 
-            logger.log(Level.FINE, "Skipping [{0}], already unsubscribed", subscriptionID);
+            logger.log(Level.FINE,
+                    "Skipping unsubscription from [{0}], no active subscription for this actor/platform", taskFeed);
 
         }
     }
@@ -1318,10 +1329,10 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
      * @param serviceDescriptor
      *            the feed for which notifications are required.
      *
-     * @param the
-     *            triggering event.
+     * @param event
+     *            the triggering event.
      */
-    private void fireSubscriberNotifications(String correlationID, ServiceDescriptor serviceDescriptor, int event) {
+    private void fireSubscriberNotifications(String correlationID, ServiceDescriptor serviceDescriptor, String event) {
 
         try {
 
@@ -1331,7 +1342,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
 
             logger.log(Level.WARNING,
                     "Cannot fire notifications for correlation ID [{0}], feed [{1}], event [{2}]: {3}", new Object[] {
-                            correlationID, serviceDescriptor.toString(), event, e.getMessage()});
+                    correlationID, serviceDescriptor.toString(), event, e.getMessage()});
             logger.log(Level.FINEST, "Full exception: ", e);
 
         }
@@ -1357,7 +1368,9 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
      */
     private String subscriptionID(String actor, String actorPlatform, TaskServiceDescriptor feed) {
 
-        return actor + ':' + actorPlatform + ':' + feed;
+        StringBuilder subscriptionID = new StringBuilder();
+        subscriptionID.append(actor).append(':').append(actorPlatform).append(':').append(feed);
+        return subscriptionID.toString();
 
     }
 
@@ -1472,7 +1485,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
      */
     private void forwardFeedMessageToNode(String node,
             HashMap<IFeedMessage, ArrayList<SubscriptionRecord>> messageTable, FeedHandlingMetaData fhmd)
-                    throws Exception {
+        throws Exception {
 
         /* For each message to be forwarded to the node... */
         for (Iterator<IFeedMessage> m = messageTable.keySet().iterator(); m.hasNext();) {
@@ -1500,7 +1513,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                     SubscriptionRecord subscription = s.next();
 
                     /* Add the actor to the target list */
-                    message.getSubscriptions().addActor(subscription.feed().task(), subscription.actor());
+                    message.getSubscriptions().addActor(subscription.service().task(), subscription.actor());
 
                 }
             }

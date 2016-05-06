@@ -61,11 +61,11 @@ public class MQTTSystem extends JSONSystem {
     }
 
     /**
-     * @see fabric.services.systems.JSONSystem#handleSubscriptionEvent(fabric.bus.feeds.ISubscription, int,
+     * @see fabric.services.systems.JSONSystem#handleSubscriptionEvent(fabric.bus.feeds.ISubscription, java.lang.String,
      *      fabric.bus.messages.IServiceMessage)
      */
     @Override
-    public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
+    public void handleSubscriptionEvent(ISubscription subscription, String event, IServiceMessage message) {
 
         super.handleSubscriptionEvent(subscription, event, message);
     }

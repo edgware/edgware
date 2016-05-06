@@ -132,7 +132,7 @@ public class FeedPluginDispatcher extends FabletDispatcher implements IFeedPlugi
 			pluginConfig.setDescription(plugins[p].getDescription());
 			pluginConfig.setMetricManager(busServices.metrics());
 			pluginConfig.setTask(taskFeed.task());
-			pluginConfig.setFeed(taskFeed);
+			pluginConfig.setService(taskFeed);
 
 			IFeedPluginHandler plugin = (IFeedPluginHandler) dispatcher.initPluginHandler(pluginConfig);
 
@@ -188,7 +188,7 @@ public class FeedPluginDispatcher extends FabletDispatcher implements IFeedPlugi
 			pluginConfig.setDescription(plugins[p].getDescription());
 			pluginConfig.setMetricManager(busServices.metrics());
 			pluginConfig.setTask(taskFeed.task());
-			pluginConfig.setFeed(taskFeed);
+			pluginConfig.setService(taskFeed);
 			pluginConfig.setActor(actor);
 
 			IFeedPluginHandler plugin = (IFeedPluginHandler) dispatcher.initPluginHandler(pluginConfig);

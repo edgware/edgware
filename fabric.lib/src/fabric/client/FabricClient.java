@@ -587,18 +587,18 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
 
                 /* Configure the Fabric connection/disconnection messages for this client */
 
-                IConnectionMessage connectionMessage = new ConnectionMessage(IConnectionMessage.EVENT_CONNECTED,
+                IConnectionMessage connectionMessage = new ConnectionMessage(IServiceMessage.EVENT_CONNECTED,
                         homeNode(), platform, actor);
                 connectionMessage.setNotification(true);
                 registerNotificationHandler(connectionMessage.getCorrelationID(), connectionCallback);
 
-                IConnectionMessage disconnectionMessage = new ConnectionMessage(IConnectionMessage.EVENT_DISCONNECTED,
-                        homeNode(), platform, actor);
+                IConnectionMessage disconnectionMessage = new ConnectionMessage(
+                        IServiceMessage.EVENT_DISCONNECTED, homeNode(), platform, actor);
 
                 initConnectionMessage(connectionMessage, disconnectionMessage);
 
-                logger.log(Level.FINE, "Connecting client [{0}] via platform [{1}] on node [{2}]", new Object[] {actor,
-                        platform, homeNode()});
+                logger.log(Level.FINE, "User [{0}], platform [{1}], connecting to the Fabric via node [{2}]",
+                        new Object[] {actor, platform, homeNode()});
 
                 connectFabric();
 
@@ -612,8 +612,8 @@ public class FabricClient extends FabricBus implements ICallback, IFabricShutdow
 
                 connectedToFabric = true;
 
-                logger.log(Level.FINE, "Fabric actor {0} connected via node {1}, on platform {2}", new Object[] {actor,
-                        homeNode(), platform});
+                logger.log(Level.FINE, "Actor [{0}], platform [{2}], connected to the Fabric via node [{1}]",
+                        new Object[] {actor, homeNode(), platform});
 
             }
         }

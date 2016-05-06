@@ -1,6 +1,6 @@
 /*
- * (C) Copyright IBM Corp. 2009, 2012
- * 
+ * (C) Copyright IBM Corp. 2009, 2016
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -16,225 +16,225 @@ import fabric.Notifier;
 import fabric.bus.messages.IEmbeddedXML;
 import fabric.bus.messages.IReplicate;
 import fabric.core.xml.XML;
-import fabric.core.xml.XMLNode;
 
 /**
  * Class representing a set of properties (name/value pairs) embedded in a Fabric message.
  */
 public class MessageProperties extends Notifier implements IEmbeddedXML {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2012";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2016";
 
-	/*
-	 * Class constants
-	 */
+    /*
+     * Class constants
+     */
 
-	/* Message payload encoding */
+    /* Message payload encoding */
 
-	/** The message's properties (a table of name/value pairs). */
-	private HashMap<String, String> properties = new HashMap<String, String>();
+    /** The message's properties (a table of name/value pairs). */
+    private HashMap<String, String> properties = new HashMap<String, String>();
 
-	/** Cache of the XML form of the message. */
-	private XML xmlCache = null;
+    /** Cache of the XML form of the message. */
+    private XML xmlCache = null;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public MessageProperties() {
+    /**
+     * Constructs a new instance.
+     */
+    public MessageProperties() {
 
-		super(Logger.getLogger("fabric.bus.messages"));
-		addChangeListener(this);
+        super(Logger.getLogger("fabric.bus.messages"));
+        addChangeListener(this);
 
-	}
+    }
 
-	/**
-	 * Constructs a new instance, initialized from the specified instance.
-	 * 
-	 * @param source
-	 *            the instance to copy.
-	 */
-	public MessageProperties(MessageProperties source) {
+    /**
+     * Constructs a new instance, initialized from the specified instance.
+     *
+     * @param source
+     *            the instance to copy.
+     */
+    public MessageProperties(MessageProperties source) {
 
-		this();
-		properties = (HashMap<String, String>) source.properties.clone();
-		xmlCache = null;
+        this();
+        properties = (HashMap<String, String>) source.properties.clone();
+        xmlCache = null;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void init(String element, XML messageXML) throws Exception {
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void init(String element, XML messageXML) throws Exception {
 
-		properties = new HashMap<String, String>();
+        properties = new HashMap<String, String>();
 
-		/* Get the XML paths for the properties */
-		String elementPath = XML.expandPath(element);
-		elementPath = XML.regexpEscape(elementPath);
-		String[] propertyPaths = messageXML.getPaths(elementPath + "/f:props\\[.*\\]/.*\\[.*\\]");
+        /* Get the XML paths for the properties */
+        String elementPath = XML.expandPath(element);
+        elementPath = XML.regexpEscape(elementPath);
+        String[] propertyPaths = messageXML.getPaths(elementPath + "/prop\\[.*\\]/.*\\[.*\\]");
 
-		/* For each property... */
-		for (int p = 0; p < propertyPaths.length; p++) {
+        /* For each property... */
+        for (int p = 0; p < propertyPaths.length; p++) {
 
-			/* Get the property name (with a path of the form ".../properties/<property-name>[0]/$[0]") */
-			XMLNode xmlElement = messageXML.getNode(propertyPaths[p]);
-			String name = xmlElement.getNodeName();
+            /* Get the property name */
+            String name = messageXML.get(propertyPaths[p] + "@n");
 
-			/* Get the parameter value (with a path of the form "/fabric/properties/property[n]") */
-			p++;
-			String value = messageXML.get(propertyPaths[p]);
+            /* Get the property value */
+            p++;
+            String value = messageXML.get(propertyPaths[p]);
 
-			/* Save it away */
-			properties.put(name, value);
+            /* Save it away */
+            properties.put(name, value);
 
-		}
+        }
 
-		xmlCache = null;
+        xmlCache = null;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void embed(String element, XML messageXML) throws Exception {
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void embed(String element, XML messageXML) throws Exception {
 
-		Iterator<String> i = properties.keySet().iterator();
+        Iterator<String> i = properties.keySet().iterator();
+        int p = 0;
 
-		/* While there are more properties... */
-		while (i.hasNext()) {
+        /* While there are more properties... */
+        while (i.hasNext()) {
 
-			/* Get the property name */
-			String name = i.next();
+            /* Get the property name */
+            String name = i.next();
 
-			/* Get the property value */
-			String value = properties.get(name);
+            /* Get the property value */
+            String value = properties.get(name);
 
-			/* Serialize the property to the XML */
-			messageXML.set(element + "/f:props/%s", value, name);
+            /* Serialize the property to the XML */
+            messageXML.set(element + "/prop/p[%s]@n", name, p);
+            messageXML.set(element + "/prop/p[%s]", value, p++);
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * Gets the value of the specified property.
-	 * 
-	 * @param key
-	 *            the name of the property, or <code>null</code> if it does not exist.
-	 * 
-	 * @return the value.
-	 */
-	public String getProperty(String key) {
+    /**
+     * Gets the value of the specified property.
+     *
+     * @param key
+     *            the name of the property, or <code>null</code> if it does not exist.
+     *
+     * @return the value.
+     */
+    public String getProperty(String key) {
 
-		return properties.get(key);
+        return properties.get(key);
 
-	}
+    }
 
-	/**
-	 * Sets the value of the specified property.
-	 * <p>
-	 * Setting a property value to <code>null</code> will remove the property.
-	 * </p>
-	 * 
-	 * @param key
-	 *            the name of the property.
-	 * 
-	 * @param value
-	 *            the new value from the property, or <code>null</code> to remove the property.
-	 */
-	public void setProperty(String key, String value) {
+    /**
+     * Sets the value of the specified property.
+     * <p>
+     * Setting a property value to <code>null</code> will remove the property.
+     * </p>
+     *
+     * @param key
+     *            the name of the property.
+     *
+     * @param value
+     *            the new value from the property, or <code>null</code> to remove the property.
+     */
+    public void setProperty(String key, String value) {
 
-		String oldValue = properties.get(key);
+        String oldValue = properties.get(key);
 
-		/* If a value has been supplied... */
-		if (value != null) {
+        /* If a value has been supplied... */
+        if (value != null) {
 
-			properties.put(key, value);
+            properties.put(key, value);
 
-		} else {
+        } else {
 
-			properties.remove(key);
+            properties.remove(key);
 
-		}
+        }
 
-		fireChangeNotification("properties", oldValue, value);
+        fireChangeNotification("properties", oldValue, value);
 
-	}
+    }
 
-	/**
-	 * Answers an iterator across the set of property names from the message properties.
-	 * 
-	 * @return the key name iterator.
-	 */
-	public Iterator<String> propertyKeys() {
+    /**
+     * Answers an iterator across the set of property names from the message properties.
+     *
+     * @return the key name iterator.
+     */
+    public Iterator<String> propertyKeys() {
 
-		return properties.keySet().iterator();
+        return properties.keySet().iterator();
 
-	}
+    }
 
-	/**
-	 * Empties the message properties.
-	 */
-	public void empty() {
+    /**
+     * Empties the message properties.
+     */
+    public void empty() {
 
-		properties.clear();
-		fireChangeNotification("properties", null, null);
+        properties.clear();
+        fireChangeNotification("properties", null, null);
 
-	}
+    }
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
 
-		String toString = null;
+        String toString = null;
 
-		try {
+        try {
 
-			if (xmlCache == null) {
+            if (xmlCache == null) {
 
-				xmlCache = new XML();
-				embed("", xmlCache);
+                xmlCache = new XML();
+                embed("", xmlCache);
 
-			}
+            }
 
-			toString = xmlCache.toString();
+            toString = xmlCache.toString();
 
-		} catch (Exception e) {
+        } catch (Exception e) {
 
-			e.printStackTrace();
-			toString = super.toString();
+            e.printStackTrace();
+            toString = super.toString();
 
-		}
+        }
 
-		return toString;
+        return toString;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IReplicate#replicate()
-	 */
-	@Override
-	public IReplicate replicate() {
+    /**
+     * @see fabric.bus.messages.IReplicate#replicate()
+     */
+    @Override
+    public IReplicate replicate() {
 
-		return new MessageProperties(this);
+        return new MessageProperties(this);
 
-	}
+    }
 
-	/**
-	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent event) {
+    /**
+     * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
 
-		super.propertyChange(event);
+        super.propertyChange(event);
 
-		/* Something has changed, so invalidate the cached XML form of this instance */
-		xmlCache = null;
+        /* Something has changed, so invalidate the cached XML form of this instance */
+        xmlCache = null;
 
-	}
+    }
 }

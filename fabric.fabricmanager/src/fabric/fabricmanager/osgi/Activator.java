@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2006, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -15,66 +15,66 @@ import fabric.fabricmanager.FabricManager;
 
 public class Activator implements BundleActivator {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2006, 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2006, 2014";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	BundleContext context;
+    BundleContext context;
 
-	FabricManager fabricManager = null;
+    FabricManager fabricManager = null;
 
-	PluginTracker pluginTracker;
+    PluginTracker pluginTracker;
 
-	AdminListener adminListener;
+    AdminListener adminListener;
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void start(BundleContext context) throws Exception {
+    /*
+     * (non-Javadoc)
+     * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void start(BundleContext context) throws Exception {
 
-		try {
+        try {
 
-			if (System.getenv("FABRIC_HOME") == null) {
-				throw new Exception("FABRIC_HOME not set");
-			}
+            if (System.getenv("FABRIC_HOME") == null) {
+                throw new Exception("FABRIC_HOME not set");
+            }
 
-			this.context = context;
-			pluginTracker = new PluginTracker(context);
-			pluginTracker.open();
+            this.context = context;
+            pluginTracker = new PluginTracker(context);
+            pluginTracker.open();
 
-			fabricManager = new FabricManager();
-			Fabric.setPluginRegistry(pluginTracker);
-			fabricManager.init();
-			System.out.println("Fabric Manager: started");
+            fabricManager = new FabricManager();
+            Fabric.setPluginRegistry(pluginTracker);
+            fabricManager.init();
+            System.out.println("Fabric Manager running");
 
-			adminListener = new AdminListener(context, fabricManager.nodeName());
-			adminListener.start();
+            adminListener = new AdminListener(context, fabricManager.nodeName());
+            adminListener.start();
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	@Override
-	public void stop(BundleContext context) throws Exception {
+    /*
+     * (non-Javadoc)
+     * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+     */
+    @Override
+    public void stop(BundleContext context) throws Exception {
 
-		adminListener.shutdown();
-		System.out.println("Fabric Manager stopping...");
-		fabricManager.shutdown();
-		System.out.println("Fabric Manager stopped.");
-	}
+        adminListener.shutdown();
+        System.out.println("Fabric Manager stopping...");
+        fabricManager.shutdown();
+        System.out.println("Fabric Manager stopped.");
+    }
 
 }

@@ -144,7 +144,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
         activeServiceDescriptor = serviceDescriptor;
 
-        logger.log(Level.FINE, "Subscribing to feed [{0}]", serviceDescriptor);
+        logger.log(Level.FINE, "Subscribing to service [{0}]", serviceDescriptor);
 
         this.callback = callback;
 
@@ -168,8 +168,9 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
         if (route == null) {
 
             /* We've failed to subscribe */
-            String message = String.format("Subscription failed; cannot find route to feed [%s]",
-                    activeServiceDescriptor);
+            String message = String
+                    .format("Subscription failed; cannot find route to service [%s]  (check available routes and that service is registered against task)",
+                            activeServiceDescriptor);
             logger.fine(message);
             activeServiceDescriptor = null;
             throw new SubscriptionException(ReasonCode.NO_ROUTE, message);
@@ -200,10 +201,10 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
             subscriptionMessage.setProperty(IServiceMessage.PROPERTY_ACTOR, fabricClient.actor());
             subscriptionMessage.setProperty(IServiceMessage.PROPERTY_ACTOR_PLATFORM, fabricClient.platform());
 
-            /* Store the feed list in the subscription message payload */
-            FeedList feedList = new FeedList();
-            feedList.addFeed(activeServiceDescriptor);
-            subscriptionMessage.setFeedList(feedList);
+            /* Store the service list in the subscription message payload */
+            ServiceList serviceList = new ServiceList();
+            serviceList.addService(activeServiceDescriptor);
+            subscriptionMessage.setServiceList(serviceList);
 
             /* Set the message's routing */
             StaticRouting messageRouting = new StaticRouting(route);
@@ -211,8 +212,8 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
             /* Send the subscribe command to the local Fabric Manager */
 
-            logger.log(Level.FINE, "Sending subscription message for feed(s) [{0}]", FLog
-                    .arrayAsString(subscriptionMessage.getFeedList().getFeeds()));
+            logger.log(Level.FINE, "Sending subscription message for service(s): [{0}]", FLog
+                    .arrayAsString(subscriptionMessage.getServiceList().getServices()));
             logger.log(Level.FINEST, "Full message:\n{0}", subscriptionMessage);
 
             ioChannels.sendCommandsChannel.write(subscriptionMessage.toWireBytes());
@@ -271,27 +272,26 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
             throw new SubscriptionException(ReasonCode.NOT_SUBSCRIBED, "No active subscription");
         }
 
-        logger.log(Level.FINER, "Unsubscribing from feed [{0}]", activeServiceDescriptor);
         fabricClient.homeNodeEndPoint().closeChannel(channel, false);
-        logger.log(Level.FINEST, "Stopped listening for subscription messages on [{0}]", topic);
+        logger.log(Level.FINER, "Stopped listening for feed messages on [{0}]", topic);
 
         channel = null;
         topic = null;
 
+        logger.log(Level.FINE, "Sending unsubscribe message for service [{0}]", activeServiceDescriptor);
+        logger.log(Level.FINEST, "Full message:\n{0}", unsubscribeMessage.toString());
         fabricClient.deregisterNotificationHandler(unsubscribeMessage.getCorrelationID());
-        logger.log(Level.FINEST, "Sending unsubscribe command:\n{0}", unsubscribeMessage.toString());
         ioChannels.sendCommandsChannel.write(unsubscribeMessage.toWireBytes());
 
         /* De-register this subscription from the Fabric client */
         fabricClient.deregisterSubscription(this);
 
         /* Remove this subscription from the Registry */
-        TaskSubscriptionFactory factory = FabricRegistry.getTaskSubscriptionFactory(QueryScope.LOCAL);
-
-        TaskSubscription ts = factory.createTaskSubscription(activeServiceDescriptor.task(), fabricClient.actor(),
+        TaskSubscriptionFactory tsf = FabricRegistry.getTaskSubscriptionFactory(QueryScope.LOCAL);
+        TaskSubscription ts = tsf.createTaskSubscription(activeServiceDescriptor.task(), fabricClient.actor(),
                 activeServiceDescriptor.platform(), activeServiceDescriptor.system(),
                 activeServiceDescriptor.service(), fabricClient.platform());
-        factory.delete(ts);
+        tsf.delete(ts);
 
     }
 
@@ -301,7 +301,7 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
     }
 
     @Override
-    public TaskServiceDescriptor feed() {
+    public TaskServiceDescriptor service() {
         return activeServiceDescriptor;
     }
 
@@ -407,7 +407,8 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
         } else {
 
-            logger.log(Level.FINE, "No matching feeds found");
+            logger.log(Level.FINE, "Cannot find route to feed [{0}] for task [{1}]", new Object[] {
+                    feedPattern.toServiceDescriptor(), feedPattern.task()});
 
             return null;
         }
@@ -502,18 +503,24 @@ public class Subscription implements ISubscription, ICallback, IClientNotificati
 
             /* Identify what event this is a notification for */
 
-            int eventType = message.getEvent();
+            String event = message.getEvent();
+            String notificationAction = message.getNotificationAction();
 
-            if (message.getNotificationAction() != null) {
-                if (message.getNotificationAction().equals(IServiceMessage.ACTION_SUBSCRIBE)) {
-                    eventType = IServiceMessage.EVENT_SUBSCRIBED;
-                } else if (message.getNotificationAction().equals(IServiceMessage.ACTION_UNSUBSCRIBE)) {
-                    eventType = IServiceMessage.EVENT_UNSUBSCRIBED;
-                }
+            switch ((notificationAction != null) ? notificationAction : "") {
+
+                case IServiceMessage.ACTION_SUBSCRIBE:
+
+                    event = IServiceMessage.EVENT_SUBSCRIBED;
+                    break;
+
+                case IServiceMessage.ACTION_UNSUBSCRIBE:
+
+                    event = IServiceMessage.EVENT_UNSUBSCRIBED;
+                    break;
             }
 
             /* Invoke the client callback */
-            callback.handleSubscriptionEvent(this, eventType, message);
+            callback.handleSubscriptionEvent(this, event, message);
 
         } catch (Exception ce) {
 

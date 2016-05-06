@@ -104,11 +104,11 @@ public class FloodMessageService extends BusService implements IPersistentServic
 
         /*
          * // Some useful debug code when this service is identified as the handler // for a message. IRouting routing =
-         * message.getRouting(); int age = Integer.parseInt(message.getProperty("f:age")); if (routing instanceof
+         * message.getRouting(); int age = Integer.parseInt(message.getProperty("age")); if (routing instanceof
          * FloodRouting) { FloodRouting fr = (FloodRouting)routing;
          * System.out.println("@@@ Flood Message ["+message.getUID()+"] from ["+fr.previousNode()+"]  age="+age);
          * String[] nn = fr.nextNodes(); for (int i=0;i<nn.length;i++) { System.out.println("@@@    "+i+":"+nn[i]); } }
-         * if (age < 5) { message.setProperty("f:age", Integer.toString(age+1)); } else { message = null; }
+         * if (age < 5) { message.setProperty("age", Integer.toString(age+1)); } else { message = null; }
          */
 
         return request;

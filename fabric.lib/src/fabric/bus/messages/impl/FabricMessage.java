@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2009, 2014
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -10,8 +10,10 @@ package fabric.bus.messages.impl;
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import fabric.Fabric;
 import fabric.Notifier;
 import fabric.bus.messages.FabricMessageFactory;
 import fabric.bus.messages.IFabricMessage;
@@ -26,559 +28,577 @@ import fabric.core.xml.XML;
  */
 public abstract class FabricMessage extends Notifier implements IFabricMessage {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2014";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2014";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class static fields
+     */
 
-	/** The XML namespace for Fabric messages when serialized as XML. */
-	private String xmlNamespace = null;
+    /** The XML namespace for Fabric messages when serialized as XML. */
+    private static String xmlNamespace = null;
 
-	/** The type of the message. */
-	private String type = null;
+    /** The XML namespace synchronization lock. */
+    private static Object xmlNamespaceLock = new Object();
 
-	/** The unique identifier for this message. */
-	private String uid = null;
+    /*
+     * Class fields
+     */
 
-	/** The correlation ID for this message. */
-	private String correlationID = null;
+    /** The type (class name) of the message. */
+    private String type = null;
 
-	/** The message's properties (a table of name/value pairs). */
-	private MessageProperties properties = null;
+    /** The short form of the type (class name) of the message. */
+    private String compactType = null;
 
-	/** The message's routing information. */
-	private IRouting routing = null;
+    /** The unique identifier for this message. */
+    private String uid = null;
 
-	/** The message payload. */
-	private IMessagePayload payload = null;
+    /** The correlation ID for this message. */
+    private String correlationID = null;
 
-	/** The topic associated with this message. */
-	private String topic = null;
+    /** The message's properties (a table of name/value pairs). */
+    private MessageProperties properties = null;
 
-	/** Flag indicating if this instance has been modified since the XML was last generated. */
-	private boolean isModified = false;
+    /** The message's routing information. */
+    private IRouting routing = null;
 
-	/** Cache of the XML form of the message. */
-	private XML xmlCache = null;
+    /** The message payload. */
+    private IMessagePayload payload = null;
 
-	/** The message object's meta data properties. */
-	private final HashMap<String, Object> metaProperties = new HashMap<String, Object>();
+    /** The topic associated with this message. */
+    private String topic = null;
 
-	/*
-	 * Class methods
-	 */
+    /** Flag indicating if this instance has been modified since the XML was last generated. */
+    private boolean isModified = false;
 
-	/**
-	 * Constructs a new instance.
-	 */
-	public FabricMessage() {
+    /** Cache of the XML form of the message. */
+    private XML xmlCache = null;
 
-		super(Logger.getLogger("fabric.bus.messages"));
+    /** The message object's meta data properties. */
+    private final HashMap<String, Object> metaProperties = new HashMap<String, Object>();
 
-		/* Get the name of the XML namespace for Fabric messages */
-		xmlNamespace = config("fabric.xml.namespace", "http://fabric.org");
+    /*
+     * Class methods
+     */
 
-		type = getClass().getName();
-		uid = FabricMessageFactory.generateUID();
-		setProperties(new MessageProperties());
-		setPayload(new MessagePayload());
+    /**
+     * Constructs a new instance.
+     */
+    public FabricMessage() {
 
-		/* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
-		metaResetModified();
+        super(Logger.getLogger("fabric.bus.messages"));
 
-		/* But we do need to regenerate the XML */
-		invalidateXMLCache();
+        synchronized (xmlNamespaceLock) {
+            if (xmlNamespace == null) {
+                /* Get the name of the XML namespace for Fabric messages */
+                xmlNamespace = config("fabric.xml.namespace", "http://edgware-fabric.org");
+            }
+        }
 
-		/* Listen for changes to embedded objects */
-		addChangeListener(this);
+        /* Attempt to shorten the type name */
+        type = getClass().getName();
+        String shortName = Fabric.shortName(type);
+        compactType = (shortName != null) ? shortName : type;
 
-	}
+        uid = FabricMessageFactory.generateUID();
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#type()
-	 */
-	@Override
-	public String type() {
+        setProperties(new MessageProperties());
+        setPayload(new MessagePayload());
 
-		return type;
+        /* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
+        metaResetModified();
 
-	}
+        /* But we do need to regenerate the XML */
+        invalidateXMLCache();
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void init(String element, XML messageXML) throws Exception {
+        /* Listen for changes to embedded objects */
+        addChangeListener(this);
 
-		/* Get the message's unique identifier */
-		uid = messageXML.get(element + "@uid");
+    }
 
-		/* Get the message's correlation ID */
-		correlationID = messageXML.get(element + "@cid");
+    /**
+     * @see fabric.bus.messages.IFabricMessage#type()
+     */
+    @Override
+    public String type() {
+        return type;
+    }
 
-		/* Get the message properties */
-		properties.init(element, messageXML);
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#init(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void init(String element, XML messageXML) throws Exception {
 
-		/* Get the routing information from the message */
-		setRouting(MessageRoutingFactory.construct(element, messageXML));
+        /* Get the message's unique identifier */
+        uid = messageXML.get(element + "@uid");
 
-		/* Get the payload */
-		payload.init(element, messageXML);
+        /* Get the message's correlation ID */
+        correlationID = messageXML.get(element + "@cid");
 
-		/* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
-		metaResetModified();
+        /* Get the message properties */
+        properties.init(element, messageXML);
 
-	}
+        /* Get the routing information from the message */
+        setRouting(MessageRoutingFactory.construct(element, messageXML));
 
-	/**
-	 * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
-	 */
-	@Override
-	public void embed(String element, XML messageXML) throws Exception {
+        /* Get the payload */
+        payload.init(element, messageXML);
 
-		/* Set the XML namespace */
-		messageXML.set(element + "@xmlns:f", xmlNamespace);
+        /* These changes shouldn't be reflected in the instance's "modified" status as this is a new instance */
+        metaResetModified();
 
-		/* Set the message type */
-		messageXML.set(element + "@type", type);
+    }
 
-		/* Set the message's unique identifier */
-		messageXML.set(element + "@uid", uid);
+    /**
+     * @see fabric.bus.messages.IEmbeddedXML#embed(java.lang.String, fabric.core.xml.XML)
+     */
+    @Override
+    public void embed(String element, XML messageXML) throws Exception {
 
-		/* If there is a correlation ID... */
-		if (correlationID != null) {
-			/* Serialize it */
-			messageXML.set(element + "@cid", correlationID);
-		}
+        /* Set the XML namespace */
+        messageXML.set(element + "@xmlns", xmlNamespace);
 
-		/* If there are any properties associated with this message... */
-		if (properties != null) {
-			/* Set the message properties */
-			properties.embed(element, messageXML);
-		}
+        /* Set the message type */
+        messageXML.set(element + "@t", compactType);
 
-		/* If there is any routing information associated with this message... */
-		if (routing != null) {
-			/* Serialize it */
-			routing.embed(element, messageXML);
-		}
+        /* Set the message's unique identifier */
+        messageXML.set(element + "@uid", uid);
 
-		/* If there is a payload associated with this message... */
-		if (payload != null) {
-			/* Set the payload */
-			payload.embed(element, messageXML);
-		}
+        /* If there is a correlation ID... */
+        if (correlationID != null) {
+            /* Serialize it */
+            messageXML.set(element + "@cid", correlationID);
+        }
 
-	}
+        /* If there are any properties associated with this message... */
+        if (properties != null) {
+            /* Set the message properties */
+            properties.embed(element, messageXML);
+        }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#getProperty(java.lang.String)
-	 */
-	@Override
-	public String getProperty(String key) {
+        /* If there is any routing information associated with this message... */
+        if (routing != null) {
+            /* Serialize it */
+            routing.embed(element, messageXML);
+        }
 
-		return properties.getProperty(key);
+        /* If there is a payload associated with this message... */
+        if (payload != null) {
+            /* Set the payload */
+            payload.embed(element, messageXML);
+        }
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#setProperty(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public void setProperty(String key, String value) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#getProperty(java.lang.String)
+     */
+    @Override
+    public String getProperty(String key) {
 
-		properties.setProperty(key, value);
+        return properties.getProperty(key);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#getProperties()
-	 */
-	@Override
-	public MessageProperties getProperties() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#setProperty(java.lang.String, java.lang.String)
+     */
+    @Override
+    public void setProperty(String key, String value) {
 
-		return properties;
+        properties.setProperty(key, value);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#setProperties(fabric.bus.messages.impl.MessageProperties)
-	 */
-	@Override
-	public void setProperties(MessageProperties properties) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#getProperties()
+     */
+    @Override
+    public MessageProperties getProperties() {
 
-		/* Make a note of the old properties */
-		MessageProperties oldProperties = this.properties;
+        return properties;
 
-		/* If there is currently a properties object... */
-		if (oldProperties != null) {
+    }
 
-			/* Stop listening for changes to the old properties object */
-			oldProperties.removeChangeListener(this);
+    /**
+     * @see fabric.bus.messages.IFabricMessage#setProperties(fabric.bus.messages.impl.MessageProperties)
+     */
+    @Override
+    public void setProperties(MessageProperties properties) {
 
-		}
+        /* Make a note of the old properties */
+        MessageProperties oldProperties = this.properties;
 
-		/* Record the new properties */
-		this.properties = properties;
+        /* If there is currently a properties object... */
+        if (oldProperties != null) {
 
-		/* If there is currently a properties object... */
-		if (properties != null) {
+            /* Stop listening for changes to the old properties object */
+            oldProperties.removeChangeListener(this);
 
-			/* Start listening for changes to it */
-			properties.addChangeListener(this);
+        }
 
-		}
+        /* Record the new properties */
+        this.properties = properties;
 
-		/* Notify listeners that something has changed */
-		fireChangeNotification("properties", oldProperties, properties);
+        /* If there is currently a properties object... */
+        if (properties != null) {
 
-	}
+            /* Start listening for changes to it */
+            properties.addChangeListener(this);
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#propertyKeys()
-	 */
-	@Override
-	public Iterator<String> propertyKeys() {
+        }
 
-		return properties.propertyKeys();
+        /* Notify listeners that something has changed */
+        fireChangeNotification("properties", oldProperties, properties);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#getUID()
-	 */
-	@Override
-	public String getUID() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#propertyKeys()
+     */
+    @Override
+    public Iterator<String> propertyKeys() {
 
-		return uid;
+        return properties.propertyKeys();
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#setUID(java.lang.String)
-	 */
-	@Override
-	public void setUID(String uid) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#getUID()
+     */
+    @Override
+    public String getUID() {
 
-		String oldUID = this.uid;
+        return uid;
 
-		this.uid = uid;
+    }
 
-		fireChangeNotification("uid", oldUID, uid);
+    /**
+     * @see fabric.bus.messages.IFabricMessage#setUID(java.lang.String)
+     */
+    @Override
+    public void setUID(String uid) {
 
-	}
+        String oldUID = this.uid;
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#setCorrelationID(java.lang.String)
-	 */
-	@Override
-	public void setCorrelationID(String correlationID) {
+        this.uid = uid;
 
-		String oldCorrelationID = this.correlationID;
+        fireChangeNotification("uid", oldUID, uid);
 
-		this.correlationID = correlationID;
+    }
 
-		fireChangeNotification("cid", oldCorrelationID, correlationID);
+    /**
+     * @see fabric.bus.messages.IFabricMessage#setCorrelationID(java.lang.String)
+     */
+    @Override
+    public void setCorrelationID(String correlationID) {
 
-	}
+        String oldCorrelationID = this.correlationID;
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#getCorrelationID()
-	 */
-	@Override
-	public String getCorrelationID() {
+        this.correlationID = correlationID;
 
-		return correlationID;
+        fireChangeNotification("cid", oldCorrelationID, correlationID);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#getRouting()
-	 */
-	@Override
-	public IRouting getRouting() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#getCorrelationID()
+     */
+    @Override
+    public String getCorrelationID() {
 
-		return routing;
+        return correlationID;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#setRouting(fabric.bus.routing.IRouting)
-	 */
-	@Override
-	public void setRouting(IRouting routing) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#getRouting()
+     */
+    @Override
+    public IRouting getRouting() {
 
-		/* Make a note of the old routing object */
-		IRouting oldRouting = this.routing;
+        return routing;
 
-		/* If there is currently a routing object... */
-		if (oldRouting != null) {
+    }
 
-			/* Stop listening for changes to the old routing object */
-			oldRouting.removeChangeListener(this);
+    /**
+     * @see fabric.bus.messages.IFabricMessage#setRouting(fabric.bus.routing.IRouting)
+     */
+    @Override
+    public void setRouting(IRouting routing) {
 
-		}
+        /* Make a note of the old routing object */
+        IRouting oldRouting = this.routing;
 
-		/* Record the new routing object */
-		this.routing = routing;
+        /* If there is currently a routing object... */
+        if (oldRouting != null) {
 
-		/* If there is currently a routing object... */
-		if (routing != null) {
+            /* Stop listening for changes to the old routing object */
+            oldRouting.removeChangeListener(this);
 
-			/* Start listening for changes to it */
-			routing.addChangeListener(this);
+        }
 
-		}
+        /* Record the new routing object */
+        this.routing = routing;
 
-		/* Notify listeners that something has changed */
-		fireChangeNotification("routing", oldRouting, routing);
+        /* If there is currently a routing object... */
+        if (routing != null) {
 
-	}
+            /* Start listening for changes to it */
+            routing.addChangeListener(this);
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#metaGetTopic()
-	 */
-	@Override
-	public String metaGetTopic() {
+        }
 
-		return topic;
+        /* Notify listeners that something has changed */
+        fireChangeNotification("routing", oldRouting, routing);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#metaSetTopic(java.lang.String)
-	 */
-	@Override
-	public void metaSetTopic(String topic) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#metaGetTopic()
+     */
+    @Override
+    public String metaGetTopic() {
 
-		this.topic = topic;
+        return topic;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#getPayload()
-	 */
-	@Override
-	public IMessagePayload getPayload() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#metaSetTopic(java.lang.String)
+     */
+    @Override
+    public void metaSetTopic(String topic) {
 
-		return payload;
+        this.topic = topic;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#setPayload(fabric.bus.messages.IMessagePayload)
-	 */
-	@Override
-	public void setPayload(IMessagePayload payload) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#getPayload()
+     */
+    @Override
+    public IMessagePayload getPayload() {
 
-		/* Make a note of the old payload */
-		IMessagePayload oldPayload = this.payload;
+        return payload;
 
-		/* If there is currently a payload object... */
-		if (oldPayload != null) {
+    }
 
-			/* Stop listening for changes to the old payload object */
-			oldPayload.removeChangeListener(this);
+    /**
+     * @see fabric.bus.messages.IFabricMessage#setPayload(fabric.bus.messages.IMessagePayload)
+     */
+    @Override
+    public void setPayload(IMessagePayload payload) {
 
-		}
+        /* Make a note of the old payload */
+        IMessagePayload oldPayload = this.payload;
 
-		/* Record the new payload */
-		this.payload = payload;
+        /* If there is currently a payload object... */
+        if (oldPayload != null) {
 
-		/* If there is currently a payload object... */
-		if (payload != null) {
+            /* Stop listening for changes to the old payload object */
+            oldPayload.removeChangeListener(this);
 
-			/* Start listening for changes to it */
-			payload.addChangeListener(this);
+        }
 
-		}
+        /* Record the new payload */
+        this.payload = payload;
 
-		/* Notify listeners that something has changed */
-		fireChangeNotification("payload", oldPayload, payload);
+        /* If there is currently a payload object... */
+        if (payload != null) {
 
-	}
+            /* Start listening for changes to it */
+            payload.addChangeListener(this);
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#toXML()
-	 */
-	@Override
-	public XML toXML() throws Exception {
+        }
 
-		if (xmlCache == null) {
+        /* Notify listeners that something has changed */
+        fireChangeNotification("payload", oldPayload, payload);
 
-			xmlCache = new XML();
-			embed("/f:fabric", xmlCache);
+    }
 
-		}
+    /**
+     * @see fabric.bus.messages.IFabricMessage#toXML()
+     */
+    @Override
+    public XML toXML() throws Exception {
 
-		return xmlCache;
+        if (xmlCache == null) {
 
-	}
+            xmlCache = new XML();
+            embed("/fab", xmlCache);
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#toWireBytes()
-	 */
-	@Override
-	public byte[] toWireBytes() throws Exception {
+        }
 
-		return toXML().toBytes();
+        return xmlCache;
 
-	}
+    }
 
-	/**
-	 * Invalidates the cached XML for this message.
-	 */
-	protected void invalidateXMLCache() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#toWireBytes()
+     */
+    @Override
+    public byte[] toWireBytes() throws Exception {
 
-		xmlCache = null;
+        return toXML().toBytes();
 
-	}
+    }
 
-	/**
-	 * Set the flag indicating if this message has been modified.
-	 * 
-	 * @param isModified
-	 *            <code>true</code> if the status is to be set to <em>modified</em>, <code>false</code> otherwise.
-	 */
-	protected void metaSetModified(boolean isModified) {
+    /**
+     * Invalidates the cached XML for this message.
+     */
+    protected void invalidateXMLCache() {
 
-		this.isModified = isModified;
-		invalidateXMLCache();
+        xmlCache = null;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#metaIsModified()
-	 */
-	@Override
-	public boolean metaIsModified() {
+    /**
+     * Set the flag indicating if this message has been modified.
+     *
+     * @param isModified
+     *            <code>true</code> if the status is to be set to <em>modified</em>, <code>false</code> otherwise.
+     */
+    protected void metaSetModified(boolean isModified) {
 
-		return isModified;
+        this.isModified = isModified;
+        invalidateXMLCache();
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#metaResetModified()
-	 */
-	@Override
-	public void metaResetModified() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#metaIsModified()
+     */
+    @Override
+    public boolean metaIsModified() {
 
-		isModified = false;
+        return isModified;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#metaGetProperty(java.lang.String)
-	 */
-	@Override
-	public Object metaGetProperty(String key) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#metaResetModified()
+     */
+    @Override
+    public void metaResetModified() {
 
-		return metaProperties.get(key);
+        isModified = false;
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#metaSetProperty(java.lang.String, java.lang.Object)
-	 */
-	@Override
-	public void metaSetProperty(String key, Object value) {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#metaGetProperty(java.lang.String)
+     */
+    @Override
+    public Object metaGetProperty(String key) {
 
-		metaProperties.put(key, value);
+        return metaProperties.get(key);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#metaPropertyKeys()
-	 */
-	@Override
-	public Iterator<String> metaPropertyKeys() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#metaSetProperty(java.lang.String, java.lang.Object)
+     */
+    @Override
+    public void metaSetProperty(String key, Object value) {
 
-		return metaProperties.keySet().iterator();
+        metaProperties.put(key, value);
 
-	}
+    }
 
-	/**
-	 * @see fabric.bus.messages.IFabricMessage#toString()
-	 */
-	@Override
-	public String toString() {
+    /**
+     * @see fabric.bus.messages.IFabricMessage#metaPropertyKeys()
+     */
+    @Override
+    public Iterator<String> metaPropertyKeys() {
 
-		String toString = null;
+        return metaProperties.keySet().iterator();
 
-		try {
+    }
 
-			XML xml = toXML();
-			toString = xml.toString();
+    /**
+     * @see fabric.bus.messages.IFabricMessage#toString()
+     */
+    @Override
+    public String toString() {
 
-		} catch (Exception e) {
+        String toString = null;
 
-			e.printStackTrace();
-			toString = super.toString();
+        try {
 
-		}
+            XML xml = toXML();
+            toString = xml.toString();
 
-		return toString;
+        } catch (Exception e) {
 
-	}
+            e.printStackTrace();
+            toString = super.toString();
 
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
+        }
 
-		return toString().hashCode();
+        return toString;
 
-	}
+    }
 
-	/**
-	 * Compares two Fabric messages by comparing their string representations. Note that this comparison does not
-	 * consider meta-data associated with the messages. Therefore, two messages that differ in their meta-data only will
-	 * be considered equal.
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object target) {
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
 
-		String thisToString = toString();
-		String targetToString = target.toString();
+        return toString().hashCode();
 
-		return thisToString.equals(targetToString);
+    }
 
-	}
+    /**
+     * Compares two Fabric messages by comparing their string representations. Note that this comparison does not
+     * consider meta-data associated with the messages. Therefore, two messages that differ in their meta-data only will
+     * be considered equal.
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object target) {
 
-	/**
-	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent event) {
+        String thisToString = toString();
+        String targetToString = target.toString();
 
-		super.propertyChange(event);
+        return thisToString.equals(targetToString);
 
-		/* Something has changed, so invalidate the cached XML form of this instance */
-		metaSetModified(true);
+    }
 
-	}
+    /**
+     * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
 
-	/**
-	 * @see fabric.bus.messages.IReplicate#replicate()
-	 */
-	@Override
-	public IReplicate replicate() {
+        super.propertyChange(event);
 
-		IFabricMessage replica = null;
+        /* Something has changed, so invalidate the cached XML form of this instance */
+        metaSetModified(true);
 
-		try {
-			XML messageXML = toXML();
-			replica = FabricMessageFactory.create(metaGetTopic(), messageXML);
-		} catch (Exception e) {
-			logger.fine("Failed to replicate message:\n" + e);
-		}
+    }
 
-		return replica;
+    /**
+     * @see fabric.bus.messages.IReplicate#replicate()
+     */
+    @Override
+    public IReplicate replicate() {
 
-	}
+        IFabricMessage replica = null;
+
+        try {
+            XML messageXML = toXML();
+            replica = FabricMessageFactory.create(metaGetTopic(), messageXML);
+        } catch (Exception e) {
+            logger.log(Level.FINE, "Failed to replicate message: {0}", e.getMessage());
+            logger.log(Level.FINEST, "Full exception:\n", e);
+        }
+
+        return replica;
+
+    }
 }

@@ -80,7 +80,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
     /** The template topic for sending Fabric Manager commands to a neighbouring node */
     private String fabricCommandsBusTemplate = null;
 
-    /** The template topic for sending data feed message to a neighbouring node */
+    /** The template topic for sending feed messages to a neighbouring node */
     private String fabricFeedsBusTemplate = null;
 
     /** The template topic for the Fabric registry bus connection to a neighbouring node */
@@ -279,22 +279,20 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
                     logger.log(Level.WARNING, "Improperly formatted message received on topic {0}: {1}", new Object[] {
                             messageTopic, e.getMessage()});
-                    logger.log(Level.FINEST, "Full exception: ", e);
                     logger.log(Level.FINEST, "Full message:\n{0}", messageString);
+                    logger.log(Level.FINEST, "Full exception: ", e);
 
                 }
 
                 /* If this is a Fabric feed message... */
                 if (parsedMessage instanceof IFeedMessage) {
 
-                    logger.finer("Identified feed message");
                     messageHandler.handleFeedMessage((IFeedMessage) parsedMessage);
 
                 }
                 /* Else if this is a Fabric service message... */
                 else if (parsedMessage instanceof IServiceMessage) {
 
-                    logger.finer("Identified service message");
                     messageHandler.handleServiceMessage((ServiceMessage) parsedMessage);
 
                 }
@@ -367,7 +365,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
         serviceMessage.setAction(IServiceMessage.ACTION_PUBLISH_ON_NODE);
         serviceMessage.setEvent(IServiceMessage.EVENT_ACTOR_REQUEST);
 
-        serviceMessage.setProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED, feedTopic);
+        serviceMessage.setProperty(IServiceMessage.PROPERTY_DELIVER_TO_SERVICE, feedTopic);
 
         IMessagePayload messagePayload = new MessagePayload();
         messagePayload.setPayloadBytes(messageData);
@@ -436,7 +434,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
                     /* Mark this nodeDescriptor as unavailable */
                     FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL)
-                    .markUnavailable(homeNode(), nodeDescriptor);
+                            .markUnavailable(homeNode(), nodeDescriptor);
                     /*
                      * Move onto next possible nodeDescriptor, previous one should be marked unavailable and not
                      * returned.
@@ -593,7 +591,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
      */
     @Override
     public NeighbourChannels disconnectNeighbour(NodeDescriptor nodeDescriptor, boolean doRetry)
-        throws UnsupportedOperationException, IOException {
+            throws UnsupportedOperationException, IOException {
 
         NeighbourChannels currentChannels = neighbourChannelsTable.remove(nodeDescriptor);
         NeighbourChannels newChannels = null;
@@ -677,8 +675,10 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
                 } else {
 
-                    logger.log(Level.WARNING, "No connection to node [{0}], cannot send message",
-                            new Object[] {nodes[n]});
+                    logger.log(Level.WARNING,
+                            "No connection to node [{0}], cannot send service message (service type [{1}])",
+                            new Object[] {nodes[n], message.getServiceName()});
+                    logger.log(Level.FINEST, "Full message:\n{0}", message);
 
                 }
             }
@@ -715,14 +715,14 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
      *      fabric.bus.feeds.impl.SubscriptionRecord, fabric.core.io.MessageQoS)
      */
     @Override
-    public void deliverFeedMessage(String feedTopic, IFeedMessage message, SubscriptionRecord subscription,
-            MessageQoS qos) throws Exception {
+    public void deliverFeedMessage(String topic, IFeedMessage message, SubscriptionRecord subscription, MessageQoS qos)
+        throws Exception {
 
         String fullTopic = ioChannels.sendLocalSubscription.name() + '/' + subscription.actor() + '/'
-                + subscription.actorPlatform() + '/' + subscription.feed().task() + '/' + feedTopic;
+                + subscription.actorPlatform() + '/' + subscription.service().task() + '/' + topic;
 
-        logger.log(Level.FINEST, "Delivering feed [{0}] message to client [{1}], task [{2}] using topic [{3}]",
-                new Object[] {subscription.feed(), subscription.actor(), subscription.feed().task(), fullTopic});
+        logger.log(Level.FINEST, "Delivering service [{0}] message to client [{1}], task [{2}] using topic [{3}]",
+                new Object[] {subscription.service(), subscription.actor(), subscription.service().task(), fullTopic});
 
         ioChannels.sendLocalSubscriptionChannel.write(message.toWireBytes(), new OutputTopic(fullTopic));
 
@@ -827,7 +827,7 @@ public class BusIO extends FabricBus implements IBusIO, ICallback, IEndPointCall
 
                     /* Mark this Neighbour Node Descriptor as Unavailable */
                     FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL)
-                    .markUnavailable(homeNode(), nodeDescriptor);
+                            .markUnavailable(homeNode(), nodeDescriptor);
                 }
             }
         } catch (UnsupportedOperationException | IOException e) {

@@ -50,7 +50,7 @@ IEndPointCallback {
      */
 
     /** The default task ID used by subscriptions from this service. */
-    public static final String DEFAULT_TASK = "DEFAULT";
+    public static final String DEFAULT_TASK = "$def";
 
     /*
      * Class fields
@@ -93,12 +93,18 @@ IEndPointCallback {
     public void init() throws Exception {
 
         /* Connect to the Fabric */
+
         if (adapterUserID == null) {
             adapterUserID = MqttConfig.generateClient("JA");
         }
+
         if (adapterPlatformID == null) {
             adapterPlatformID = MqttConfig.generateClient("JA");
         }
+
+        logger.log(Level.FINE, "JSON adapter user ID [{0}], platform ID [{1}]", new Object[] {adapterUserID,
+                adapterPlatformID});
+
         fabricPlatform = new FabricPlatform(adapterUserID, adapterPlatformID);
         fabricPlatform.connect();
         fabricPlatform.homeNodeEndPoint().register(this);
@@ -123,7 +129,6 @@ IEndPointCallback {
         /* Passing through the home node */
         Nodes.setNode(fabricPlatform.homeNode());
         Platforms.setNode(fabricPlatform.homeNode());
-
     }
 
     /**
@@ -154,7 +159,7 @@ IEndPointCallback {
                         JSON op = new JSON(opString);
 
                         /* Start the system */
-                        logger.log(Level.INFO, "Restarting system [{0}/{1}] (client ID [{2}])", new Object[] {
+                        logger.log(Level.INFO, "System [{0}/{1}]: restarting with client ID [{2}]", new Object[] {
                                 s.getPlatformId(), s.getId(), clientID});
                         handleAdapterMessage(op, null, clientID);
 
@@ -395,7 +400,7 @@ IEndPointCallback {
 
         logger.log(Level.FINE, "Change in connectivity status to home node:\n{0}", message.toString());
 
-        if (message.getEvent() == IServiceMessage.EVENT_CONNECTED
+        if (IServiceMessage.EVENT_CONNECTED.equals(message.getEvent())
                 && fabricPlatform.actor().equals(message.getProperty(IServiceMessage.PROPERTY_ACTOR))
                 && fabricPlatform.platform().equals(message.getProperty(IServiceMessage.PROPERTY_ACTOR_PLATFORM))
                 && homeNode().equals(message.getProperty(IServiceMessage.PROPERTY_NODE))) {
@@ -411,7 +416,7 @@ IEndPointCallback {
 
         FLog.enter(logger, Level.FINER, this, "topologyUpdate", message.toString());
 
-        String event = message.getProperty(IServiceMessage.PROPERTY_EVENT);
+        String event = message.getEvent();
         String node = message.getProperty(IServiceMessage.PROPERTY_NODE);
 
         if (event != null) {
@@ -420,17 +425,23 @@ IEndPointCallback {
 
                 switch (event) {
 
-                    case "disconnected":
+                    case IServiceMessage.EVENT_DISCONNECTED:
 
                         logger.log(Level.FINE, "Node [{0}] disconnected, pruning its subscriptions", node);
                         runtimeManager.pruneSubscriptions(node);
                         break;
 
-                    case "connected":
+                    case IServiceMessage.EVENT_CONNECTED:
 
                         logger.log(Level.FINE, "Node [{0}] connected, re-matching all subscriptions", node);
                         runtimeManager.pruneSubscriptions(node);
                         runtimeManager.matchSubscriptions();
+                        break;
+
+                    default:
+
+                        logger.log(Level.FINE, "Unexpected event type [{0}] in topology notification message", event);
+                        logger.log(Level.FINEST, "Full message:\n", message);
                         break;
                 }
 
@@ -453,10 +464,11 @@ IEndPointCallback {
         FLog.enter(logger, Level.FINER, this, "fabricNotification", message.toString());
 
         String action = message.getProperty(IServiceMessage.PROPERTY_NOTIFICATION_ACTION);
+        String event = message.getEvent();
 
-        switch ((action != null) ? action : "") {
+        switch ((event != null) ? event : "") {
 
-            case "unsubscribe":
+            case IServiceMessage.EVENT_SUBSCRIPTION_LOST:
 
                 IRouting route = message.getRouting();
                 String notifyingNode = message.getProperty(IServiceMessage.PROPERTY_NOTIFYING_NODE);
@@ -476,10 +488,8 @@ IEndPointCallback {
 
                 break;
 
-            case "subscribe":
-                break;
-
             default:
+
                 break;
         }
 

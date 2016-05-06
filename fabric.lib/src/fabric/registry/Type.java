@@ -24,7 +24,7 @@ public interface Type extends RegistryObject {
 	public static final int TYPE_SENSOR = 3;
 
 	/**
-	 * Get the classifier integer for this type which will be one of TYPE_FEED, TYPE_NODE, TYPE_PLATFORM, TYPE_SERVICE or TYPE_ACTOR.
+	 * Get the classifier integer for this type which will be one of TYPE_SERVICE, TYPE_NODE, TYPE_PLATFORM, TYPE_SYSTEM or TYPE_ACTOR.
 	 * @return
 	 */
 	public int getClassifier();
