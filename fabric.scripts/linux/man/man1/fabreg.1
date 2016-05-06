@@ -5,7 +5,7 @@
 
 .SH SYNOPSIS
 .P
-\fBfabreg\fR [\fB-B\fR|\fB-d\fR|\fB-g\fR|\fB-I\fR|\fB-n\fR|\fB-N\fR|\fB-P\fR|\fB-S\fR|\fB-SV\fR|\fB-T\fR|\fB-V\fR]
+\fBfabreg\fR [\fB-B\fR|\fB-d\fR|\fB-g\fR|\fB-F\fR\fR|\fB-I\fR|\fB-N\fR|\fB-n\fR|\fB-P\fR|\fB-PT\fR|\fB-S\fR|\fB-ST|\fB-SU\fR|\fB-SV\fR|\fB-SY\fR|\fB-T\fR|\fB-t\fR|\fB-v\fR|\fB-W\fR]
 .P
 \fBfabreg\fR \fB-r file\fR
 .P
@@ -29,57 +29,86 @@ or alternatively raw SQL can be run from a file.
 .PD 0
 .IP "\fB\--list-neighbours\fR" 4
 .PD
-list all Fabric node neighbours.
+list node neighbours.
 
 .IP "\fB\-d\fR" 4
 .PD 0
 .IP "\fB\--list-default-config\fR" 4
 .PD
-list all default configuration settings.
+list default configuration settings.
 
 .IP "\fB\-g\fR" 4
 .PD 0
 .IP "\fB\--gaian\fR" 4
 .PD
-execute queries against the Gaian Database (if the Gaian Database is installed then
-a distributed query will be performed and the node provenance of each row be
-included in the results).
+make the selected query a distributed (global) query, sent to every node.
+The query is made via the Gaian Database, and node provenance of each row
+of the results will be included.
+
+.IP "\fB\-F\fR" 4
+.PD 0
+.IP "\fB\--list-fablets\fR" 4
+.PD
+List registered fablets.
 
 .IP "\fB\-I\fR" 4
 .PD 0
 .IP "\fB\--list-ip\fR" 4
 .PD
-list all Fabric Node/IP mappings.
-
-.IP "\fB\-n\fR" 4
-.PD 0
-.IP "\fB\--list-node-config\fR" 4
-.PD
-list all node configuration settings.
+list Node/IP mappings.
 
 .IP "\fB\-N\fR" 4
 .PD 0
 .IP "\fB\--list-nodes\fR" 4
 .PD
-list all Fabric nodes.
+list nodes.
+
+.IP "\fB\-n\fR" 4
+.PD 0
+.IP "\fB\--list-node-config\fR" 4
+.PD
+list node configuration settings.
 
 .IP "\fB\-P\fR" 4
 .PD 0
 .IP "\fB\--list-platforms\fR" 4
 .PD
-list all Fabric platforms.
+list platforms.
+
+.IP "\fB\-PT\fR" 4
+.PD 0
+.IP "\fB\--list-platform_types\fR" 4
+.PD
+list platform types.
 
 .IP "\fB\-r file\fR" 4
 .PD 0
 .IP "\fB\--run-sql file\fR" 4
 .PD
-run a file of SQL statements.
+run a file of SQL statements. The file must include the statements necessary to connect to, and disconnect from,
+the Registry. For example:
+.RS
+.PP
+-- Script start
+.PP
+CONNECT 'jdbc:derby://localhost:6414/FABRIC;create=false;user=fabric;password=fabric;';
+.PP
+-- Your statements here, e.g.:
+.PP
+SELECT * FROM NODES;
+.PP
+DISCONNECT;
+.PP
+EXIT;
+.PP
+-- Script end
+.RE
 
 .IP "\fB\-S\fR" 4
 .PD 0
 .IP "\fB\--list-systems\fR" 4
 .PD
-list all Fabric systems.
+list systems.
 
 .IP "\fB\-sd name value\fR" 4
 .PD 0
@@ -94,13 +123,37 @@ set a default configuration property.
 set a node configuration property (will override default configuration properties
 of the same name on the node).
 
+.IP "\fB\-ST\fR" 4
+.PD 0
+.IP "\fB\--list-service-types\fR" 4
+.PD
+list service types.
+
+.IP "\fB\-SU\fR" 4
+.PD 0
+.IP "\fB\--list-subscriptions\fR" 4
+.PD
+list active subscriptions.
+
 .IP "\fB\-SV\fR" 4
 .PD 0
 .IP "\fB\--list-services\fR" 4
 .PD
-list all Fabric services.
+list services.
+
+.IP "\fB\-SY\fR" 4
+.PD 0
+.IP "\fB\--list-system-types\fR" 4
+.PD
+list system types.
 
 .IP "\fB\-T\fR" 4
+.PD 0
+.IP "\fB\--list-task-services\fR" 4
+.PD
+list services associated with tasks.
+
+.IP "\fB\-t\fR" 4
 .PD 0
 .IP "\fB\--list-tables\fR" 4
 .PD
@@ -118,11 +171,17 @@ unset (delete) a default configuration property.
 .PD
 unset (delete) a node configuration property.
 
-.IP "\fB\-V\fR" 4
+.IP "\fB\-v\fR" 4
 .PD 0
 .IP "\fB\--list-views\fR" 4
 .PD
 list all views in the database FABRIC.
+
+.IP "\fB\-W\fR" 4
+.PD 0
+.IP "\fB\--list-wiring\fR" 4
+.PD
+list service wiring.
 
 .SH "COPYRIGHT"
 
