@@ -33,7 +33,7 @@ class FabricConnection implements Runnable, MqttCallback {
      */
 
     /** The Fabric descriptor for the update data feed. */
-    private final static String REGISTRY_UPDATE_SERVICE = "$fabric/$registry/$registry_updates";
+    private final static String REGISTRY_UPDATE_SERVICE = "$fab/$reg/$updates";
 
     /*
      * Class fields
@@ -86,8 +86,8 @@ class FabricConnection implements Runnable, MqttCallback {
         } catch (NumberFormatException e2) {
             /* Use the default value */
             System.out
-            .println("Invalid value for configuration setting registry.broker.retryInterval (must be an integer value): "
-                    + configRetryInterval);
+                    .println("Invalid value for configuration setting registry.broker.retryInterval (must be an integer value): "
+                            + configRetryInterval);
         }
         System.out.println("Re-try interval for the broker connection: " + retryInterval + " seconds");
     }

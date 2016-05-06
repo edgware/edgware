@@ -360,7 +360,7 @@ public class Systems extends Article {
 
             /* Create the Registry entry */
             TaskServiceFactory tsf = FabricRegistry.getTaskServiceFactory();
-            TaskService ts = tsf.createTaskService("DEFAULT", platformId, systemId, serviceId);
+            TaskService ts = tsf.createTaskService("$def", platformId, systemId, serviceId);
             boolean success = tsf.save(ts);
 
             if (!success) {

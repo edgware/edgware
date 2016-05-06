@@ -313,7 +313,7 @@ public class SystemServices extends FabricBus {
                         .platform(), systemRuntime.systemDescriptor().system(), fromFeedID);
 
                 /* Build the task feed descriptor */
-                TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT",
+                TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("$def",
                         solicitResponseDescriptor);
 
                 try {
@@ -400,10 +400,10 @@ public class SystemServices extends FabricBus {
      * @throws IncompleteObjectException
      */
     protected void addWiringToRegistry(ServiceDescriptor subscribeToDescriptor, ServiceDescriptor deliverToDescriptor)
-        throws IncompleteObjectException {
+            throws IncompleteObjectException {
 
         SystemWiringFactory swf = FabricRegistry.getSystemWiringFactory(QueryScope.LOCAL);
-        SystemWiring sw = swf.create("DEFAULT", subscribeToDescriptor.platform(), subscribeToDescriptor.system(),
+        SystemWiring sw = swf.create("$def", subscribeToDescriptor.platform(), subscribeToDescriptor.system(),
                 subscribeToDescriptor.service(), deliverToDescriptor.platform(), deliverToDescriptor.system(),
                 deliverToDescriptor.service());
         swf.save(sw);
@@ -516,7 +516,7 @@ public class SystemServices extends FabricBus {
         boolean isNewSubscription = true;
 
         /* Build the remote (from) task feed descriptor */
-        TaskServiceDescriptor subscribeToTaskDescriptor = new TaskServiceDescriptor("DEFAULT", subscribeToDescriptor);
+        TaskServiceDescriptor subscribeToTaskDescriptor = new TaskServiceDescriptor("$def", subscribeToDescriptor);
         ServiceDescriptor subscribeToDescriptorFromTaskDescriptor = subscribeToTaskDescriptor.toServiceDescriptor();
 
         /* Build the local (to) feed descriptor */
@@ -533,7 +533,7 @@ public class SystemServices extends FabricBus {
                 isNewSubscription = false;
 
                 logger.log(Level.FINER,
-                        "Resending subscription to remote feed [{0]} (wired to local feed [{1}]) for service [{2}]",
+                        "Resending subscription to remote feed [{0}] (wired to local feed [{1}]) for service [{2}]",
                         new Object[] {subscribeToTaskDescriptor, deliverToDescriptor, systemRuntime.systemDescriptor()});
 
                 inputSubscription.resubscribe();
@@ -555,9 +555,9 @@ public class SystemServices extends FabricBus {
         } catch (Exception e) {
 
             String message = Fabric.format(
-                    "Cannot subscribe to remote feed '%s' (wired to local feed %s) for service instance '%s':", e,
-                    subscribeToTaskDescriptor, deliverToDescriptor, systemRuntime.systemDescriptor());
-            logger.log(Level.SEVERE, message);
+                    "Cannot subscribe to service [%s] (wired to local feed [%s]) for service [%s]: %s",
+                    subscribeToTaskDescriptor, deliverToDescriptor, systemRuntime.systemDescriptor(), e.getMessage());
+            logger.log(Level.WARNING, message);
             throw new Exception(message, e);
 
         }
@@ -680,7 +680,7 @@ public class SystemServices extends FabricBus {
             else if (services[f].getMode().equals(Service.MODE_REQUEST_RESPONSE)) {
 
                 /* Build the descriptor for the local service feed */
-                TaskServiceDescriptor requestResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
+                TaskServiceDescriptor requestResponseTaskDescriptor = new TaskServiceDescriptor("$def", services[f]
                         .getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
                         .toString());
 
@@ -711,7 +711,7 @@ public class SystemServices extends FabricBus {
             else if (services[f].getMode().equals(Service.MODE_SOLICIT_RESPONSE)) {
 
                 /* Build the descriptor for the local service feed */
-                TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
+                TaskServiceDescriptor solicitResponseTaskDescriptor = new TaskServiceDescriptor("$def", services[f]
                         .getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
                         .toString());
 
@@ -742,7 +742,7 @@ public class SystemServices extends FabricBus {
             else if (services[f].getMode().equals(Service.MODE_LISTENER)) {
 
                 /* Build the descriptor for the local service feed */
-                TaskServiceDescriptor oneWayTaskDescriptor = new TaskServiceDescriptor("DEFAULT", services[f]
+                TaskServiceDescriptor oneWayTaskDescriptor = new TaskServiceDescriptor("$def", services[f]
                         .getPlatformId().toString(), services[f].getSystemId().toString(), services[f].getId()
                         .toString());
 

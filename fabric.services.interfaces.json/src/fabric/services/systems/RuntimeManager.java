@@ -52,8 +52,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
      */
 
     /** The descriptor for the Registry update notification service. */
-    private static final TaskServiceDescriptor registryUpdatesDescriptor = new TaskServiceDescriptor("DEFAULT",
-            "$fabric", "$registry", "$registry_updates");
+    private static final TaskServiceDescriptor registryUpdatesDescriptor = new TaskServiceDescriptor("$def", "$fab",
+            "$reg", "$updates");
 
     /** Fabric class instance used to access utility methods only. */
     private static final Fabric fabric = new Fabric();
@@ -121,7 +121,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
                         new Object[] {intervalConfig, interval});
             }
 
-            logger.log(Level.INFO, "Runtime Manager refresh thread starting");
+            logger.log(Level.INFO, "Runtime Manager refresh thread running");
 
             while (interval != -1) {
 
@@ -139,6 +139,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
                             switch (action) {
 
                                 case "prune":
+
+                                    logger.log(Level.FINE, "Pruning subscriptions for lost nodes");
 
                                     for (String n : missingRouteNodes()) {
 
@@ -161,6 +163,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
                                     break;
 
                                 case "match":
+
+                                    logger.log(Level.FINE, "Re-matching subscriptions");
 
                                     try {
 
@@ -186,7 +190,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
                     }
                 }
             }
-            logger.log(Level.INFO, "Runtime Manager refresh thread stopping");
+            logger.log(Level.INFO, "Runtime Manager refresh thread stopped");
         }
 
         /**
@@ -347,8 +351,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
         /* If there is already a running service instance with this name... */
         if (systemRuntime != null && systemRuntime.isRunning()) {
 
-            String message = format("System already running: %s", systemDescriptor);
-            logger.log(Level.WARNING, message);
+            String message = format("System [%s]: already running", systemDescriptor);
+            logger.log(Level.INFO, message);
             status = new RuntimeStatus(RuntimeStatus.Status.ALREADY_RUNNING, message);
 
         } else {
@@ -432,16 +436,22 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
         } else {
 
-            /* Stop the instance */
-            systemRuntime.stop();
+            /* Attempt to stop the instance */
+            if (systemRuntime.stop()) {
 
-            /* Remove it from the manager */
-            activeSystems.remove(systemDescriptor);
+                /* Remove it from the manager */
+                activeSystems.remove(systemDescriptor);
 
+            } else {
+
+                status = new RuntimeStatus(RuntimeStatus.Status.STILL_RUNNING,
+                        "Cannot stop systems with autostart enabled");
+
+            }
         }
 
         if (status == null) {
-            /* The system was started OK */
+            /* The system was stopped OK */
             status = new RuntimeStatus(RuntimeStatus.Status.OK, RuntimeStatus.MESSAGE_OK);
         }
 
@@ -744,7 +754,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
      * @param subscribedList
      *            to hold the list of actual subscriptions made.
      */
-    public synchronized RuntimeStatus subscribe(ServiceDescriptor[] outputFeedPatterns, ServiceDescriptor inputFeed,
+    public RuntimeStatus subscribe(ServiceDescriptor[] outputFeedPatterns, ServiceDescriptor inputFeed,
             List<ServiceDescriptor> subscribedList) throws Exception {
 
         RuntimeStatus subscribeStatus = RuntimeStatus.STATUS_OK;
@@ -869,8 +879,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
      *
      * @return the status.
      */
-    public synchronized RuntimeStatus subscribe(ServiceDescriptor outputFeedService,
-            ServiceDescriptor inputFeedService, ServiceDescriptor pattern) {
+    public RuntimeStatus subscribe(ServiceDescriptor outputFeedService, ServiceDescriptor inputFeedService,
+            ServiceDescriptor pattern) {
 
         RuntimeStatus status = null;
 
@@ -984,8 +994,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
      *
      * @return the status.
      */
-    public synchronized RuntimeStatus unsubscribe(ServiceDescriptor[] outputFeedServices,
-            ServiceDescriptor inputFeedService) {
+    public RuntimeStatus unsubscribe(ServiceDescriptor[] outputFeedServices, ServiceDescriptor inputFeedService) {
 
         RuntimeStatus status = null;
 
@@ -1349,8 +1358,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
             /* Attempt to subscribe */
 
-            logger.log(Level.INFO, "System [{0}] resubscribing to pattern [{1}] for input feed [{2}]", new Object[] {
-                    desc, pattern, inputFeed});
+            logger.log(Level.INFO, "System [{0}]: resubscribing to [{1}] (wired to [{2}])", new Object[] {desc,
+                    pattern, inputFeed});
 
             ServiceDescriptor[] patternArray = new ServiceDescriptor[] {pattern};
             List<ServiceDescriptor> subscribedList = new ArrayList<ServiceDescriptor>();
@@ -1446,6 +1455,9 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
      */
     @Override
     public void startSubscriptionCallback() {
+
+        FLog.enter(logger, Level.FINER, this, "startSubscriptionCallback", (Object[]) null);
+        FLog.exit(logger, Level.FINER, this, "startSubscriptionCallback", null);
     }
 
     /**
@@ -1454,8 +1466,10 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
     @Override
     public synchronized void handleSubscriptionMessage(IFeedMessage message) {
 
+        FLog.enter(logger, Level.FINER, this, "handleSubscriptionMessage", message);
+
         /* Get the target service of this message */
-        String serviceDescriptor = message.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED);
+        String serviceDescriptor = message.getProperty(IServiceMessage.PROPERTY_DELIVER_TO_SERVICE);
 
         if (serviceDescriptor != null) {
 
@@ -1467,7 +1481,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
                 byte[] payloadBytes = message.getPayload().getPayload();
                 payload = (payloadBytes != null) ? new String(payloadBytes) : null;
 
-                if (serviceDescriptor.equals("$fabric/$registry/$registry_updates")) {
+                if (serviceDescriptor.equals("$fab/$reg/$updates")) {
 
                     /* The payload is a JSON structure containing details of a Registry update */
                     JSON triggerJSON = new JSON(payload);
@@ -1553,6 +1567,8 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
             }
         }
+
+        FLog.exit(logger, Level.FINER, this, "handleSubscriptionMessage", null);
     }
 
     /**
@@ -1594,11 +1610,12 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
     }
 
     /**
-     * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription, int,
-     *      fabric.bus.messages.IServiceMessage)
+     * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription,
+     *      java.lang.String, fabric.bus.messages.IServiceMessage)
      */
     @Override
-    public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
+    public void handleSubscriptionEvent(ISubscription subscription, String event, IServiceMessage message) {
+
         FLog.enter(logger, Level.FINER, this, "handleSubscriptionEvent", subscription, event, message);
         FLog.exit(logger, Level.FINER, this, "handleSubscriptionEvent", null);
     }
@@ -1608,6 +1625,7 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
      */
     @Override
     public void cancelSubscriptionCallback() {
+
         FLog.enter(logger, Level.FINER, this, "cancelSubscriptionCallback", null);
         FLog.exit(logger, Level.FINER, this, "cancelSubscriptionCallback", null);
     }

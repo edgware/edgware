@@ -56,7 +56,7 @@ public class TableUpdate {
      * @return code always 0.
      */
     public synchronized static int entryModified(String tableName, String key, String id, String action)
-            throws Exception {
+        throws Exception {
 
         try {
 
@@ -115,9 +115,9 @@ public class TableUpdate {
 
                 /* Build the notification message (a JSON object) */
                 notification
-                        .append(String
-                                .format("\"table\":\"%s\",\"key\":\"%s\",\"id\":\"%s\",\"action\":\"%s\",\"availability\":\"%s\",\"timestamp\":%d",
-                                        tableName, key, id, action, availability, System.currentTimeMillis()));
+                .append(String
+                        .format("\"table\":\"%s\",\"key\":\"%s\",\"id\":\"%s\",\"action\":\"%s\",\"availability\":\"%s\",\"timestamp\":%d",
+                                tableName, key, id, action, availability, System.currentTimeMillis()));
 
                 notification.append(notificationDetail);
                 notification.append('}');
@@ -153,7 +153,7 @@ public class TableUpdate {
      * @throws SQLException
      */
     private static StringBuilder servicesForSystem(String platformID, String systemID, String systemType)
-            throws SQLException {
+        throws SQLException {
 
         Connection connection = null;
         Statement statement = null;
@@ -184,9 +184,9 @@ public class TableUpdate {
                         platformID, //
                         systemID, //
                         (systemType != null) ? ':' + systemType : "", //
-                        resultSet.getString("ID"), //
-                        resultSet.getString("TYPE_ID"), //
-                        resultSet.getString("DIRECTION")));
+                                resultSet.getString("ID"), //
+                                resultSet.getString("TYPE_ID"), //
+                                resultSet.getString("DIRECTION")));
             }
 
             services.append(']');
@@ -286,7 +286,7 @@ public class TableUpdate {
     // debugConnection = DriverManager
     // .getConnection("jdbc:derby://localhost:6414/FABRIC;create=true;user=fabric;password=fabric");
     //
-    // TableUpdate.entryModified("SYSTEMS", "PLATFORM_ID/ID:TYPE_ID", "$fabric/$registry:$registry", "UPDATE");
+    // TableUpdate.entryModified("SYSTEMS", "PLATFORM_ID/ID:TYPE_ID", "$fab/$reg:$reg", "UPDATE");
     // TableUpdate.entryModified("NODE_NEIGHBOURS", "NODE_ID/NEIGHBOUR_ID", "scott/alan", "UPDATE");
     //
     // } catch (Exception e) {
