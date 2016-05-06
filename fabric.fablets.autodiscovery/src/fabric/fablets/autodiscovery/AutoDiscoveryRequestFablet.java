@@ -157,9 +157,8 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
 
             }
 
-            logger.log(
-                    Level.FINE,
-                    "Sending autodiscovery requests to the group [{0}] on port [{1}] with frequency [{2}] milliseconds",
+            logger.log(Level.FINE,
+                    "Sending autodiscovery requests to the group [{0}] on port [{1}] every [{2}] milliseconds",
                     new Object[] {multicastGroup, multicastPort, autoDiscoveryFrequency});
 
             broadcastMessageTTL = new Integer(config(ConfigProperties.AUTO_DISCOVERY_TTL,
@@ -220,7 +219,7 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
             udpSendRequestSocket.setNetworkInterface(NetworkInterface.getByInetAddress(interfaceSendRequestAddr));
             udpSendRequestSocket.joinGroup(multicastGroupAddress);
 
-            logger.log(Level.INFO, "Multicast send socket created for: {0} | {1} - {2} | {3}", new Object[] {
+            logger.log(Level.FINER, "Multicast send socket created for {0} | {1} - {2} | {3}", new Object[] {
                     multicastGroupAddress.toString(),
                     NetworkInterface.getByInetAddress(interfaceSendRequestAddr).toString(),
                     udpSendRequestSocket.getInterface().toString(), udpSendRequestSocket.getLocalAddress().toString()});
@@ -232,7 +231,7 @@ public class AutoDiscoveryRequestFablet extends FabricBus implements IFabletPlug
             logger.log(Level.INFO,
                     "Couldn't get an InetAddress for the IP [{0}] for interface [{1}] on node [{2}]: {3}",
                     new Object[] {nodeIpMapping.getIpAddress(), nodeIpMapping.getNodeInterface(),
-                    nodeIpMapping.getNodeId(), e.getMessage()});
+                            nodeIpMapping.getNodeId(), e.getMessage()});
             logger.log(Level.FINEST, "Full exception: ", e);
             failedRequests.add(request);
         } catch (SocketException e) {

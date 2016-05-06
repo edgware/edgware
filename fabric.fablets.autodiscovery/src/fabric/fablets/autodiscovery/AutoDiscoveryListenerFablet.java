@@ -324,8 +324,6 @@ public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlu
      */
     public void publishMessage(String msg) {
 
-        logger.finest("About to publish to topic " + autodiscoveryTopic + " message " + msg);
-
         try {
 
             SharedChannel configChannel = homeNodeEndPoint().openOutputChannel(autodiscoveryTopic);
