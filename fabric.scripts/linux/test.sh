@@ -35,13 +35,14 @@ else
 		ERROR=1
 	fi
 
-	# Is $FABRIC_HOME on the PATH?
-	if [ ! `echo $PATH | grep "$FABRIC_HOME/bin/linux"`  ]
-	then
-		echo "\$PATH does not include the \$FABRIC_HOME bin directory ($FABRIC_HOME/bin/linux)"
-		ERROR=1
-	fi
-fi
+    # Is $FABRIC_HOME on the PATH?
+    echo $PATH | grep "$FABRIC_HOME/bin/linux" > /dev/null
+    if [ $? -eq 1 ]
+    then
+       echo "\$PATH does not include the \$FABRIC_HOME bin directory ($FABRIC_HOME/bin/linux)"
+       ERROR=1
+    fi
+ fi
 
 # Is $JAVA_HOME set?
 if [ ! -n "$JAVA_HOME"  ]
