@@ -123,13 +123,13 @@ public class HeartbeatFablet extends FabricBus implements IFabletPlugin, ICallba
 
             /* read config values */
             String topic = config("heartbeat.topic", "/SYS/1/FABHEBT");
-            String interval = config("heartbeat.interval", "30000");
+            String interval = config("heartbeat.interval", "60000");
 
             try {
                 sleepInterval = Long.parseLong(interval);
             } catch (Exception e1) {
                 /* not a number - default instead */
-                sleepInterval = 30000;
+                sleepInterval = 60000;
                 logger.log(Level.WARNING, "Unable to parse sleep interval [{1}]; using default ({0}) instead: {2}",
                         new Object[] {interval, sleepInterval, e1.getMessage()});
                 logger.log(Level.FINEST, "Full exception: ", e1);
