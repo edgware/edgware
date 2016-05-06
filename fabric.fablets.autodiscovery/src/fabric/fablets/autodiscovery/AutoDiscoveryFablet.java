@@ -23,12 +23,15 @@ import fabric.core.logging.FLog;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodeIpMapping;
+import fabric.registry.NodeIpMappingFactory;
 import fabric.registry.NodeNeighbour;
+import fabric.registry.NodeNeighbourFactory;
 import fabric.registry.QueryScope;
 import fabric.registry.Type;
+import fabric.registry.TypeFactory;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
-import fabric.session.RegistryDescriptor;
+import fabric.registry.exception.RegistryQueryException;
 
 /**
  * Fablet class to handle discovery configuration messages containing platform/service/feed definition information.
@@ -202,12 +205,16 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
             if ((parts.length == 8) && checkForNameValuePairs(parts)) {
 
                 if (parts[0].split("=")[0].equalsIgnoreCase("nt")) {
-                    processNodeDiscovery(parts);
+
+                    processDiscoveryEvent(parts);
+
                 } else {
-                    // Unrecognised message - log a message and skip it
+
+                    /* Unrecognised message - log a message and skip it */
                     logger.log(Level.WARNING, "Unrecognised message received on [{0}]:\n{1}", new Object[] {
                             messageTopic, messageString});
                 }
+
             } else {
 
                 // Unexpected message format - log a message and skip it
@@ -215,6 +222,7 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
                         messageString});
             }
         }
+
         if (perfLoggingEnabled) {
             timeToProcessMessage = System.currentTimeMillis() - timeToProcessMessage;
             logger.log(Level.FINEST, "Time taken to process message [{0}] was [{1}] milliseconds", new Object[] {
@@ -231,7 +239,7 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
      * @param parts
      *            - a String array containing all the individual tokens from the original message payload.
      */
-    private void processNodeDiscovery(String[] parts) {
+    private void processDiscoveryEvent(String[] parts) {
 
         String nodeTypeId = parts[0].split("=")[1];
         String neighbourId = parts[1].split("=")[1];
@@ -242,41 +250,33 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
         String nodeStatusIndicator = parts[6].split("=")[1];
         String nodeAffiliation = parts[7].split("=")[1];
 
-        logger.log(Level.FINEST, "Node [{0}] has affiliation [{1}]", new Object[] {neighbourId, nodeAffiliation});
+        logger.log(Level.FINE, "Processing discovery event for node [{0}] (availability status [{1}]): [{2}:{3}:{4}]",
+                new Object[] {neighbourId, nodeStatusIndicator, neighbourInterface, nodeIpAddress, nodePort});
 
         if (!neighbourId.equals(myNodeName)) {
 
             String nodeAvailability = "UNKOWN";
 
             if (nodeStatusIndicator.equals("0")) {
+
+                logger.log(Level.FINE, "Processing loss of node [{0}]", neighbourId);
                 nodeAvailability = NodeNeighbour.UNAVAILABLE;
+
             } else if (nodeStatusIndicator.equals("1")) {
+
+                logger.log(Level.FINE, "Processing discovery of node [{0}]", neighbourId);
                 nodeAvailability = NodeNeighbour.AVAILABLE;
+
+                validateNodeType(nodeTypeId);
+                validateIPMapping(neighbourId, neighbourInterface, nodeIpAddress, nodePort);
             }
 
-            logger.log(Level.FINE, "Processing node discovery; node availability [{0}]", nodeAvailability);
-
-            /*
-             * Create node_type entry and update IpMapping if it doesn't exist; only do this if not using a central
-             * registry
-             */
-            if (!RegistryDescriptor.TYPE_SINGLETON.equalsIgnoreCase(registryType)) {
-
-                logger.log(Level.FINE,
-                        "Updating Registry with meta data for node [{0}] (availability [{1}]): [{2}:{3}:{4}]",
-                        new Object[] {neighbourId, nodeAvailability, neighbourInterface, nodeIpAddress, nodePort});
-
-                createNodeType(nodeTypeId);
-                int port = new Integer(nodePort).intValue();
-                updateIpMapping(neighbourId, neighbourInterface, nodeIpAddress, port);
-            }
-            updateNeighbourInformation(homeNode(), localInterface, neighbourId, neighbourInterface, nodeAvailability);
+            updateNeighbourRecord(homeNode(), localInterface, neighbourId, neighbourInterface, nodeAvailability);
         }
     }
 
     /**
-     * Method will update the registry node_neighbours table, if the neighbour is no longer available it will be
-     * deleted, otherwise it will be added as available.
+     * Update the Registry, deleting a neighbour that is no longer available, or adding is as available.
      *
      * @param homeNode
      * @param nodeInterface
@@ -284,75 +284,155 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
      * @param neighbourInterface
      * @param neighbourAvailability
      */
-    private void updateNeighbourInformation(String homeNode, String nodeInterface, String neighbourId,
+    private void updateNeighbourRecord(String homeNode, String nodeInterface, String neighbourId,
             String neighbourInterface, String neighbourAvailability) {
 
-        NodeNeighbour neighbour = FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL).createNodeNeighbour(
-                homeNode, nodeInterface, neighbourId, neighbourInterface, CLASS_NAME, neighbourAvailability, null,
-                null, null);
+        NodeNeighbourFactory nnf = FabricRegistry.getNodeNeighbourFactory(QueryScope.LOCAL);
+        String predicate = String.format(
+                "node_id='%s' and node_interface='%s' and neighbour_id='%s' and neighbour_interface='%s'", homeNode,
+                nodeInterface, neighbourId, neighbourInterface);
 
-        if (neighbourAvailability.equals(NodeNeighbour.AVAILABLE)) {
-            try {
-                FabricRegistry.save(neighbour);
-                logger.log(Level.INFO, "Neighbour [{0}] added to the Registry", neighbourId);
-            } catch (IncompleteObjectException e) {
-                logger.log(Level.WARNING, "Failed to save neighbour [{0}] - neighbour availability not updated:\n{1}",
-                        new Object[] {neighbourId, e});
+        try {
+
+            NodeNeighbour[] nn = nnf.getNeighbours(predicate);
+            NodeNeighbour neighbourRecord = null;
+
+            if (nn != null && nn.length > 0) {
+                neighbourRecord = nn[0];
             }
-        } else {
 
-            // remove it
-            FabricRegistry.delete(neighbour);
-            logger.log(Level.INFO, "Neighbour [{0}] removed from the registry, status [{1}]", new Object[] {
-                    neighbourId, neighbourAvailability});
+            if (neighbourAvailability.equals(NodeNeighbour.UNAVAILABLE)) {
+
+                if (neighbourRecord != null) {
+
+                    logger.log(Level.FINE, "Removing neighbour [{0}] from the Registry (status [{1}])", new Object[] {
+                            neighbourId, neighbourAvailability});
+
+                    nnf.delete(neighbourRecord);
+                }
+
+            } else {
+
+                boolean doSaveRecord = false;
+
+                if (neighbourRecord == null) {
+
+                    neighbourRecord = nnf.createNodeNeighbour(homeNode, nodeInterface, neighbourId, neighbourInterface,
+                            CLASS_NAME, neighbourAvailability, null, null, null);
+                    doSaveRecord = true;
+
+                } else if (!neighbourRecord.getNodeId().equals(homeNode)
+                        || !neighbourRecord.getNodeInterface().equals(nodeInterface)
+                        || !neighbourRecord.getNeighbourId().equals(neighbourId)
+                        || !neighbourRecord.getNeighbourInterface().equals(neighbourInterface)) {
+
+                    neighbourRecord.setNodeId(homeNode);
+                    neighbourRecord.setNodeInterface(nodeInterface);
+                    neighbourRecord.setNeighbourId(neighbourId);
+                    neighbourRecord.setNeighbourInterface(neighbourInterface);
+                    doSaveRecord = true;
+
+                }
+
+                if (doSaveRecord) {
+
+                    logger.log(Level.FINE, "Saving neighbour [{0}] to Registry", neighbourId);
+
+                    try {
+
+                        FabricRegistry.save(neighbourRecord);
+
+                    } catch (IncompleteObjectException e) {
+
+                        logger.log(
+                                Level.WARNING,
+                                "Failed to save neighbour [{0}] to the Registry; neighbour availability not updated: {1}",
+                                new Object[] {neighbourId, e.getMessage()});
+
+                    }
+                }
+            }
+
+        } catch (RegistryQueryException e1) {
+
+            logger.log(Level.WARNING,
+                    "Failed to lookup neighbour [{0}] in the Registry; neighbour availability not updated: {1}",
+                    new Object[] {neighbourId, e1.getMessage()});
+
         }
     }
 
     /**
-     * Updates the Node_ip_maping table with the ip information for the discovered node if this information is not
-     * currently present
+     * Updates (if required) the Registry with the IP information for a discovered node.
      *
      * @param nodeId
      * @param nodeInterface
      * @param nodeIpAddress
-     * @param port
+     * @param nodePort
      */
-    private void updateIpMapping(String nodeId, String nodeInterface, String nodeIpAddress, int port) {
+    private void validateIPMapping(String nodeId, String nodeInterface, String nodeIpAddress, String nodePort) {
 
-        logger.log(Level.FINER, "Update ip mapping: Neighbour node: {0}, ipAddress: {1}, port: {2}", new Object[] {
-                nodeId, nodeIpAddress, port});
-        NodeIpMapping ipMapping = FabricRegistry.getNodeIpMappingFactory(QueryScope.LOCAL).createNodeIpMapping(nodeId,
-                nodeInterface, nodeIpAddress, port);
+        int port = new Integer(nodePort).intValue();
+        NodeIpMappingFactory nimf = FabricRegistry.getNodeIpMappingFactory(QueryScope.LOCAL);
+        NodeIpMapping nim = nimf.getMappingForNode(nodeId, nodeInterface);
 
-        try {
-            FabricRegistry.save(ipMapping);
-        } catch (IncompleteObjectException e) {
-            logger.log(Level.WARNING, "Failed to save ip mapping for node {0}.", new Object[] {nodeId});
+        if (nim != null && (!nim.getIpAddress().equals(nodeIpAddress) || !(nim.getPort() == port))) {
+            nim = null;
+        }
+
+        if (nim == null) {
+
+            try {
+
+                logger.log(Level.FINER,
+                        "Updating IP mapping for new neighbour [{0}], interface [{1}], IP address [{2}], port [{3}]",
+                        new Object[] {nodeId, nodeInterface, nodeIpAddress, port});
+
+                nim = nimf.createNodeIpMapping(nodeId, nodeInterface, nodeIpAddress, port);
+                FabricRegistry.save(nim);
+
+            } catch (IncompleteObjectException e) {
+
+                logger.log(Level.WARNING, "Failed to save IP mapping for node [{0}]", nodeId);
+
+            }
         }
     }
 
     /**
-     * This method updated the NodeType table with the Type Id for the discovered Node if it is not already there
+     * This method checks for the existence of the specified node type, creating a default entry if it is not already
+     * there.
      *
      * @param nodeTypeId
      * @return
      */
-    private boolean createNodeType(String nodeTypeId) {
+    private boolean validateNodeType(String nodeTypeId) {
 
-        boolean nodeTypeCreated = false;
-        Type nodeType = FabricRegistry.getTypeFactory(QueryScope.LOCAL).getNodeType(nodeTypeId);
+        boolean isValidNodeType = false;
+
+        TypeFactory tf = FabricRegistry.getTypeFactory(QueryScope.LOCAL);
+        Type nodeType = tf.getNodeType(nodeTypeId);
+
         if (nodeType == null) {
-            nodeType = FabricRegistry.getTypeFactory(QueryScope.LOCAL).createNodeType(nodeTypeId,
-                    "Created by auto-discovery", null, null);
+
             try {
-                nodeTypeCreated = FabricRegistry.save(nodeType);
+
+                nodeType = tf.createNodeType(nodeTypeId, "Default type created by auto-discovery", null, null);
+                isValidNodeType = FabricRegistry.save(nodeType);
+
             } catch (IncompleteObjectException e) {
-                logger.log(Level.WARNING, "Failed to create node type {0}.", nodeTypeId);
+
+                logger.log(Level.WARNING, "Failed to create node type [{0}]", nodeTypeId);
+
             }
+
         } else {
-            nodeTypeCreated = true;
+
+            isValidNodeType = true;
+
         }
-        return nodeTypeCreated;
+
+        return isValidNodeType;
     }
 
     /*
