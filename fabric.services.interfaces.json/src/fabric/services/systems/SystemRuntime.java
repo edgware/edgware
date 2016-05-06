@@ -7,6 +7,7 @@
 
 package fabric.services.systems;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ import fabric.registry.Service;
 import fabric.registry.ServiceFactory;
 import fabric.registry.System;
 import fabric.registry.SystemFactory;
+import fabric.services.json.JSON;
 
 /**
  * Container class managing a service instance.
@@ -150,7 +152,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      */
     public void start() throws Exception {
 
-        logger.log(Level.FINE, "Starting system [{0}]", systemDescriptor);
+        logger.log(Level.FINE, "System [{0}]: starting", systemDescriptor);
 
         /* Initialize this system's feeds */
         systemServices.initFeeds();
@@ -195,35 +197,69 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
     }
 
     /**
-     * Invokes the service instances' stop method.
+     * Invokes the system instances' stop method.
+     * <p>
+     * Note that the system will not be stopped if it's "autostart" attribute is set to "true".
+     * <p>
+     *
+     * @return <code>true</code> if the system was stopped, <code>false</code> otherwise.
      */
-    public void stop() {
+    public boolean stop() {
 
         logger.log(Level.FINE, "Stopping service [{0}]", systemDescriptor);
 
-        /* Disable the flow of messages into the service */
-        synchronized (deliveryLock) {
-            deliveryEnabled = false;
+        boolean doStop = true;
+
+        SystemFactory sf = FabricRegistry.getSystemFactory(QueryScope.LOCAL);
+        System systemRecord = sf.getSystemsById(systemDescriptor.platform(), systemDescriptor.system());
+        String attrString = null;
+
+        if (systemRecord != null && (attrString = systemRecord.getAttributes()) != null) {
+
+            try {
+
+                JSON attr = new JSON(attrString);
+                String autoStart = attr.getString("autoStart");
+                if (autoStart != null && autoStart.equals("true")) {
+                    doStop = false;
+                }
+
+            } catch (IOException e) {
+
+                logger.log(Level.WARNING, "Invalid configuration attributes in Registry for system [{0}]: [{1}]",
+                        new Object[] {systemDescriptor, attrString});
+
+            }
         }
 
-        try {
+        if (doStop) {
 
-            /* Inform the service to stop */
-            systemInstance.stopInstance(systemDescriptor);
+            /* Disable the flow of messages into the service */
+            synchronized (deliveryLock) {
+                deliveryEnabled = false;
+            }
 
-            /* Update the service's status in the Registry */
-            updateServiceAvailability("UNAVAILABLE");
+            try {
 
-            /* Disconnect this service instance from the Fabric */
-            disconnectFabric();
+                /* Inform the service to stop */
+                systemInstance.stopInstance(systemDescriptor);
 
-        } catch (Exception e) {
+                /* Update the service's status in the Registry */
+                updateServiceAvailability("UNAVAILABLE");
 
-            logger.log(Level.SEVERE, "Error stopping service instance [{0}]: {1}", new Object[] {systemDescriptor,
-                    e.getMessage()});
-            logger.log(Level.FINEST, "Full exception: ", e);
+                /* Disconnect this service instance from the Fabric */
+                disconnectFabric();
 
+            } catch (Exception e) {
+
+                logger.log(Level.SEVERE, "Error stopping service instance [{0}]: {1}", new Object[] {systemDescriptor,
+                        e.getMessage()});
+                logger.log(Level.FINEST, "Full exception: ", e);
+
+            }
         }
+
+        return doStop;
     }
 
     /**
@@ -251,7 +287,9 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
     @Override
     public void startSubscriptionCallback() {
 
+        FLog.enter(logger, Level.FINER, this, "startSubscriptionCallback", (Object[]) null);
         systemInstance.startSubscriptionCallback();
+        FLog.exit(logger, Level.FINER, this, "startSubscriptionCallback", null);
 
     }
 
@@ -260,6 +298,8 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      */
     @Override
     public void handleSubscriptionMessage(IFeedMessage message) {
+
+        FLog.enter(logger, Level.FINER, this, "handleSubscriptionMessage", message);
 
         if (deliveryEnabled) {
 
@@ -274,7 +314,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
             else if (systemServices.requestResponseFeeds().containsKey(message.metaGetFeedDescriptor())) {
 
                 /* Get the reply-to descriptor */
-                String replyToFeed = message.getProperty(IServiceMessage.PROPERTY_REPLY_TO_FEED);
+                String replyToFeed = message.getProperty(IServiceMessage.PROPERTY_REPLY_TO_SERVICE);
                 ServiceDescriptor replyToFeedDescriptor = new ServiceDescriptor(replyToFeed);
 
                 systemInstance.handleRequestResponse(message.getCorrelationID(), message.metaGetFeedDescriptor(),
@@ -306,6 +346,8 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
 
             }
         }
+
+        FLog.exit(logger, Level.FINER, this, "handleSubscriptionMessage", null);
     }
 
     /**
@@ -320,19 +362,19 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
     }
 
     /**
-     * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription, int,
-     *      fabric.bus.messages.IServiceMessage)
+     * @see fabric.bus.feeds.ISubscriptionCallback#handleSubscriptionEvent(fabric.bus.feeds.ISubscription,
+     *      java.lang.String, fabric.bus.messages.IServiceMessage)
      */
     @Override
-    public void handleSubscriptionEvent(ISubscription subscription, int event, IServiceMessage message) {
+    public void handleSubscriptionEvent(ISubscription subscription, String event, IServiceMessage message) {
 
         FLog.enter(logger, Level.FINER, this, "handleSubscriptionEvent", subscription, event, message);
 
-        if (event == IServiceMessage.EVENT_SUBSCRIPTION_LOST) {
+        if (IServiceMessage.EVENT_SUBSCRIPTION_LOST.equals(event)) {
 
             /* Get the mappings between input-feeds and output-feeds for this system */
             HashMap<ServiceDescriptor, ServiceDescriptor> feedMappings = systemServices.wiredInputFeedMappings();
-            ServiceDescriptor outputFeed = subscription.feed().toServiceDescriptor();
+            ServiceDescriptor outputFeed = subscription.service().toServiceDescriptor();
             ServiceDescriptor inputFeed = feedMappings.get(outputFeed);
 
             try {
@@ -359,8 +401,9 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
     @Override
     public void cancelSubscriptionCallback() {
 
-        logger.log(Level.FINEST, "cancelSubscriptionCallback() callback invoked");
+        FLog.enter(logger, Level.FINER, this, "cancelSubscriptionCallback", null);
         systemInstance.cancelSubscriptionCallback();
+        FLog.exit(logger, Level.FINER, this, "cancelSubscriptionCallback", null);
 
     }
 
@@ -515,7 +558,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      * @throws Exception
      */
     public void unsubscribe(ServiceDescriptor[] outputFeedServices, ServiceDescriptor inputFeedService)
-        throws Exception {
+            throws Exception {
 
         /* If this is a valid input feed... */
         if (systemServices.inputFeedIDs().contains(inputFeedService.service())) {
@@ -569,7 +612,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      * @throws Exception
      */
     public HashMap<ServiceDescriptor, List<ServiceDescriptor>> unsubscribe(ServiceDescriptor[] outputFeedServices)
-        throws Exception {
+            throws Exception {
 
         Fabric fabric = new Fabric();
         HashMap<ServiceDescriptor, List<ServiceDescriptor>> allUnwired = new HashMap<ServiceDescriptor, List<ServiceDescriptor>>();
@@ -718,7 +761,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
                 /* Build the request service message */
                 IServiceMessage notificationMessage = buildServiceMessage(listenerService, notificationService,
                         correlationID, notification);
-                notificationMessage.setProperty("f:encoding", encoding);
+                notificationMessage.setProperty(IServiceMessage.PROPERTY_ENCODING, encoding);
 
                 /* Send the notification message to the local Fabric Manager */
                 sendServiceMessage(notificationMessage);
@@ -863,7 +906,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
                 /* Build the request service message */
                 IServiceMessage solicitResponseMessage = buildServiceMessage(requestResponseService,
                         solicitResponseService, correlationID, request);
-                solicitResponseMessage.setProperty("f:encoding", encoding);
+                solicitResponseMessage.setProperty(IServiceMessage.PROPERTY_ENCODING, encoding);
 
                 /* Send the notification message to the local Fabric Manager */
                 sendServiceMessage(solicitResponseMessage);
@@ -1243,12 +1286,12 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
         serviceMessage.setProperty(IServiceMessage.PROPERTY_ACTOR_PLATFORM, fabricClient.platform());
 
         /* Set the target feed */
-        serviceMessage.setProperty(IServiceMessage.PROPERTY_DELIVER_TO_FEED, deliverToFeed.toString());
+        serviceMessage.setProperty(IServiceMessage.PROPERTY_DELIVER_TO_SERVICE, deliverToFeed.toString());
 
         /* If there is a reply-to feed... */
         if (sourceFeed != null) {
 
-            serviceMessage.setProperty(IServiceMessage.PROPERTY_REPLY_TO_FEED, sourceFeed.toString());
+            serviceMessage.setProperty(IServiceMessage.PROPERTY_REPLY_TO_SERVICE, sourceFeed.toString());
 
         }
 
