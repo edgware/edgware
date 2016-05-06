@@ -115,7 +115,7 @@ public class FLog {
                 buf.append('(');
                 for (int p = 0; params != null && p < params.length; p++) {
                     StringBuilder nextParam = new StringBuilder((params[p] != null) ? params[p].toString() : "null");
-                    buf.append(trim(nextParam, PARAM_MAX));
+                    buf.append(trim(removeFormatting(nextParam), PARAM_MAX));
                     if (p < params.length - 1) {
                         buf.append(", ");
                     }
@@ -178,7 +178,7 @@ public class FLog {
                 buf.append(method);
                 buf.append('(');
                 StringBuilder ret = new StringBuilder((retVal != null) ? retVal.toString() : "");
-                buf.append(trim(ret, PARAM_MAX));
+                buf.append(trim(removeFormatting(ret), PARAM_MAX));
                 buf.append(')');
 
                 logger.log(level, buf.toString());
@@ -212,6 +212,17 @@ public class FLog {
         }
 
         return shortForm;
+    }
+
+    /**
+     * Removes newlines and tabs from a string.
+     *
+     * @return the reformatted string.
+     */
+    public static StringBuilder removeFormatting(StringBuilder string) {
+
+        string = new StringBuilder(string.toString().replace("\n", "").replace("\r", "").replace("\t", ""));
+        return string;
     }
 
     /**
