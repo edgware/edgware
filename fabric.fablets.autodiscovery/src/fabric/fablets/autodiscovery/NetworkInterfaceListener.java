@@ -148,7 +148,7 @@ public class NetworkInterfaceListener implements Runnable {
 
             logger.log(
                     Level.FINE,
-                    "Node [{0}] setting up to listen for autodiscovery requests on interface [{1}:{2}] using multicast address [{3}]",
+                    "Node [{0}] configuring to listen for autodiscovery requests on interface [{1}:{2}] using multicast address [{3}]",
                     new Object[] {myFablet.myNodeName, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
                             multicastGroup});
 
@@ -166,13 +166,13 @@ public class NetworkInterfaceListener implements Runnable {
             logger.log(Level.WARNING,
                     "Could not create broadcast/multicast socket to send to group [{0}] from interface [{1}:{2}]: {3}",
                     new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
-                    e.getMessage()});
+                            e.getMessage()});
         } catch (SocketException e) {
             // Couldn't connect to socket - probably in use, possibly below 1024
             logger.log(Level.WARNING,
                     "Could not create broadcast/multicast socket to send to group [{0}] from interface [{1}:{2}]: {3}",
                     new Object[] {multicastGroup, myIpMapping.getNodeInterface(), myIpMapping.getIpAddress(),
-                            e.getMessage()});
+                    e.getMessage()});
         }
     }
 
@@ -190,17 +190,19 @@ public class NetworkInterfaceListener implements Runnable {
                 udpListenRequestSocket.setNetworkInterface(listeningInterface);
                 udpListenRequestSocket.setInterface(interfaceListenRequestAddr);
 
-                logger.log(Level.FINE, "Listening interface [{0}], InetSocketAddress [{1}]", new Object[] {
+                logger.log(Level.FINER, "Listening interface [{0}], InetSocketAddress [{1}]", new Object[] {
                         listeningInterface.getDisplayName(), isa.toString()});
 
                 udpListenRequestSocket.joinGroup(isa, null);
 
-                logger.log(
-                        Level.INFO,
-                        "Multicast listen socket created for group address [{0}], network interface [{1}], address of the network interface for multicast packets [{2}], local address to which the socket is bound [{3}]",
+                logger.log(Level.FINE,
+                        "Multicast listen socket created for group address [{0}], network interface [{1}]",
                         new Object[] {multicastGroupAddress.toString(),
-                                NetworkInterface.getByInetAddress(interfaceListenRequestAddr).toString(),
-                                udpListenRequestSocket.getInterface().toString(),
+                                NetworkInterface.getByInetAddress(interfaceListenRequestAddr).toString()});
+                logger.log(
+                        Level.FINER,
+                        "Address of network interface for multicast packets [{0}], local address to which the socket is bound [{1}]",
+                        new Object[] {udpListenRequestSocket.getInterface().toString(),
                                 udpListenRequestSocket.getLocalAddress().toString()});
                 connected = true;
 
