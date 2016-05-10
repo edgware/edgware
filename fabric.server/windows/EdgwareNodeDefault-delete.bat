@@ -1,6 +1,4 @@
 REM **************************************************************************
-REM Licensed Materials - Property of IBM
-REM
 REM (C) Copyright IBM Corp. 2014
 REM
 REM LICENSE: Eclipse Public License v1.0
