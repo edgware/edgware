@@ -223,7 +223,7 @@ public class Systems extends Article {
             /* Used to hold the updated mode name (known as the "direction" in the research Fabric Registry schema) */
             String direction = null;
 
-            switch (mode) {
+            switch ((mode != null) ? mode : "") {
 
                 case AdapterConstants.MODE_INPUT:
 
@@ -511,6 +511,7 @@ public class Systems extends Article {
                     JSON system = new JSON();
                     system.putString(AdapterConstants.FIELD_ID, resultArray[i].getId());
                     system.putString(AdapterConstants.FIELD_TYPE, resultArray[i].getTypeId());
+                    system.putString(AdapterConstants.FIELD_PLATFORM, resultArray[i].getPlatformId());
                     addOptionalFields(system, resultArray[i].getDescription(), resultArray[i].getAttributes());
                     jsonList.add(system);
 
