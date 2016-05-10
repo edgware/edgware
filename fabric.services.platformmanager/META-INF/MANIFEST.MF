@@ -11,7 +11,7 @@ Import-Package: fabric,
  fabric.bus.services,
  fabric.bus.services.impl,
  fabric.core.io
-Fabric-Plugin: fabric.services.platformmanager.PlatformManagerService
+Fabric-Plugin: fabric.services.platformmanager.PlatformManager
 Require-Bundle: fabric.core;bundle-version="0.4.1",
  fabric.lib;bundle-version="0.4.1",
  fabric.fabricmanager;bundle-version="0.4.1"
