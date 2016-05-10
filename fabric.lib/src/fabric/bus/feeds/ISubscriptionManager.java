@@ -17,7 +17,7 @@ import fabric.bus.services.IBusService;
  * <li>Handling Fabric data feeds (plug-in application, routing, delivery to users, etc.)</li>
  * </ul>
  */
-public interface IFeedManager extends IBusService {
+public interface ISubscriptionManager extends IBusService {
 
 	/** Copyright notice. */
 	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2007, 2009";

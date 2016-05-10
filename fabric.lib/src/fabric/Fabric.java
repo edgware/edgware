@@ -86,14 +86,14 @@ public class Fabric {
         longNames.put("ClientNotificationService", "fabric.client.services.ClientNotificationService");
         shortNames.put("fabric.client.services.ClientNotificationService", "ClientNotificationService");
 
-        longNames.put("ConnectionManagerService", "fabric.bus.services.impl.ConnectionManagerService");
-        shortNames.put("fabric.bus.services.impl.ConnectionManagerService", "ConnectionManagerService");
+        longNames.put("ConnectionManager", "fabric.bus.services.impl.ConnectionManager");
+        shortNames.put("fabric.bus.services.impl.ConnectionManager", "ConnectionManager");
 
         longNames.put("ConnectionMessage", "fabric.bus.messages.impl.ConnectionMessage");
         shortNames.put("fabric.bus.messages.impl.ConnectionMessage", "ConnectionMessage");
 
-        longNames.put("FeedManagerService", "fabric.bus.feeds.impl.FeedManagerService");
-        shortNames.put("fabric.bus.feeds.impl.FeedManagerService", "FeedManagerService");
+        longNames.put("SubscriptionManager", "fabric.bus.feeds.impl.SubscriptionManager");
+        shortNames.put("fabric.bus.feeds.impl.SubscriptionManager", "SubscriptionManager");
 
         longNames.put("FeedMessage", "fabric.bus.messages.impl.FeedMessage");
         shortNames.put("fabric.bus.messages.impl.FeedMessage", "FeedMessage");
@@ -101,8 +101,8 @@ public class Fabric {
         longNames.put("FloodRouting", "fabric.services.floodmessage.FloodRouting");
         shortNames.put("fabric.services.floodmessage.FloodRouting", "FloodRouting");
 
-        longNames.put("NotificationManagerService", "fabric.bus.services.impl.NotificationManagerService");
-        shortNames.put("fabric.bus.services.impl.NotificationManagerService", "NotificationManagerService");
+        longNames.put("NotificationManager", "fabric.bus.services.impl.NotificationManager");
+        shortNames.put("fabric.bus.services.impl.NotificationManager", "NotificationManager");
 
         longNames.put("NotificationMessage", "fabric.bus.messages.impl.NotificationMessage");
         shortNames.put("fabric.bus.messages.impl.NotificationMessage", "NotificationMessage");

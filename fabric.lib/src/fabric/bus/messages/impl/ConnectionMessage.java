@@ -13,7 +13,7 @@ import fabric.SystemDescriptor;
 import fabric.bus.messages.FabricMessageFactory;
 import fabric.bus.messages.IConnectionMessage;
 import fabric.bus.messages.IServiceMessage;
-import fabric.bus.services.impl.ConnectionManagerService;
+import fabric.bus.services.impl.ConnectionManager;
 import fabric.core.xml.XML;
 
 /**
@@ -186,7 +186,7 @@ public class ConnectionMessage extends ServiceMessage implements IConnectionMess
             String actor, String event) {
 
         /* Indicate that this is a message for the subscription handler */
-        setServiceName(ConnectionManagerService.class.getName());
+        setServiceName(ConnectionManager.class.getName());
 
         /* Indicate that this is a built-in Fabric plug-in */
         setServiceFamilyName(Fabric.FABRIC_PLUGIN_FAMILY);

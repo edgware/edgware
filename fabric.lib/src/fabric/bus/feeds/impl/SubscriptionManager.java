@@ -20,7 +20,7 @@ import fabric.FabricMetric;
 import fabric.ServiceDescriptor;
 import fabric.TaskServiceDescriptor;
 import fabric.bus.IBusServices;
-import fabric.bus.feeds.IFeedManager;
+import fabric.bus.feeds.ISubscriptionManager;
 import fabric.bus.messages.IClientNotificationMessage;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.INotificationMessage;
@@ -57,7 +57,7 @@ import fabric.services.messageforwarding.OutboundMessage;
  * Note that this subscription handler only supports <code>StaticRouting</code> for subscription messages.
  *
  */
-public class FeedManagerService extends BusService implements IFeedManager, IPersistentService {
+public class SubscriptionManager extends BusService implements ISubscriptionManager, IPersistentService {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2007, 2012";
@@ -171,7 +171,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
     /**
      * Constructs a new instance.
      */
-    public FeedManagerService() {
+    public SubscriptionManager() {
 
         super(Logger.getLogger("fabric.bus.feeds"));
 
@@ -282,7 +282,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
     }
 
     /**
-     * @see fabric.bus.feeds.IFeedManager#handleFeed(fabric.bus.messages.IFeedMessage)
+     * @see fabric.bus.feeds.ISubscriptionManager#handleFeed(fabric.bus.messages.IFeedMessage)
      */
     @Override
     public void handleFeed(IFeedMessage nodeMessage) throws Exception {
@@ -818,7 +818,7 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
              * to indicate that the subscription was successful)
              */
 
-            int timeout = Integer.parseInt(config("fabric.feedManager.subscriptionTimeout", "120"));
+            int timeout = Integer.parseInt(config("fabric.subscriptionManager.subscriptionTimeout", "120"));
 
             /* Client notification */
 
@@ -1028,8 +1028,10 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                 logger.log(Level.FINEST, "Registering clean-up for upstream disconnections (next node is [{0}])",
                         nextNodes[n]);
 
-                handle = busServices.addFeedMessage(nextNodes[n], taskFeed.platform(), taskFeed.system(), taskFeed
-                        .service(), downstreamCleanupMessage, IServiceMessage.EVENT_DISCONNECTED, true);
+                // handle = busServices.addFeedMessage(nextNodes[n], taskFeed.platform(), taskFeed.system(),
+                // taskFeed.service(), downstreamCleanupMessage, IServiceMessage.EVENT_DISCONNECTED, true);
+                handle = busServices.addNodeMessage(nextNodes[n], downstreamCleanupMessage,
+                        IServiceMessage.EVENT_DISCONNECTED, true);
                 cleanupMessageHandles.add(handle);
 
             }
@@ -1047,8 +1049,10 @@ public class FeedManagerService extends BusService implements IFeedManager, IPer
                     "Registering clean-up for subscriber-side disconnections (previous node was [{0}]",
                     subscriptionRouting.previousNode());
 
-            handle = busServices.addFeedMessage(subscriptionRouting.previousNode(), taskFeed.platform(), taskFeed
-                    .system(), taskFeed.service(), upstreamCleanupMessage, IServiceMessage.EVENT_DISCONNECTED, true);
+            // handle = busServices.addFeedMessage(subscriptionRouting.previousNode(), taskFeed.platform(),
+            // taskFeed.system(), taskFeed.service(), upstreamCleanupMessage, IServiceMessage.EVENT_DISCONNECTED, true);
+            handle = busServices.addNodeMessage(subscriptionRouting.previousNode(), upstreamCleanupMessage,
+                    IServiceMessage.EVENT_DISCONNECTED, true);
             cleanupMessageHandles.add(handle);
 
         }

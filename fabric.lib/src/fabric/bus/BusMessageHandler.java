@@ -11,7 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import fabric.Fabric;
-import fabric.bus.feeds.IFeedManager;
+import fabric.bus.feeds.ISubscriptionManager;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.INotificationMessage;
 import fabric.bus.messages.IServiceMessage;
@@ -43,7 +43,7 @@ public class BusMessageHandler extends Fabric {
     private IBusServices busServices = null;
 
     /** The subscription/feed service. */
-    private IFeedManager feedManager = null;
+    private ISubscriptionManager subscriptionManager = null;
 
     /** The manager for persistent services. */
     private IBusServiceDispatcher serviceDispatcher = null;
@@ -399,7 +399,7 @@ public class BusMessageHandler extends Fabric {
     public void handleFeedMessage(IFeedMessage message) throws Exception {
 
         /* Delegate this to the subscription handler */
-        feedManager.handleFeed(message);
+        subscriptionManager.handleFeed(message);
         logger.log(Level.FINEST, "Feed message (UID: [{0}]) handled", message.getUID());
 
     }
@@ -444,12 +444,12 @@ public class BusMessageHandler extends Fabric {
     /**
      * Sets the subscription/feed service.
      *
-     * @param feedManager
+     * @param subscriptionManager
      *            the handler.
      */
-    public void setFeedManager(IFeedManager feedManager) {
+    public void setSubscriptionManager(ISubscriptionManager subscriptionManager) {
 
-        this.feedManager = feedManager;
+        this.subscriptionManager = subscriptionManager;
 
     }
 }

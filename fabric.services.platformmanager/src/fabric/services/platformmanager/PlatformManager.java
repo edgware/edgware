@@ -26,7 +26,7 @@ import fabric.core.io.OutputTopic;
  * Class handling messages for Fabric platforms.
  *
  */
-public class PlatformManagerService extends BusService implements IPersistentService, IPlatformManager {
+public class PlatformManager extends BusService implements IPersistentService, IPlatformManager {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2012";
@@ -49,7 +49,7 @@ public class PlatformManagerService extends BusService implements IPersistentSer
     /**
      * Constructs a new instance.
      */
-    public PlatformManagerService() {
+    public PlatformManager() {
 
         super(Logger.getLogger("fabric.bus.services.platformmanager"));
 

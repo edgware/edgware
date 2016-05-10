@@ -29,8 +29,8 @@ import fabric.bus.BusMessageHandler;
 import fabric.bus.IBusIO;
 import fabric.bus.IBusServices;
 import fabric.bus.NeighbourChannels;
-import fabric.bus.feeds.IFeedManager;
-import fabric.bus.feeds.impl.FeedManagerService;
+import fabric.bus.feeds.ISubscriptionManager;
+import fabric.bus.feeds.impl.SubscriptionManager;
 import fabric.bus.feeds.impl.SubscriptionRecord;
 import fabric.bus.impl.BusIO;
 import fabric.bus.messages.IConnectionMessage;
@@ -42,9 +42,9 @@ import fabric.bus.plugins.impl.FabletDispatcher;
 import fabric.bus.services.IConnectionManager;
 import fabric.bus.services.IFloodMessageService;
 import fabric.bus.services.INotificationManager;
-import fabric.bus.services.impl.ConnectionManagerService;
+import fabric.bus.services.impl.ConnectionManager;
 import fabric.bus.services.impl.FloodMessageService;
-import fabric.bus.services.impl.NotificationManagerService;
+import fabric.bus.services.impl.NotificationManager;
 import fabric.core.io.MessageQoS;
 import fabric.core.properties.ConfigProperties;
 import fabric.registry.FabricPlugin;
@@ -91,7 +91,7 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
     private BusIO busIO = null;
 
     /** The feed management service. */
-    private IFeedManager feedManager = null;
+    private ISubscriptionManager subscriptionManager = null;
 
     /** The connection management service. */
     private IConnectionManager connectionManager = null;
@@ -171,12 +171,12 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
     }
 
     /**
-     * @see fabric.bus.IBusServices#feedManager()
+     * @see fabric.bus.IBusServices#subscriptionManager()
      */
     @Override
-    public IFeedManager feedManager() {
+    public ISubscriptionManager subscriptionManager() {
 
-        return feedManager;
+        return subscriptionManager;
     }
 
     /**
@@ -489,16 +489,16 @@ public class FabricManager extends FabricBus implements IBusServices, IFabricShu
     private void loadServices() {
 
         /* Subscription/feed manager service */
-        feedManager = (IFeedManager) busMessageHandler.loadService(FeedManagerService.class.getName(),
+        subscriptionManager = (ISubscriptionManager) busMessageHandler.loadService(SubscriptionManager.class.getName(),
                 Fabric.FABRIC_PLUGIN_FAMILY);
-        busMessageHandler.setFeedManager(feedManager);
+        busMessageHandler.setSubscriptionManager(subscriptionManager);
 
         /* Connection manager service */
         connectionManager = (IConnectionManager) busMessageHandler.loadService(
-                ConnectionManagerService.class.getName(), Fabric.FABRIC_PLUGIN_FAMILY);
+                ConnectionManager.class.getName(), Fabric.FABRIC_PLUGIN_FAMILY);
 
         /* Client notification service */
-        notificationManager = (INotificationManager) busMessageHandler.loadService(NotificationManagerService.class
+        notificationManager = (INotificationManager) busMessageHandler.loadService(NotificationManager.class
                 .getName(), Fabric.FABRIC_PLUGIN_FAMILY);
 
         /* Flood Service */

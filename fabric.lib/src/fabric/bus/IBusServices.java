@@ -8,7 +8,7 @@
 package fabric.bus;
 
 import fabric.MetricsManager;
-import fabric.bus.feeds.IFeedManager;
+import fabric.bus.feeds.ISubscriptionManager;
 import fabric.bus.services.IConnectionManager;
 import fabric.bus.services.INotificationManager;
 import fabric.services.messageforwarding.MessageForwardingService;
@@ -38,7 +38,7 @@ public interface IBusServices extends IBusIO, IConnectionManager {
 	 * 
 	 * @return the service.
 	 */
-	public IFeedManager feedManager();
+	public ISubscriptionManager subscriptionManager();
 
 	/**
 	 * Answers the service providing bus connection status management services.

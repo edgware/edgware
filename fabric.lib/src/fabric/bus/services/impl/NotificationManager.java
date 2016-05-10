@@ -29,7 +29,7 @@ import fabric.core.io.OutputTopic;
 /**
  * Class handling service acknowledgment messages for the Fabric.
  */
-public class NotificationManagerService extends BusService implements Runnable, IPersistentService,
+public class NotificationManager extends BusService implements Runnable, IPersistentService,
         INotificationManager {
 
     /** Copyright notice. */
@@ -147,7 +147,7 @@ public class NotificationManagerService extends BusService implements Runnable, 
     /**
      * Constructs a new instance.
      */
-    public NotificationManagerService() {
+    public NotificationManager() {
 
         super(Logger.getLogger("fabric.bus.services"));
     }
@@ -155,7 +155,7 @@ public class NotificationManagerService extends BusService implements Runnable, 
     /**
      * Constructs a new instance.
      */
-    public NotificationManagerService(Logger logger) {
+    public NotificationManager(Logger logger) {
 
         super(logger);
     }

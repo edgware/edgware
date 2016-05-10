@@ -11,7 +11,7 @@ import fabric.Fabric;
 import fabric.bus.messages.INotificationMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.bus.routing.IRouting;
-import fabric.bus.services.impl.NotificationManagerService;
+import fabric.bus.services.impl.NotificationManager;
 import fabric.core.xml.XML;
 
 /**
@@ -116,7 +116,7 @@ public class NotificationMessage extends ServiceMessage implements INotification
     private void construct() {
 
         /* Set the service name: i.e. indicate that this is a message for the feed manager */
-        setServiceName(NotificationManagerService.class.getName());
+        setServiceName(NotificationManager.class.getName());
 
         /* Indicate that this is a built-in Fabric plug-in */
         setServiceFamilyName(Fabric.FABRIC_PLUGIN_FAMILY);

@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fabric.bus.messages.FabricMessageFactory;
 import fabric.bus.messages.IClientNotificationMessage;
 import fabric.bus.messages.IConnectionMessage;
@@ -35,7 +40,7 @@ import fabric.bus.services.IPersistentService;
  * A typical action would be to close any active subscriptions associated with a platform that has lost connectivity.
  * </p>
  */
-public class ConnectionManagerService extends BusService implements IPersistentService, IConnectionManager {
+public class ConnectionManager extends BusService implements IPersistentService, IConnectionManager {
 
     /** Copyright notice. */
     public static final String copyrightNotice = "(C) Copyright IBM Corp. 2009, 2012";
@@ -206,6 +211,42 @@ public class ConnectionManagerService extends BusService implements IPersistentS
 
             }
         }
+
+        /**
+         * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+
+            String toString = null;
+
+            ObjectMapper om = new ObjectMapper();
+            om.enable(SerializationFeature.INDENT_OUTPUT);
+
+            ObjectNode obj = om.createObjectNode();
+            obj.put("resourceType", resourceType);
+            obj.put("node", node);
+            obj.put("platform", platform);
+            obj.put("system", system);
+            obj.put("service", service);
+            obj.put("actor", actor);
+            obj.put("event", event);
+            obj.put("singleFire", singleFire);
+            obj.put("handle", handle);
+            obj.put("message", message.toString());
+
+            ObjectNode container = om.createObjectNode();
+            container.put(getClass().getName(), obj);
+
+            try {
+                toString = om.writeValueAsString(container);
+            } catch (JsonProcessingException e) {
+                /* Fail safe */
+                toString = super.toString();
+            }
+
+            return toString;
+        }
     }
 
     /*
@@ -215,9 +256,9 @@ public class ConnectionManagerService extends BusService implements IPersistentS
     /**
      * Constructs a new instance.
      */
-    public ConnectionManagerService() {
+    public ConnectionManager() {
 
-        super(Logger.getLogger(ConnectionManagerService.class.getPackage().getName()));
+        super(Logger.getLogger(ConnectionManager.class.getPackage().getName()));
 
     }
 
@@ -264,10 +305,9 @@ public class ConnectionManagerService extends BusService implements IPersistentS
         String service = message.getService();
         String actor = message.getActor();
 
-        /* TODO: sometimes useful to make this "INFO" for debug */
         logger.log(Level.FINE, "Connection manager message: event [{0}], type [{1}], node [{2}], service [{3}]",
                 new Object[] {message.getProperty(ConnectionMessage.PROPERTY_EVENT),
-                        message.getProperty(ConnectionMessage.PROPERTY_RESOURCE_TYPE), node, service});
+                message.getProperty(ConnectionMessage.PROPERTY_RESOURCE_TYPE), node, service});
 
         /* Fire the "all node" messages */
         doAction(ACTION_FIRE, resourceType, "", platform, system, service, actor, event);
@@ -448,8 +488,8 @@ public class ConnectionManagerService extends BusService implements IPersistentS
      *            the type of resource to which the record relates.
      *
      * @param node
-     *            the ID of the node associated with this record (required for all resource resource types).
-     *            <code>null</code> indicates all nodes.
+     *            the ID of the node associated with this record (required for all resource types). <code>null</code>
+     *            indicates all nodes.
      *
      * @param platform
      *            the ID of the platform (required for platform, system, service, and actor resource types).
@@ -469,9 +509,6 @@ public class ConnectionManagerService extends BusService implements IPersistentS
      * @param event
      *            the type of status change that triggered the sending of this message, one of
      *            <code>EVENT_CONNECTED</code> or <code>EVENT_DISCONNECTED</code>.
-     *
-     * @param table
-     *            the table of messages for the node.
      *
      * @param singleFire
      *            flag indicating if this message is a single or multiple fire.
@@ -657,8 +694,7 @@ public class ConnectionManagerService extends BusService implements IPersistentS
     public String addActorMessage(String node, String platform, String actor, IServiceMessage message, String event,
             boolean singleFire) {
 
-        return addMessage(IServiceMessage.TYPE_ACTOR, node, platform, null, null, actor, message, event,
-                singleFire);
+        return addMessage(IServiceMessage.TYPE_ACTOR, node, platform, null, null, actor, message, event, singleFire);
 
     }
 

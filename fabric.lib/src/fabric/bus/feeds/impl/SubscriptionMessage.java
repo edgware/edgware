@@ -56,7 +56,7 @@ public class SubscriptionMessage extends ServiceMessage {
     private void construct() {
 
         /* Set the service name: i.e. indicate that this is a message for the feed manager */
-        setServiceName(FeedManagerService.class.getName());
+        setServiceName(SubscriptionManager.class.getName());
 
         /* Indicate that this is a built-in Fabric plug-in */
         setServiceFamilyName(Fabric.FABRIC_PLUGIN_FAMILY);
