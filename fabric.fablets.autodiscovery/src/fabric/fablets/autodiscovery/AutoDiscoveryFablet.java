@@ -255,20 +255,32 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
 
         if (!neighbourId.equals(myNodeName)) {
 
-            String nodeAvailability = "UNKOWN";
+            String nodeAvailability = null;
 
-            if (nodeStatusIndicator.equals("0")) {
+            switch ((nodeStatusIndicator != null) ? nodeStatusIndicator : "") {
 
-                logger.log(Level.FINE, "Processing loss of node [{0}]", neighbourId);
-                nodeAvailability = NodeNeighbour.UNAVAILABLE;
+                case "0":
 
-            } else if (nodeStatusIndicator.equals("1")) {
+                    nodeAvailability = NodeNeighbour.UNAVAILABLE;
+                    logger.log(Level.FINE, "Node [{0}] is [{1}]", new Object[] {neighbourId, nodeAvailability});
+                    break;
 
-                logger.log(Level.FINE, "Processing discovery of node [{0}]", neighbourId);
-                nodeAvailability = NodeNeighbour.AVAILABLE;
+                case "1":
 
-                validateNodeType(nodeTypeId);
-                validateIPMapping(neighbourId, neighbourInterface, nodeIpAddress, nodePort);
+                    nodeAvailability = NodeNeighbour.AVAILABLE;
+                    logger.log(Level.FINE, "Node [{0}] is [{1}]", new Object[] {neighbourId, nodeAvailability});
+
+                    validateNodeType(nodeTypeId);
+                    validateIPMapping(neighbourId, neighbourInterface, nodeIpAddress, nodePort);
+
+                    break;
+
+                default:
+
+                    nodeAvailability = "UNKOWN";
+                    logger.log(Level.FINE, "Invalid node status indicator [{1}] for node [{0}]", new Object[] {
+                            neighbourId, nodeStatusIndicator});
+                    break;
             }
 
             updateNeighbourRecord(homeNode(), localInterface, neighbourId, neighbourInterface, nodeAvailability);
@@ -321,7 +333,8 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
                             CLASS_NAME, neighbourAvailability, null, null, null);
                     doSaveRecord = true;
 
-                } else if (!neighbourRecord.getNodeId().equals(homeNode)
+                } else if (!neighbourRecord.getAvailability().equals(neighbourAvailability)
+                        || !neighbourRecord.getNodeId().equals(homeNode)
                         || !neighbourRecord.getNodeInterface().equals(nodeInterface)
                         || !neighbourRecord.getNeighbourId().equals(neighbourId)
                         || !neighbourRecord.getNeighbourInterface().equals(neighbourInterface)) {
@@ -330,6 +343,7 @@ public class AutoDiscoveryFablet extends FabricBus implements IFabletPlugin, ICa
                     neighbourRecord.setNodeInterface(nodeInterface);
                     neighbourRecord.setNeighbourId(neighbourId);
                     neighbourRecord.setNeighbourInterface(neighbourInterface);
+                    neighbourRecord.setAvailability(neighbourAvailability);
                     doSaveRecord = true;
 
                 }
