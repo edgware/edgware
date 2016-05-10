@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import fabric.Fabric;
+import fabric.core.logging.FLog;
 import fabric.core.properties.ConfigProperties;
 import fabric.core.properties.Properties;
 import fabric.registry.QueryScope;
@@ -144,21 +145,21 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
 
             s = registryConnection().createStatement();
 
-            //            synchronized (statementCache) {
+            // synchronized (statementCache) {
             //
-            //                s = statementCache.get(threadName);
+            // s = statementCache.get(threadName);
             //
-            //                if (s == null) {
+            // if (s == null) {
             //
-            //                    s = registryConnection().createStatement();
+            // s = registryConnection().createStatement();
             //
-            //                    if (queryTimeout != -1) {
-            //                        s.setQueryTimeout(queryTimeout);
-            //                    }
+            // if (queryTimeout != -1) {
+            // s.setQueryTimeout(queryTimeout);
+            // }
             //
-            //                    statementCache.put(threadName, s);
-            //                }
-            //            }
+            // statementCache.put(threadName, s);
+            // }
+            // }
         }
 
         return s;
@@ -407,7 +408,7 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
 
     @Override
     public RegistryObject[] queryRegistryObjects(String sqlString, AbstractFactory factory, QueryScope queryScope)
-        throws PersistenceException {
+            throws PersistenceException {
 
         ArrayList<RegistryObject> objects = new ArrayList<RegistryObject>();
         Statement stmt = null;
@@ -441,7 +442,7 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
 
             logger.log(Level.WARNING, "Error executing Registry query [{0}], SQL state [{1}], error code [{2}]: {3}",
                     new Object[] {sqlString, thrownException.getSQLState(), thrownException.getErrorCode(),
-                    thrownException.getMessage()});
+                            thrownException.getMessage()});
             logger.log(Level.FINEST, "Full exception: ", thrownException);
         }
 
@@ -494,7 +495,7 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
         if (thrownException != null) {
             logger.log(Level.WARNING, "Error executing Registry query [{0}], SQL state [{1}], error code [{2}]: {3}",
                     new Object[] {sqlString, thrownException.getSQLState(), thrownException.getErrorCode(),
-                    thrownException.getMessage()});
+                            thrownException.getMessage()});
             logger.log(Level.FINEST, "Full exception: ", thrownException);
         }
 
@@ -554,7 +555,7 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
         if (thrownException != null) {
             logger.log(Level.WARNING, "Error executing Registry query [{0}], SQL state [{1}], error code [{2}]: {3}",
                     new Object[] {queryString, thrownException.getSQLState(), thrownException.getErrorCode(),
-                    thrownException.getMessage()});
+                            thrownException.getMessage()});
             logger.log(Level.FINEST, "Full exception: ", thrownException);
         }
 
@@ -610,7 +611,7 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
         if (thrownException != null) {
             logger.log(Level.WARNING, "Error executing Registry query [{0}], SQL state [{1}], error code [{2}]: {3}",
                     new Object[] {sqlString, thrownException.getSQLState(), thrownException.getErrorCode(),
-                            thrownException.getMessage()});
+                    thrownException.getMessage()});
             logger.log(Level.FINEST, "Full exception: ", thrownException);
         }
 
@@ -761,12 +762,25 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
 
         if (registryConnection() != null) {
             try {
+
                 Statement stmt = createStatement();
+
                 for (int z = 0; z < sqlStrings.length; z++) {
                     stmt.addBatch(sqlStrings[z]);
                 }
+
                 int[] rowCounts = stmt.executeBatch();
-                logger.log(Level.FINEST, "{0} rows updated", new Object[] {rowCounts});
+
+                if (logger.isLoggable(Level.FINEST)) {
+
+                    Integer[] rowCountObjs = new Integer[rowCounts.length];
+                    for (int rc = 0; rc < rowCounts.length; rc++) {
+                        rowCountObjs[rc] = rowCounts[rc];
+                    }
+
+                    logger.log(Level.FINEST, "{0} rows updated", FLog.arrayAsString(rowCountObjs));
+                }
+
             } catch (SQLException e) {
                 logger.log(Level.WARNING, "Failed to execute batch updates: ", e);
                 String sqlState = e.getSQLState();
@@ -792,7 +806,7 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
     }
 
     public DistributedQueryResult getDistributedQueryResult(String sqlString, String nodeName)
-        throws PersistenceException {
+            throws PersistenceException {
 
         DistributedQueryResult queryResult = null;
         Statement stmt = null;
@@ -819,7 +833,7 @@ public class SingletonJDBCPersistence extends Object implements Persistence {
         if (thrownException != null) {
             logger.log(Level.WARNING, "Error executing Registry query [{0}], SQL state [{1}], error code [{2}]: {3}",
                     new Object[] {sqlString, thrownException.getSQLState(), thrownException.getErrorCode(),
-                    thrownException.getMessage()});
+                            thrownException.getMessage()});
             logger.log(Level.FINEST, "Full exception: ", thrownException);
         }
 
