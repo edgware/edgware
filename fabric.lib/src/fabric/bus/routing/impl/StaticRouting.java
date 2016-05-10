@@ -111,14 +111,14 @@ public class StaticRouting extends Routing {
         /* Get the XML paths for the route nodes */
         String elementPath = XML.expandPath(element);
         elementPath = XML.regexpEscape(elementPath);
-        String[] routeNodeXMLPaths = messageXML.getPaths(elementPath + "/rt\\[.*\\]/nodes\\[.*\\]/nd\\[.*\\]");
+        String[] routeNodeXMLPaths = messageXML.getPaths(elementPath + "/rt\\[.*\\]/nodes\\[.*\\]/n\\[.*\\]");
         String[] nodeIDs = new String[routeNodeXMLPaths.length];
 
         /* For each node in the route... */
         for (int n = 0; n < routeNodeXMLPaths.length; n++) {
 
-            /* Get the hop name (with a path of the form "/fab/rt/nd[n]@n") */
-            nodeIDs[n] = messageXML.get(routeNodeXMLPaths[n] + "@n");
+            /* Get the hop name (with a path of the form "/fab/rt/nodes/n[n]") */
+            nodeIDs[n] = messageXML.get(routeNodeXMLPaths[n]);
 
         }
 
@@ -140,8 +140,8 @@ public class StaticRouting extends Routing {
         /* For each node in the route... */
         for (int n = 0; nodeIDs != null && n < nodeIDs.length; n++) {
 
-            /* Set the hop name (with a path of the form "/fab/rt/nodes[n]/nd@n") */
-            messageXML.set(element + "/rt/nodes/nd[%d]@n", nodeIDs[n], n);
+            /* Set the hop name (with a path of the form "/fab/rt/nodes[n]/n") */
+            messageXML.set(element + "/rt/nodes/n[%d]", nodeIDs[n], n);
 
         }
 

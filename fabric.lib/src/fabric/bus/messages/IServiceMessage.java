@@ -65,7 +65,7 @@ public interface IServiceMessage extends IFabricMessage {
     public static final String PROPERTY_SYSTEM = "sys";
 
     /** The name of the notifying service property. */
-    public static final String PROPERTY_NOTIFYING_FABRIC_SERVICE = "ntfyFabSrv";
+    public static final String PROPERTY_NOTIFYING_FABRIC_SERVICE = "ntfySrv";
 
     /** The name of the notifying node property. */
     public static final String PROPERTY_NOTIFYING_NODE = "ntfyNode";
@@ -112,16 +112,16 @@ public interface IServiceMessage extends IFabricMessage {
     public static final String EVENT_UNKNOWN = "unknwn";
 
     /** Network connection event. */
-    public static final String EVENT_CONNECTED = "cnctd";
+    public static final String EVENT_CONNECTED = "ctd";
 
     /** Network disconnection event. */
-    public static final String EVENT_DISCONNECTED = "discnctd";
+    public static final String EVENT_DISCONNECTED = "disctd";
 
     /** Actor request. */
     public static final String EVENT_ACTOR_REQUEST = "actrRqst";
 
     /** Subscription failed. */
-    public static final String EVENT_SUBSCRIPTION_LOST = "subnLost";
+    public static final String EVENT_SUBSCRIPTION_LOST = "subLost";
 
     /** A message has been handled en route to the final node. */
     public static final String EVENT_MESSAGE_HANDLED_IN_FLIGHT = "actndInFlght";
