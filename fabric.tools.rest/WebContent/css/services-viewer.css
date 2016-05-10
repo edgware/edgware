@@ -1,0 +1,128 @@
+/*
+ * (C) Copyright IBM Corp. 2016
+ * 
+ * LICENSE: Eclipse Public License v1.0
+ * http://www.eclipse.org/legal/epl-v10.html
+*/
+
+.logo {
+    margin-left: 25px;
+    margin-top: -5px;
+}
+
+div#header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: black;
+    box-sizing: border-box;
+    color: #FFF;
+    font-size: 14px;
+    font-family: 'Droid Sans', sans-serif;
+    font-size: 20px;
+}
+
+div#topology {
+    width: 100%;
+    min-height: 750;
+    height: 94%;
+    background: #B2DAC4;
+    position: absolute;
+    left: 0px;
+    top: 50px;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: 1px solid #bbb;
+}
+
+.node {
+  font: 300 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  fill: #666;
+}
+    
+.node-with-neighbours {
+  font: 300 16px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  fill: #000000;
+}
+
+.node:hover {
+  fill: #000;
+}
+
+.link {
+  stroke: #666;
+  stroke-opacity: .4;
+  fill: none;
+  pointer-events: none;
+  stroke-width: 2px;
+}
+
+.node:hover,
+.node--source,
+.node--target {
+  font-weight: 700;
+}
+    
+.node-with-neighbours:hover,
+.node--source,
+.node--target {
+  font-weight: 700;
+}
+
+.node--source {
+  fill: #2ca02c;
+}
+
+.node--target {
+  fill: #d62728;
+}
+
+.link--source,
+.link--target {
+  stroke-opacity: 1;
+  stroke-width: 2px;
+}
+
+.link--source {
+  stroke: #d62728;
+}
+
+.link--target {
+  stroke: #2ca02c;
+}
+
+div#footer{
+	height: 30px; 
+	background: black;
+	position: absolute;
+    left: 0px;
+	bottom: 0px;
+	min-width: 100%;
+    color: #01853D;
+}
+
+div#debug-header {
+    overflow-y:auto;
+    height: 50px;
+    background: black;
+    
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: 315px;
+    
+    color: #fff;
+    display: block;
+    font-size: 16px;
+    
+    line-height: 50px;
+    font-family: 'Droid Sans', sans-serif;
+    
+    box-sizing: border-box;
+    border-left: 1px solid #bbb;
+    padding-left: 10px;
+}

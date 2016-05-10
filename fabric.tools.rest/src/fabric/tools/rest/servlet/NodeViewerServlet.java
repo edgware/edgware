@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2014
+ * (C) Copyright IBM Corp. 2016
  *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
@@ -13,18 +13,18 @@ import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
 import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 
 /**
- * Jetty class that helps create the websocket for /mqtt calls.
+ * Jetty class that helps create the websocket for /nodeviewer calls
  */
 @SuppressWarnings("serial")
-@WebServlet(name = "MQTT WebSocket Servlet", urlPatterns = {"/mqtt"})
-public class MQTTServlet extends WebSocketServlet {
+@WebServlet(name = "Node Viewer Websocket Servlet", urlPatterns = {"/nodeviewer"})
+public class NodeViewerServlet extends WebSocketServlet {
 
     /** Copyright notice. */
-    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2014";
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2016";
 
     @Override
     public void configure(WebSocketServletFactory factory) {
         factory.getPolicy().setIdleTimeout(Constants.timeout);
-        factory.register(MQTTSocket.class);
+        factory.register(NodeViewerSocket.class);
     }
 }

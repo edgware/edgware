@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -15,7 +13,7 @@ var default_config_json = "{\"op\":\"sql-select\",\"sql-table\":\""+ default_tab
 var node_config_json = "{\"op\":\"sql-select\",\"sql-table\":\""+ node_table + "\"}";
 
 function init(){
-	this.ws = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/rest/json");
+	this.ws = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/fabric.tools.rest/json");
 	this.startWS();
 };
 

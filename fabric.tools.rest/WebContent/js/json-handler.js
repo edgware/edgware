@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -10,7 +8,7 @@
 var ws;
 
 function init(){
-	this.ws = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/rest/json");
+	this.ws = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/fabric.tools.rest/json");
 	this.startWS();
 };
 
@@ -46,8 +44,33 @@ var startWS = function() {
 this.init();
 
 function sendJson() {
-	var json = document.getElementById("jsonInput").value;
-	ws.send(json);
+	var jsonList = document.getElementById("jsonInput").value;
+	var depthCount = 0;
+	var start = 0;
+	var end = 0;
+	var jsonArray = [];
+	
+	for(json in jsonList){
+		
+		if(jsonList[json] === "{"){
+			if(depthCount === 0){
+				start = json;
+			}
+			depthCount++;
+		}
+		
+		if(jsonList[json] === "}"){
+			depthCount--;
+			if(depthCount === 0){
+				end = json;
+				jsonArray.push(jsonList.slice(start, ++end));
+			}
+		}
+	}
+	
+	for(json in jsonArray){
+		ws.send(jsonArray[json]);
+	}
 };
 
 function clearTable() {

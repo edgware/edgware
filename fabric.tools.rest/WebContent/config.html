@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <!---------------------------------------------------------------------------->
 <!-- 
- * Licensed Materials - Property of IBM
- *  
- * (C) Copyright IBM Corp. 2014
+ * (C) Copyright IBM Corp. 2016
  * 
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
@@ -15,16 +13,16 @@
 		<link rel="stylesheet" href="css/main.css" type="text/css">
 		<script type="text/javascript" src="./js/jquery-1.8.2.min.js"></script>
 		<script type="text/javascript" src="./js/config-handler.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/index.css">
 	</head>
-	<body><font face="Arial">
-		<div id="head">
-			<h1>Edgware Fabric</h1>
-		</div>
-		<div id="intro">
-			<h2>Introduction</h2>
-			<p>This page provides a UI to configure Edgware over HTTP
-		</div>
+	<body>
+        <div id="header">
+            <img class="logo" src="resources/images/edgware_logo.png">
+        </div>
 		<div id="main">
+            <div id="content">
+            <h2>Introduction</h2>
+			<p>This page provides a UI to configure Edgware over HTTP
 			<div>
 				<input id="table_name" type="text" placeholder="Insert table name here">
 				<input id="node_value" type="text" placeholder="Insert node name if specific">
@@ -41,6 +39,16 @@
 				<span id="dc_empty"></span>
 				<table id="default_config" border="1" cellpadding="4px" cellspacing="1px"></table>
 			</div>
+            </div>
+
 		</div>
-	</font></body>
+        
+        
+        <div id="debug-header">
+            Fabric Configuration Modifier
+        </div>
+        <div id="footer">
+            Copyright IBM 2016
+        </div>
+	</body>
 </html>

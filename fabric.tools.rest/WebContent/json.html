@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <!---------------------------------------------------------------------------->
 <!-- 
- * Licensed Materials - Property of IBM
- *  
- * (C) Copyright IBM Corp. 2014
+ * (C) Copyright IBM Corp. 2016
  * 
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
@@ -15,44 +13,61 @@
 		<link rel="stylesheet" href="css/main.css" type="text/css">
 		<script type="text/javascript" src="./js/jquery-1.8.2.min.js"></script>
 		<script type="text/javascript" src="js/json-handler.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/index.css">
 	</head>
-	<body><font face="Arial">
-		<div id="head">
-			<h1>Edgware Fabric</h1>
-		</div>
-		<div id="intro">
-			<h2>Introduction</h2>
-			<p>This page provides a UI to test sending JSON messages to Edgware over HTTP.
-		</div>
-		<div id="main">
-			<h2>Fabric JSON test harness</h2>
+	<body>
+    <div id="header">
+		<img class="logo" src="resources/images/edgware_logo.png">
+	</div>
 
-			<div id="content">
-				<p>
-					<em>Sample message:</em>
-					{"op":"register:platform-type","type":"Panther","desc":"Panther CLV
-					from Iveco","correl":"2100"}
-				</p>
-				<div class="input">
-					<textarea id="jsonInput" type="text" width="100%"
-						placeholder="Enter JSON messages here" class="inputBox"></textarea>
-				</div>
-				<button type="button" onclick="sendJson();">Send JSON</button>
-				<hr>
-				<button type="button" onclick="clearTable();">Clear incoming messages</button>				
-				<table id="incoming" width="100%">
-					<tr>
-						<th>Message</th>
-						<th>Time Received</th>
-					</tr>
-					<tbody>
-						<tr>
-							<td>msg</td>
-							<td>timestamp</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-		</div></font>
+    <div id="main">
+        <div id="content">
+            <h2>Introduction</h2>
+            <p>This page provides a UI to test sending JSON messages to Edgware over HTTP.
+            <p>
+                <em>Sample message:</em>
+                {"op":"register:platform-type","type":"Panther","desc":"Panther CLV
+                from Iveco","correl":"2100"}
+            </p>
+            <p>
+                <em>Multiple messages can be sent at the same time. For example:</em>
+                {"op":"register:platform-type","type":"Panther","desc":"Panther CLV from Iveco","correl":"2100"},
+                {"op":"register:platform","id":"BlackPanther","type":"Panther","desc":"An instance of Panther","correl":"2200"}
+            </p>
+            <p>
+                <em>Messages can be delimited by any character other than "{" or "}"</em>
+            </p>
+            
+            
+            
+            <div class="input">
+                <textarea id="jsonInput" type="text" width="100%"
+                    placeholder="Enter JSON messages here" class="inputBox"></textarea>
+            </div>
+            <button type="button" onclick="sendJson();">Send JSON</button>
+            <hr>
+            <button type="button" onclick="clearTable();">Clear incoming messages</button>				
+            <table id="incoming" width="100%">
+                <tr>
+                    <th>Message</th>
+                    <th>Time Received</th>
+                </tr>
+                <tbody>
+                    <tr>
+                        <td>msg</td>
+                        <td>timestamp</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+        
+    <div id="debug-header">
+        Fabric JSON test harness
+    </div>
+    <div id="footer">
+        Copyright IBM 2016
+    </div>
+        
 	</body>
 </html>

@@ -1,0 +1,244 @@
+/*
+ * (C) Copyright IBM Corp. 2016
+ * 
+ * LICENSE: Eclipse Public License v1.0
+ * http://www.eclipse.org/legal/epl-v10.html
+*/
+
+.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 2.5px;
+}
+
+.circle {
+  fill: #6217ff;
+  stroke: #333;
+  stroke-width: 2px;
+}
+
+.link.platform {
+    stroke: #1565C0;
+}
+
+.circle.platform {
+    fill: #1565C0;
+}
+
+.link.system {
+    stroke: #777;
+}
+
+.circle.system {
+    fill: #888;
+}
+
+
+.link.available {
+  stroke: #01853D;
+}
+
+.circle.available {
+  fill: #01853D;
+}
+
+.link.unavailable {
+    stroke: #ffed18;
+}
+
+.circle.unavailable {
+  fill: #BB133E;
+}
+
+.logo {
+    margin-left: 25px;
+    margin-top: -5px;
+}
+
+.debug-message {
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    border-left: 1px solid #eee;
+    border-right: 1px solid #eee;
+    padding: 2px;
+    font-size: 14px;
+    background: #FFF;
+}
+
+.debug-message-date {
+    display: block;
+    color: #646464;
+    padding-left: 8px;
+}
+
+.debug-message-action {
+    display: block;
+    color: #a66;
+    padding-left: 8px;
+}
+
+.insert-node {
+    color: #01853D;
+    font-size: 12px;
+    font-family: 'Droid Sans', sans-serif;
+}
+
+.remove-node {
+    color: #BB133E;
+    font-size: 12px;
+    font-family: 'Droid Sans', sans-serif;
+}
+
+.debug-message-action-remove {
+    color: #fff;
+}
+
+.debug-message-source {
+    display: block;
+    color: #a66;
+    padding-left: 8px;
+}
+
+.debug-message-target {
+    display: block;
+    color: #a66;
+    padding-left: 8px;
+}
+
+div#header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: black;
+    box-sizing: border-box;
+    color: #FFF;
+    font-size: 14px;
+    
+    
+    font-family: 'Droid Sans', sans-serif;
+    font-size: 20px;
+}
+
+div#debug-header {
+    overflow-y:auto;
+    height: 50px;
+    background: black;
+    
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: 315px;
+    
+    color: #fff;
+    display: block;
+    font-size: 16px;
+    
+    line-height: 50px;
+    font-family: 'Droid Sans', sans-serif;
+    
+    box-sizing: border-box;
+    border-left: 1px solid #bbb;
+    padding-left: 10px;
+}
+
+div#topology {
+    width: 100%;
+    min-height: 750;
+    height: 94%;
+    background: #B2DAC4;
+    position: absolute;
+    left: 0px;
+    top: 50px;
+    
+    overflow: hidden;
+    
+    box-sizing: border-box;
+    border: 1px solid #bbb;
+}
+
+div#debug {
+    overflow-y:auto;
+    min-height: 750;
+    height: 94%;
+    background: #646464;
+    
+    position: absolute;
+    top: 50px;
+    right: 0px;
+    bottom: 0px;
+    width: 315px;
+    box-sizing: border-box;
+    border: 1px solid #bbb;
+    box-sizing: border-box;
+}
+
+div#footer{
+	height: 30px; 
+	background: black;
+	position: absolute;
+    left: 0px;
+	bottom: 0px;
+	min-width: 100%;
+    color: #01853D;
+}
+
+#available {
+/*   fill: black; */
+	fill: green;
+}
+
+#unavailable {
+/*  fill: white;*/
+/*   fill: none; */
+   fill: #ffed18;
+}
+
+text {
+  font: 14px sans-serif;
+  font-weight: 500;
+  pointer-events: none;
+/*  text-shadow: 0 3px 0 #fff, 3px 0 0 #fff, 0 -3px 0 #fff, -3px 0 0 #fff;*/
+text-shadow: 0 1px 1px #DDD, 1px 0 1px #DDD, 0 -1px 1px #DDD, -1px 0 1px #DDD, 1px 1px 1px #DDD, -1px -1px 1px #DDD, 1px -1px 1px #DDD, -1px 1px 1px #DDD;
+}
+
+
+.this-node {
+    font: 20px sans-serif;
+    font-weight: 800;
+}
+
+#progress {
+    position: relative;
+    left: 400;
+    top: 500;
+    width: 33%;
+    height: 15px;
+    min-width: 250px;
+    max-width: 500px;
+    background-color: grey;
+}
+#progressBar {
+    position: absolute;
+    width: 0%;
+    height: 100%;
+    background-color: green;
+}
+#progressText {
+    position: relative;
+    left: 280;
+    top: 500;
+    width: 33%;
+    min-width: 250px;
+    max-width: 500px;
+    height: 30px;
+    background-color: grey;
+    
+  text-align: center;
+  font: 20px sans-serif;
+  font-weight: 500;
+  pointer-events: none;
+text-shadow: 0 1px 1px #FFF, 1px 0 1px #FFF, 0 -1px 1px #FFF, -1px 0 1px #FFF, 1px 1px 1px #FFF, -1px -1px 1px #FFF, 1px -1px 1px #FFF, -1px 1px 1px #FFF;
+}

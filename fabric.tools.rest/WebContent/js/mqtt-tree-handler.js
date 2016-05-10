@@ -1,6 +1,4 @@
 /*
- * Licensed Materials - Property of IBM
- *  
  * (C) Copyright IBM Corp. 2014
  * 
  * LICENSE: Eclipse Public License v1.0
@@ -9,7 +7,7 @@
 
 var hostname = window.location.hostname;
 var port = window.location.port;
-var ws = new WebSocket("ws://"+hostname+":"+port+"/rest/mqtt");
+var ws = new WebSocket("ws://"+hostname+":"+port+"/fabric.tools.rest/mqtt");
 var host = "";
 
 ws.onopen = function() {
