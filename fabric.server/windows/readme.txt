@@ -1,6 +1,4 @@
 **************************************************************************
-Licensed Materials - Property of IBM
-
 (C) Copyright IBM Corp. 2014. All Rights Reserved.
 
 LICENSE: Eclipse Public License v1.0
