@@ -72,17 +72,17 @@ public class ServiceList extends Notifier implements IEmbeddedXML {
         /* Get the XML paths for the services */
         String elementPath = XML.expandPath(element);
         elementPath = XML.regexpEscape(elementPath);
-        String[] propertyPaths = messageXML.getPaths(elementPath + "/srvs\\[.*\\]/s\\[.*\\]");
+        String[] paths = messageXML.getPaths(elementPath + "/srvs\\[.*\\]/s\\[.*\\]");
 
         /* For each service... */
-        for (int p = 0; p < propertyPaths.length; p++) {
+        for (int p = 0; p < paths.length; p++) {
 
             /* Get and record the next service */
 
-            String task = messageXML.get(propertyPaths[p] + "@tsk");
-            String platform = messageXML.get(propertyPaths[p] + "@plt");
-            String system = messageXML.get(propertyPaths[p] + "@sys");
-            String service = messageXML.get(propertyPaths[p] + "@srv");
+            String task = messageXML.get(paths[p] + "@tsk");
+            String platform = messageXML.get(paths[p] + "@plt");
+            String system = messageXML.get(paths[p] + "@sys");
+            String service = messageXML.get(paths[p] + "@srv");
 
             TaskServiceDescriptor nextService = new TaskServiceDescriptor(task, platform, system, service);
 
@@ -91,7 +91,6 @@ public class ServiceList extends Notifier implements IEmbeddedXML {
         }
 
         xmlCache = null;
-
     }
 
     /**

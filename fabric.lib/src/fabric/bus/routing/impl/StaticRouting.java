@@ -111,13 +111,14 @@ public class StaticRouting extends Routing {
         /* Get the XML paths for the route nodes */
         String elementPath = XML.expandPath(element);
         elementPath = XML.regexpEscape(elementPath);
-        String[] routeNodeXMLPaths = messageXML.getPaths(elementPath + "/rt\\[.*\\]/nodes\\[.*\\]/n\\[.*\\]");
+        String[] routeNodeXMLPaths = messageXML.getPaths(elementPath
+                + "/rt\\[.*\\]/nodes\\[.*\\]/n\\[.*\\]/\\$\\[.*\\]");
         String[] nodeIDs = new String[routeNodeXMLPaths.length];
 
         /* For each node in the route... */
         for (int n = 0; n < routeNodeXMLPaths.length; n++) {
 
-            /* Get the hop name (with a path of the form "/fab/rt/nodes/n[n]") */
+            /* Get the hop name (with a path of the form "/fab/rt/nodes/n[n]/$[n]") */
             nodeIDs[n] = messageXML.get(routeNodeXMLPaths[n]);
 
         }
@@ -144,7 +145,6 @@ public class StaticRouting extends Routing {
             messageXML.set(element + "/rt/nodes/n[%d]", nodeIDs[n], n);
 
         }
-
     }
 
     /**
