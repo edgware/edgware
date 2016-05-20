@@ -93,7 +93,7 @@ if "!NODE!" neq "" (
 	if "!IP!" neq "" (
 		if "!SCRIPT!" neq "" (
 			title Fabric Script
-			java -Xmx128m fabric.script.RunScripte !NODE! !IP! FABRIC-%RANDOM% !SCRIPT!
+			java -Xmx128m fabric.script.RunScript !NODE! !IP! FABRIC-%RANDOM% !SCRIPT!
 			goto:EOF
 		)
 	)
