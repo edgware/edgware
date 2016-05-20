@@ -361,7 +361,7 @@ if not exist "!FABRIC_HOME!" (
 REM Remove any spaces from the FABRIC_HOME path
 for %%H in ("!FABRIC_HOME!") do set FABRIC_HOME=%%~sH
 
-set DBTYPE=distributed
+set DBTYPE=gaian
 set DAEMON=0
 set ACTION=
 set TYPE=
