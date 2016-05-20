@@ -30,4 +30,4 @@ For more open-source projects from IBM, take a look [here](http://ibm.github.io)
 
 ## Copyright and License
 
-Copyright 2006, 2014 IBM Corp. under the [Eclipse Public License v1.0](LICENSE).
+Copyright 2006, 2016 IBM Corp. under the [Eclipse Public License v1.0](LICENSE).
