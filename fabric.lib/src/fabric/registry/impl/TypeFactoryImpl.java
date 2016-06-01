@@ -186,7 +186,7 @@ public class TypeFactoryImpl extends AbstractFactory implements TypeFactory {
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Type) {
             Type type = (Type) obj;
             buf.append("delete FROM ");
@@ -201,16 +201,16 @@ public class TypeFactoryImpl extends AbstractFactory implements TypeFactory {
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Type) {
             Type type = (Type) obj;
             buf.append("insert into ");
             buf.append(getTableNameForUpdate(type.getClassifier()));
             buf.append(" values(");
-            buf.append("'").append(type.getId()).append("',");
-            buf.append("'").append(type.getDescription()).append("',");
-            buf.append("'").append(type.getAttributes()).append("',");
-            buf.append("'").append(type.getAttributesUri()).append("')");
+            buf.append('\'').append(type.getId()).append('\'').append(',');
+            buf.append('\'').append(type.getDescription()).append('\'').append(',');
+            buf.append('\'').append(type.getAttributes()).append('\'').append(',');
+            buf.append('\'').append(type.getAttributesUri()).append("')");
         }
         return buf.toString();
     }
@@ -218,17 +218,17 @@ public class TypeFactoryImpl extends AbstractFactory implements TypeFactory {
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Type) {
             Type type = (Type) obj;
             buf.append("update ");
             buf.append(getTableNameForUpdate(type.getClassifier()));
             buf.append(" set ");
             buf.append("TYPE_ID='");
-            buf.append(type.getId()).append("',");
-            buf.append("DESCRIPTION='").append(type.getDescription()).append("',");
-            buf.append("ATTRIBUTES='").append(type.getAttributes()).append("',");
-            buf.append("ATTRIBUTES_URI='").append(type.getAttributesUri()).append("'");
+            buf.append(type.getId()).append('\'').append(',');
+            buf.append("DESCRIPTION='").append(type.getDescription()).append('\'').append(',');
+            buf.append("ATTRIBUTES='").append(type.getAttributes()).append('\'').append(',');
+            buf.append("ATTRIBUTES_URI='").append(type.getAttributesUri()).append('\'');
             buf.append(" WHERE ");
 
             /* if it exists, use the shadow values for the WHERE clause */
@@ -236,11 +236,11 @@ public class TypeFactoryImpl extends AbstractFactory implements TypeFactory {
                 Type shadow = (Type) type.getShadow();
                 buf.append("TYPE_ID='");
                 buf.append(shadow.getId());
-                buf.append("'");
+                buf.append('\'');
             } else {
                 buf.append("TYPE_ID='");
                 buf.append(type.getId());
-                buf.append("'");
+                buf.append('\'');
             }
 
         }
@@ -487,7 +487,7 @@ public class TypeFactoryImpl extends AbstractFactory implements TypeFactory {
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-        PersistenceException {
+    PersistenceException {
 
         if (obj != null && obj instanceof Type) {
             return super.insert(obj, this);

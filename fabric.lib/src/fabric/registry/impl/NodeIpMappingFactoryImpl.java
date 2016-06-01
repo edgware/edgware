@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodeIpMapping;
 import fabric.registry.NodeIpMappingFactory;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -123,7 +123,7 @@ public class NodeIpMappingFactoryImpl extends AbstractFactory implements NodeIpM
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodeIpMapping) {
             NodeIpMapping ipMapping = (NodeIpMapping) obj;
             buf.append("delete from " + FabricRegistry.NODE_IP_MAPPING + " where(");
@@ -136,38 +136,38 @@ public class NodeIpMappingFactoryImpl extends AbstractFactory implements NodeIpM
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodeIpMapping) {
             NodeIpMapping ipMapping = (NodeIpMapping) obj;
             buf.append("insert into " + FabricRegistry.NODE_IP_MAPPING + " values(");
-            buf.append("'").append(ipMapping.getNodeId()).append("',");
-            buf.append("'").append(ipMapping.getNodeInterface()).append("',");
-            buf.append("'").append(ipMapping.getIpAddress()).append("',");
-            buf.append(ipMapping.getPort()).append(")");
+            buf.append('\'').append(ipMapping.getNodeId()).append('\'').append(',');
+            buf.append('\'').append(ipMapping.getNodeInterface()).append('\'').append(',');
+            buf.append('\'').append(ipMapping.getIpAddress()).append('\'').append(',');
+            buf.append(ipMapping.getPort()).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodeIpMapping) {
             NodeIpMapping ipMapping = (NodeIpMapping) obj;
             buf.append("update " + FabricRegistry.NODE_IP_MAPPING + " set ");
-            buf.append("NODE_ID='").append(ipMapping.getNodeId()).append("',");
-            buf.append("NODE_INTERFACE='").append(ipMapping.getNodeInterface()).append("',");
-            buf.append("IP='").append(ipMapping.getIpAddress()).append("',");
+            buf.append("NODE_ID='").append(ipMapping.getNodeId()).append('\'').append(',');
+            buf.append("NODE_INTERFACE='").append(ipMapping.getNodeInterface()).append('\'').append(',');
+            buf.append("IP='").append(ipMapping.getIpAddress()).append('\'').append(',');
             buf.append("PORT=").append(ipMapping.getPort());
             buf.append(" where ");
 
             /* if it exists, use the shadow values for the WHERE clause */
             if (ipMapping.getShadow() != null) {
                 NodeIpMapping shadow = (NodeIpMapping) ipMapping.getShadow();
-                buf.append("NODE_ID='").append(shadow.getNodeId()).append("'");
-                buf.append(" and NODE_INTERFACE='").append(shadow.getNodeInterface()).append("'");
+                buf.append("NODE_ID='").append(shadow.getNodeId()).append('\'');
+                buf.append(" and NODE_INTERFACE='").append(shadow.getNodeInterface()).append('\'');
             } else {
-                buf.append("NODE_ID='").append(ipMapping.getNodeId()).append("'");
-                buf.append(" and NODE_INTERFACE='").append(ipMapping.getNodeInterface()).append("'");
+                buf.append("NODE_ID='").append(ipMapping.getNodeId()).append('\'');
+                buf.append(" and NODE_INTERFACE='").append(ipMapping.getNodeInterface()).append('\'');
             }
         }
         return buf.toString();
@@ -283,7 +283,7 @@ public class NodeIpMappingFactoryImpl extends AbstractFactory implements NodeIpM
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof NodeIpMapping) {
             return super.insert(obj, this);

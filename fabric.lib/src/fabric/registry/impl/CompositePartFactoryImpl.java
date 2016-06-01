@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.CompositePart;
 import fabric.registry.CompositePartFactory;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -89,7 +89,7 @@ public class CompositePartFactoryImpl extends AbstractFactory implements Composi
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CompositePart) {
             CompositePart service = (CompositePart) obj;
             buf.append("delete from " + FabricRegistry.COMPOSITE_PARTS + " where (");
@@ -102,29 +102,29 @@ public class CompositePartFactoryImpl extends AbstractFactory implements Composi
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CompositePart) {
             CompositePart service = (CompositePart) obj;
             buf.append("insert into " + FabricRegistry.COMPOSITE_PARTS + " values(");
-            buf.append("'").append(service.getCompositeId()).append("',");
-            buf.append("'").append(service.getServicePlatformId()).append("',");
-            buf.append("'").append(service.getServiceId()).append("',");
-            buf.append("").append(nullOrString(service.getAttributes())).append(",");
-            buf.append("").append(nullOrString(service.getAttributesURI())).append(")");
+            buf.append('\'').append(service.getCompositeId()).append('\'').append(',');
+            buf.append('\'').append(service.getServicePlatformId()).append('\'').append(',');
+            buf.append('\'').append(service.getServiceId()).append('\'').append(',');
+            buf.append("").append(nullOrString(service.getAttributes())).append(',');
+            buf.append("").append(nullOrString(service.getAttributesURI())).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CompositePart) {
             CompositePart service = (CompositePart) obj;
             buf.append("update " + FabricRegistry.COMPOSITE_PARTS + " set ");
-            buf.append("COMPOSITE_ID='").append(service.getCompositeId()).append("',");
-            buf.append("SERVICE_PLATFORM_ID='").append(service.getServicePlatformId()).append("',");
-            buf.append("SERVICE_ID='").append(service.getServiceId()).append("',");
-            buf.append("Attributes=").append(nullOrString(service.getAttributes())).append(",");
+            buf.append("COMPOSITE_ID='").append(service.getCompositeId()).append('\'').append(',');
+            buf.append("SERVICE_PLATFORM_ID='").append(service.getServicePlatformId()).append('\'').append(',');
+            buf.append("SERVICE_ID='").append(service.getServiceId()).append('\'').append(',');
+            buf.append("Attributes=").append(nullOrString(service.getAttributes())).append(',');
             buf.append("Attributes_URI=").append(nullOrString(service.getAttributesURI()));
             buf.append(" WHERE ");
 
@@ -133,11 +133,11 @@ public class CompositePartFactoryImpl extends AbstractFactory implements Composi
                 CompositePart originalService = (CompositePart) service.getShadow();
                 buf.append(" COMPOSITE_ID='").append(originalService.getCompositeId()).append("' AND ");
                 buf.append(" SERVICE_PLATFORM_ID='").append(originalService.getServicePlatformId()).append("' AND ");
-                buf.append(" SERVICE_ID='").append(originalService.getServiceId()).append("'");
+                buf.append(" SERVICE_ID='").append(originalService.getServiceId()).append('\'');
             } else {
                 buf.append(" COMPOSITE_ID='").append(service.getCompositeId()).append("' AND ");
                 buf.append(" SERVICE_PLATFORM_ID='").append(service.getServicePlatformId()).append("' AND ");
-                buf.append(" SERVICE_ID='").append(service.getServiceId()).append("'");
+                buf.append(" SERVICE_ID='").append(service.getServiceId()).append('\'');
             }
         }
         return buf.toString();
@@ -225,7 +225,7 @@ public class CompositePartFactoryImpl extends AbstractFactory implements Composi
 
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof CompositePart) {
             return super.insert(obj, this);

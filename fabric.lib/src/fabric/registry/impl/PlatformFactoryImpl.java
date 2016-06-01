@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Platform;
 import fabric.registry.PlatformFactory;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -107,61 +107,61 @@ public class PlatformFactoryImpl extends AbstractFactory implements PlatformFact
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Platform) {
             Platform platform = (Platform) obj;
             buf.append("delete from " + FabricRegistry.PLATFORMS + " where(");
             buf.append("PLATFORM_ID=").append(nullOrString(platform.getId())).append(" AND ");
             buf.append("Type_ID=").append(nullOrString(platform.getTypeId())).append(" AND ");
-            buf.append("NODE_ID=").append(nullOrString(platform.getNodeId())).append(")");
+            buf.append("NODE_ID=").append(nullOrString(platform.getNodeId())).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Platform) {
             Platform platform = (Platform) obj;
             buf.append("insert into " + FabricRegistry.PLATFORMS + " values(");
-            buf.append(nullOrString(platform.getId())).append(",");
-            buf.append(nullOrString(platform.getTypeId())).append(",");
-            buf.append(nullOrString(platform.getNodeId())).append(",");
-            buf.append(nullOrString(platform.getAffiliation())).append(",");
-            buf.append(nullOrString(platform.getCredentials())).append(",");
-            buf.append(nullOrString(platform.getReadiness())).append(",");
-            buf.append(nullOrString(platform.getAvailability())).append(",");
-            buf.append(platform.getLatitude()).append(",");
-            buf.append(platform.getLongitude()).append(",");
-            buf.append(platform.getAltitude()).append(",");
-            buf.append(platform.getBearing()).append(",");
-            buf.append(platform.getVelocity()).append(",");
-            buf.append(nullOrString(platform.getDescription())).append(",");
-            buf.append(nullOrString(platform.getAttributes())).append(",");
-            buf.append(nullOrString(platform.getAttributesURI())).append(")");
+            buf.append(nullOrString(platform.getId())).append(',');
+            buf.append(nullOrString(platform.getTypeId())).append(',');
+            buf.append(nullOrString(platform.getNodeId())).append(',');
+            buf.append(nullOrString(platform.getAffiliation())).append(',');
+            buf.append(nullOrString(platform.getCredentials())).append(',');
+            buf.append(nullOrString(platform.getReadiness())).append(',');
+            buf.append(nullOrString(platform.getAvailability())).append(',');
+            buf.append(platform.getLatitude()).append(',');
+            buf.append(platform.getLongitude()).append(',');
+            buf.append(platform.getAltitude()).append(',');
+            buf.append(platform.getBearing()).append(',');
+            buf.append(platform.getVelocity()).append(',');
+            buf.append(nullOrString(platform.getDescription())).append(',');
+            buf.append(nullOrString(platform.getAttributes())).append(',');
+            buf.append(nullOrString(platform.getAttributesURI())).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Platform) {
             Platform platform = (Platform) obj;
             buf.append("update " + FabricRegistry.PLATFORMS + " set ");
-            buf.append("TYPE_ID=").append(nullOrString(platform.getTypeId())).append(",");
-            buf.append("NODE_ID=").append(nullOrString(platform.getNodeId())).append(",");
-            buf.append("AFFILIATION=").append(nullOrString(platform.getAffiliation())).append(",");
-            buf.append("CREDENTIALS=").append(nullOrString(platform.getCredentials())).append(",");
-            buf.append("AVAILABILITY=").append(nullOrString(platform.getAvailability())).append(",");
-            buf.append("READINESS=").append(nullOrString(platform.getReadiness())).append(",");
-            buf.append("LATITUDE=").append(platform.getLatitude()).append(",");
-            buf.append("LONGITUDE=").append(platform.getLongitude()).append(",");
-            buf.append("ALTITUDE=").append(platform.getAltitude()).append(",");
-            buf.append("BEARING=").append(platform.getBearing()).append(",");
-            buf.append("VELOCITY=").append(platform.getVelocity()).append(",");
-            buf.append("DESCRIPTION=").append(nullOrString(platform.getDescription())).append(",");
-            buf.append("ATTRIBUTES=").append(nullOrString(platform.getAttributes())).append(",");
+            buf.append("TYPE_ID=").append(nullOrString(platform.getTypeId())).append(',');
+            buf.append("NODE_ID=").append(nullOrString(platform.getNodeId())).append(',');
+            buf.append("AFFILIATION=").append(nullOrString(platform.getAffiliation())).append(',');
+            buf.append("CREDENTIALS=").append(nullOrString(platform.getCredentials())).append(',');
+            buf.append("AVAILABILITY=").append(nullOrString(platform.getAvailability())).append(',');
+            buf.append("READINESS=").append(nullOrString(platform.getReadiness())).append(',');
+            buf.append("LATITUDE=").append(platform.getLatitude()).append(',');
+            buf.append("LONGITUDE=").append(platform.getLongitude()).append(',');
+            buf.append("ALTITUDE=").append(platform.getAltitude()).append(',');
+            buf.append("BEARING=").append(platform.getBearing()).append(',');
+            buf.append("VELOCITY=").append(platform.getVelocity()).append(',');
+            buf.append("DESCRIPTION=").append(nullOrString(platform.getDescription())).append(',');
+            buf.append("ATTRIBUTES=").append(nullOrString(platform.getAttributes())).append(',');
             buf.append("ATTRIBUTES_URI=").append(nullOrString(platform.getAttributesURI()));
             buf.append(" WHERE ");
 
@@ -324,7 +324,7 @@ public class PlatformFactoryImpl extends AbstractFactory implements PlatformFact
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof Platform) {
             return super.insert(obj, this);

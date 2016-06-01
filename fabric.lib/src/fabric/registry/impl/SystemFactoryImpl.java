@@ -8,8 +8,8 @@
 package fabric.registry.impl;
 
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.System;
 import fabric.registry.SystemFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -274,13 +274,13 @@ public class SystemFactoryImpl extends AbstractFactory implements SystemFactory 
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof System) {
             System system = (System) obj;
             buf.append("delete from " + FabricRegistry.SYSTEMS + " where(");
             buf.append("ID=").append(nullOrString(system.getId())).append(" AND ");
             buf.append("Type_ID=").append(nullOrString(system.getTypeId())).append(" AND ");
-            buf.append("Platform_ID=").append(nullOrString(system.getPlatformId())).append(")");
+            buf.append("Platform_ID=").append(nullOrString(system.getPlatformId())).append(')');
         }
         return buf.toString();
     }
@@ -291,24 +291,24 @@ public class SystemFactoryImpl extends AbstractFactory implements SystemFactory 
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof System) {
             System system = (System) obj;
             buf.append("update " + FabricRegistry.SYSTEMS + " set ");
-            buf.append("ID=").append(nullOrString(system.getId())).append(",");
-            buf.append("PLATFORM_ID=").append(nullOrString(system.getPlatformId())).append(",");
-            buf.append("TYPE_ID=").append(nullOrString(system.getTypeId())).append(",");
-            buf.append("KIND=").append(nullOrString(system.getKind())).append(",");
-            buf.append("CREDENTIALS=").append(nullOrString(system.getCredentials())).append(",");
-            buf.append("READINESS=").append(nullOrString(system.getReadiness())).append(",");
-            buf.append("AVAILABILITY=").append(nullOrString(system.getAvailability())).append(",");
-            buf.append("LATITUDE=").append(system.getLatitude()).append(",");
-            buf.append("LONGITUDE=").append(system.getLongitude()).append(",");
-            buf.append("ALTITUDE=").append(system.getAltitude()).append(",");
-            buf.append("BEARING=").append(system.getBearing()).append(",");
-            buf.append("VELOCITY=").append(system.getVelocity()).append(",");
-            buf.append("DESCRIPTION=").append(nullOrString(system.getDescription())).append(",");
-            buf.append("ATTRIBUTES=").append(nullOrString(system.getAttributes())).append(",");
+            buf.append("ID=").append(nullOrString(system.getId())).append(',');
+            buf.append("PLATFORM_ID=").append(nullOrString(system.getPlatformId())).append(',');
+            buf.append("TYPE_ID=").append(nullOrString(system.getTypeId())).append(',');
+            buf.append("KIND=").append(nullOrString(system.getKind())).append(',');
+            buf.append("CREDENTIALS=").append(nullOrString(system.getCredentials())).append(',');
+            buf.append("READINESS=").append(nullOrString(system.getReadiness())).append(',');
+            buf.append("AVAILABILITY=").append(nullOrString(system.getAvailability())).append(',');
+            buf.append("LATITUDE=").append(system.getLatitude()).append(',');
+            buf.append("LONGITUDE=").append(system.getLongitude()).append(',');
+            buf.append("ALTITUDE=").append(system.getAltitude()).append(',');
+            buf.append("BEARING=").append(system.getBearing()).append(',');
+            buf.append("VELOCITY=").append(system.getVelocity()).append(',');
+            buf.append("DESCRIPTION=").append(nullOrString(system.getDescription())).append(',');
+            buf.append("ATTRIBUTES=").append(nullOrString(system.getAttributes())).append(',');
             buf.append("ATTRIBUTES_URI=").append(nullOrString(system.getAttributesURI()));
             buf.append(" WHERE ");
 
@@ -331,25 +331,25 @@ public class SystemFactoryImpl extends AbstractFactory implements SystemFactory 
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof System) {
             System system = (System) obj;
             buf.append("insert into " + FabricRegistry.SYSTEMS + " values(");
-            buf.append(nullOrString(system.getPlatformId())).append(",");
-            buf.append(nullOrString(system.getId())).append(",");
-            buf.append(nullOrString(system.getTypeId())).append(",");
-            buf.append(nullOrString(system.getKind())).append(",");
-            buf.append(nullOrString(system.getCredentials())).append(",");
-            buf.append(nullOrString(system.getReadiness())).append(",");
-            buf.append(nullOrString(system.getAvailability())).append(",");
-            buf.append(system.getLatitude()).append(",");
-            buf.append(system.getLongitude()).append(",");
-            buf.append(system.getAltitude()).append(",");
-            buf.append(system.getBearing()).append(",");
-            buf.append(system.getVelocity()).append(",");
-            buf.append(nullOrString(system.getDescription())).append(",");
-            buf.append(nullOrString(system.getAttributes())).append(",");
-            buf.append(nullOrString(system.getAttributesURI())).append(")");
+            buf.append(nullOrString(system.getPlatformId())).append(',');
+            buf.append(nullOrString(system.getId())).append(',');
+            buf.append(nullOrString(system.getTypeId())).append(',');
+            buf.append(nullOrString(system.getKind())).append(',');
+            buf.append(nullOrString(system.getCredentials())).append(',');
+            buf.append(nullOrString(system.getReadiness())).append(',');
+            buf.append(nullOrString(system.getAvailability())).append(',');
+            buf.append(system.getLatitude()).append(',');
+            buf.append(system.getLongitude()).append(',');
+            buf.append(system.getAltitude()).append(',');
+            buf.append(system.getBearing()).append(',');
+            buf.append(system.getVelocity()).append(',');
+            buf.append(nullOrString(system.getDescription())).append(',');
+            buf.append(nullOrString(system.getAttributes())).append(',');
+            buf.append(nullOrString(system.getAttributesURI())).append(')');
         }
         return buf.toString();
     }
@@ -408,7 +408,7 @@ public class SystemFactoryImpl extends AbstractFactory implements SystemFactory 
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof System) {
             return super.insert(obj, this);

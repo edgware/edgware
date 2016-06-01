@@ -362,11 +362,11 @@ public class BusMessageHandler extends Fabric {
      */
     private String nodeListAsString(String[] nodes) {
 
-        StringBuffer nodeList = new StringBuffer();
+        StringBuilder nodeList = new StringBuilder();
 
         /* If there are nodes in the list... */
         if (nodes != null && nodes.length > 0) {
-            nodeList.append(": ");
+            nodeList.append(':').append(' ');
         } else {
             nodes = new String[0];
         }
@@ -378,7 +378,7 @@ public class BusMessageHandler extends Fabric {
 
             /* If this is not the last node in the list... */
             if (n < (nodes.length - 1)) {
-                nodeList.append(", ");
+                nodeList.append(',').append(' ');
             }
         }
 

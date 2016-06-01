@@ -70,28 +70,28 @@ public class SubscriptionRecord {
 
     /**
      * Constructs a new instance.
-     * 
+     *
      * @param actor
      *            the ID of the actor (user) associated with this subscription.
-     * 
+     *
      * @param actorPlatform
      *            the platform via which the actor is connected to the Fabric (e.g. the application or service).
-     * 
+     *
      * @param service
      *            the service descriptor.
-     * 
+     *
      * @param routing
      *            the routing information for this subscription.
-     * 
+     *
      * @param messageQoS
      *            the subscription QoS (QoS) setting.
-     * 
+     *
      * @param inboundActorDispatcher
      *            the in-bound actor plug-in dispatcher.
-     * 
+     *
      * @param outboundActorDispatcher
      *            the out-bound actor plug-in dispatcher.
-     * 
+     *
      * @param cleanupMessageHandles
      *            the list of handles of clean-up messages registered for this subscription with the local connection
      *            manager service.
@@ -113,7 +113,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the ID of the actor associated with this subscription.
-     * 
+     *
      * @return the actor.
      */
     public String actor() {
@@ -123,7 +123,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the ID of the platform via which the actor has made this subscription.
-     * 
+     *
      * @return the actor's platform.
      */
     public String actorPlatform() {
@@ -133,7 +133,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the ID of the actor's home node.
-     * 
+     *
      * @return the node.
      */
     public String actorNode() {
@@ -143,7 +143,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the service descriptor.
-     * 
+     *
      * @return the descriptor.
      */
     public TaskServiceDescriptor service() {
@@ -153,7 +153,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the in-bound plug-in dispatcher for this actor/subscription.
-     * 
+     *
      * @return the dispatcher.
      */
     public IFeedPluginDispatcher inboundActorDispatcher() {
@@ -163,7 +163,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the out-bound plug-in dispatcher for this actor/subscription.
-     * 
+     *
      * @return the dispatcher.
      */
     public IFeedPluginDispatcher outboundActorDispatcher() {
@@ -173,7 +173,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the routing information for this subscription.
-     * 
+     *
      * @return the subscription routing.
      */
     public IRouting routing() {
@@ -183,7 +183,7 @@ public class SubscriptionRecord {
 
     /**
      * Answers the subscription QoS (QoS) setting.
-     * 
+     *
      * @return the QoS setting.
      */
     public MessageQoS messageQoS() {
@@ -194,7 +194,7 @@ public class SubscriptionRecord {
     /**
      * Answers the the list of handles of clean-up messages registered for this subscription with the local connection
      * manager service.
-     * 
+     *
      * @return the handle.
      */
     public ArrayList<String> cleanupMessageHandles() {
@@ -205,7 +205,7 @@ public class SubscriptionRecord {
     /**
      * Answers the handle for the downstream the clean-up message registered for this subscription with the connection
      * manager service.
-     * 
+     *
      * @return the handle.
      */
     public String downstreamCleanupMessageHandle() {
@@ -219,7 +219,7 @@ public class SubscriptionRecord {
     @Override
     public String toString() {
 
-        StringBuffer toString = new StringBuffer();
+        StringBuilder toString = new StringBuilder();
 
         toString.append(actor);
 

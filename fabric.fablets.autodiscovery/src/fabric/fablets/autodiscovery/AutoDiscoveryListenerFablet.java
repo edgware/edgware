@@ -93,7 +93,7 @@ public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlu
     /** Discovery request queue depth */
     static int queueDepth = 1;
 
-    private StringBuffer seenBuffer = null;
+    private StringBuilder seenBuffer = null;
 
     /*
      * Class methods
@@ -282,7 +282,7 @@ public class AutoDiscoveryListenerFablet extends FabricBus implements IFabletPlu
                 /* Log the complete list of nodes we've seen */
                 if (logger.isLoggable(Level.FINEST)) {
 
-                    seenBuffer = new StringBuffer();
+                    seenBuffer = new StringBuilder();
                     Iterator<NodeDescriptor> nc_it = nodeLastSeen.keySet().iterator();
 
                     while (nc_it.hasNext()) {

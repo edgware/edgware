@@ -8,8 +8,8 @@
 package fabric.registry.impl;
 
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.TaskNode;
 import fabric.registry.TaskNodeFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -92,7 +92,7 @@ public class TaskNodeFactoryImpl extends AbstractFactory implements TaskNodeFact
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskNode) {
             TaskNode taskNode = (TaskNode) obj;
             buf.append("delete from " + FabricRegistry.TASK_NODES + " where(");
@@ -104,40 +104,40 @@ public class TaskNodeFactoryImpl extends AbstractFactory implements TaskNodeFact
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskNode) {
             TaskNode taskNode = (TaskNode) obj;
             buf.append("insert into " + FabricRegistry.TASK_NODES + " values(");
-            buf.append(nullOrString(taskNode.getTaskId())).append(",");
-            buf.append(nullOrString(taskNode.getNodeId())).append(",");
-            buf.append(nullOrString(taskNode.getDescription())).append(",");
-            buf.append(nullOrString(taskNode.getConfiguration())).append(",");
-            buf.append(nullOrString(taskNode.getConfigurationUri())).append(")");
+            buf.append(nullOrString(taskNode.getTaskId())).append(',');
+            buf.append(nullOrString(taskNode.getNodeId())).append(',');
+            buf.append(nullOrString(taskNode.getDescription())).append(',');
+            buf.append(nullOrString(taskNode.getConfiguration())).append(',');
+            buf.append(nullOrString(taskNode.getConfigurationUri())).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskNode) {
             TaskNode taskNode = (TaskNode) obj;
             buf.append("update " + FabricRegistry.TASK_NODES + " set ");
-            buf.append("TASK_ID='").append(taskNode.getTaskId()).append("',");
-            buf.append("NODE_ID='").append(taskNode.getNodeId()).append("',");
-            buf.append("DESCRIPTION=").append(nullOrString(taskNode.getDescription())).append(",");
-            buf.append("TASK_CONFIGURATION=").append(nullOrString(taskNode.getConfiguration())).append(",");
+            buf.append("TASK_ID='").append(taskNode.getTaskId()).append('\'').append(',');
+            buf.append("NODE_ID='").append(taskNode.getNodeId()).append('\'').append(',');
+            buf.append("DESCRIPTION=").append(nullOrString(taskNode.getDescription())).append(',');
+            buf.append("TASK_CONFIGURATION=").append(nullOrString(taskNode.getConfiguration())).append(',');
             buf.append("TASK_CONFIGURATION_URI=").append(nullOrString(taskNode.getConfigurationUri()));
             buf.append(" WHERE");
 
             /* if it exists, use the shadow values for the WHERE clause */
             if (taskNode.getShadow() != null) {
                 TaskNode shadow = (TaskNode) taskNode.getShadow();
-                buf.append(" TASK_ID='").append(shadow.getTaskId()).append("'");
-                buf.append(" AND NODE_ID='").append(shadow.getNodeId()).append("'");
+                buf.append(" TASK_ID='").append(shadow.getTaskId()).append('\'');
+                buf.append(" AND NODE_ID='").append(shadow.getNodeId()).append('\'');
             } else {
-                buf.append(" TASK_ID='").append(taskNode.getTaskId()).append("'");
-                buf.append(" AND NODE_ID='").append(taskNode.getNodeId()).append("'");
+                buf.append(" TASK_ID='").append(taskNode.getTaskId()).append('\'');
+                buf.append(" AND NODE_ID='").append(taskNode.getNodeId()).append('\'');
             }
         }
         return buf.toString();
@@ -255,7 +255,7 @@ public class TaskNodeFactoryImpl extends AbstractFactory implements TaskNodeFact
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof TaskNode) {
             return super.insert(obj, this);

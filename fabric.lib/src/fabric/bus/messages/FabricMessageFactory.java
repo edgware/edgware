@@ -43,7 +43,7 @@ public abstract class FabricMessageFactory {
 
         /* Get a unique ID for this node */
 
-        StringBuffer hostIDBuffer = new StringBuffer();
+        StringBuilder hostIDBuffer = new StringBuilder();
 
         InetAddress address = null;
         byte[] addressBytes = null;
@@ -104,7 +104,7 @@ public abstract class FabricMessageFactory {
      *             thrown if the class cannot be instantiated (for example, if there is no default constructor).
      */
     public static IFabricMessage create(String type) throws ClassNotFoundException, IllegalAccessException,
-        InstantiationException {
+    InstantiationException {
 
         /* To hold the new instance */
         IFabricMessage instance = null;
@@ -140,7 +140,7 @@ public abstract class FabricMessageFactory {
      *             thrown if the class cannot be initialized.
      */
     public static IFabricMessage create(String topic, XML messageXML) throws ClassNotFoundException,
-        IllegalAccessException, InstantiationException, Exception {
+    IllegalAccessException, InstantiationException, Exception {
 
         /* To hold the new instance */
         IFabricMessage instance = null;
@@ -196,7 +196,7 @@ public abstract class FabricMessageFactory {
      *             thrown if the class cannot be initialized.
      */
     public static IFabricMessage create(String topic, byte[] wireBytes) throws ClassNotFoundException,
-        IllegalAccessException, InstantiationException, Exception {
+    IllegalAccessException, InstantiationException, Exception {
 
         /* Currently the wire format is just a byte array representation of an XML document */
         XML messageXML = new XML(wireBytes);

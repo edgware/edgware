@@ -8,8 +8,8 @@
 package fabric.registry.impl;
 
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.SystemWiring;
 import fabric.registry.SystemWiringFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -102,7 +102,7 @@ public class SystemWiringFactoryImpl extends AbstractFactory implements SystemWi
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof SystemWiring) {
             SystemWiring systemWiring = (SystemWiring) obj;
             buf.append("delete from " + FabricRegistry.SYSTEM_WIRING + " where (");
@@ -120,19 +120,19 @@ public class SystemWiringFactoryImpl extends AbstractFactory implements SystemWi
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof SystemWiring) {
             SystemWiring systemWiring = (SystemWiring) obj;
             buf.append("insert into " + FabricRegistry.SYSTEM_WIRING + " values(");
-            buf.append("'").append(systemWiring.getCompositeId()).append("',");
-            buf.append("'").append(systemWiring.getFromSystemPlatformId()).append("',");
-            buf.append("'").append(systemWiring.getFromSystemId()).append("',");
-            buf.append("'").append(systemWiring.getFromInterfaceId()).append("',");
-            buf.append("'").append(systemWiring.getToSystemPlatformId()).append("',");
-            buf.append("'").append(systemWiring.getToSystemId()).append("',");
-            buf.append("'").append(systemWiring.getToInterfaceId()).append("',");
-            buf.append("").append(nullOrString(systemWiring.getAttributes())).append(",");
-            buf.append("").append(nullOrString(systemWiring.getAttributesURI())).append(")");
+            buf.append('\'').append(systemWiring.getCompositeId()).append('\'').append(',');
+            buf.append('\'').append(systemWiring.getFromSystemPlatformId()).append('\'').append(',');
+            buf.append('\'').append(systemWiring.getFromSystemId()).append('\'').append(',');
+            buf.append('\'').append(systemWiring.getFromInterfaceId()).append('\'').append(',');
+            buf.append('\'').append(systemWiring.getToSystemPlatformId()).append('\'').append(',');
+            buf.append('\'').append(systemWiring.getToSystemId()).append('\'').append(',');
+            buf.append('\'').append(systemWiring.getToInterfaceId()).append('\'').append(',');
+            buf.append("").append(nullOrString(systemWiring.getAttributes())).append(',');
+            buf.append("").append(nullOrString(systemWiring.getAttributesURI())).append(')');
         }
         return buf.toString();
     }
@@ -140,18 +140,18 @@ public class SystemWiringFactoryImpl extends AbstractFactory implements SystemWi
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof SystemWiring) {
             SystemWiring systemWiring = (SystemWiring) obj;
             buf.append("update " + FabricRegistry.SYSTEM_WIRING + " set ");
-            buf.append("COMPOSITE_ID='").append(systemWiring.getCompositeId()).append("',");
-            buf.append("FROM_SERVICE_PLATFORM_ID='").append(systemWiring.getFromSystemPlatformId()).append("',");
-            buf.append("FROM_SERVICE_ID='").append(systemWiring.getFromSystemId()).append("',");
-            buf.append("FROM_INTERFACE_ID='").append(systemWiring.getFromInterfaceId()).append("',");
-            buf.append("TO_SERVICE_PLATFORM_ID='").append(systemWiring.getToSystemPlatformId()).append("',");
-            buf.append("TO_SERVICE_ID='").append(systemWiring.getToSystemId()).append("',");
-            buf.append("TO_INTERFACE_ID='").append(systemWiring.getToInterfaceId()).append("',");
-            buf.append("Attributes=").append(nullOrString(systemWiring.getAttributes())).append(",");
+            buf.append("COMPOSITE_ID='").append(systemWiring.getCompositeId()).append('\'').append(',');
+            buf.append("FROM_SERVICE_PLATFORM_ID='").append(systemWiring.getFromSystemPlatformId()).append('\'').append(',');
+            buf.append("FROM_SERVICE_ID='").append(systemWiring.getFromSystemId()).append('\'').append(',');
+            buf.append("FROM_INTERFACE_ID='").append(systemWiring.getFromInterfaceId()).append('\'').append(',');
+            buf.append("TO_SERVICE_PLATFORM_ID='").append(systemWiring.getToSystemPlatformId()).append('\'').append(',');
+            buf.append("TO_SERVICE_ID='").append(systemWiring.getToSystemId()).append('\'').append(',');
+            buf.append("TO_INTERFACE_ID='").append(systemWiring.getToInterfaceId()).append('\'').append(',');
+            buf.append("Attributes=").append(nullOrString(systemWiring.getAttributes())).append(',');
             buf.append("Attributes_URI=").append(nullOrString(systemWiring.getAttributesURI())).append("");
             buf.append(" WHERE ");
 
@@ -160,13 +160,13 @@ public class SystemWiringFactoryImpl extends AbstractFactory implements SystemWi
                 SystemWiring originalSystemWiring = (SystemWiring) systemWiring.getShadow();
                 buf.append(" COMPOSITE_ID='").append(originalSystemWiring.getCompositeId()).append("' AND ");
                 buf.append(" FROM_SERVICE_PLATFORM_ID='").append(originalSystemWiring.getFromSystemPlatformId())
-                .append("' AND ");
+                        .append("' AND ");
                 buf.append(" FROM_SERVICE_ID='").append(originalSystemWiring.getFromSystemId()).append("' AND ");
                 buf.append(" FROM_INTERFACE_ID='").append(originalSystemWiring.getFromInterfaceId()).append("' AND ");
                 buf.append(" TO_SERVICE_PLATFORM_ID='").append(originalSystemWiring.getToSystemPlatformId()).append(
                         "' AND ");
                 buf.append(" TO_SERVICE_ID='").append(originalSystemWiring.getToSystemId()).append("' AND ");
-                buf.append(" TO_INTERFACE_ID='").append(originalSystemWiring.getToInterfaceId()).append("'");
+                buf.append(" TO_INTERFACE_ID='").append(originalSystemWiring.getToInterfaceId()).append('\'');
             } else {
                 buf.append(" COMPOSITE_ID='").append(systemWiring.getCompositeId()).append("' AND ");
                 buf.append(" FROM_SERVICE_PLATFORM_ID='").append(systemWiring.getFromSystemPlatformId()).append(
@@ -175,7 +175,7 @@ public class SystemWiringFactoryImpl extends AbstractFactory implements SystemWi
                 buf.append(" FROM_INTERFACE_ID='").append(systemWiring.getFromInterfaceId()).append("' AND ");
                 buf.append(" TO_SERVICE_PLATFORM_ID='").append(systemWiring.getToSystemPlatformId()).append("' AND ");
                 buf.append(" TO_SERVICE_ID='").append(systemWiring.getToSystemId()).append("' AND ");
-                buf.append(" TO_INTERFACE_ID='").append(systemWiring.getToInterfaceId()).append("'");
+                buf.append(" TO_INTERFACE_ID='").append(systemWiring.getToInterfaceId()).append('\'');
             }
         }
         return buf.toString();
@@ -271,7 +271,7 @@ public class SystemWiringFactoryImpl extends AbstractFactory implements SystemWi
 
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof SystemWiring) {
             return super.insert(obj, this);

@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.DefaultConfig;
 import fabric.registry.DefaultConfigFactory;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -98,7 +98,7 @@ public class DefaultConfigFactoryImpl extends AbstractFactory implements Default
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         if (obj instanceof DefaultConfig) {
 
@@ -118,15 +118,15 @@ public class DefaultConfigFactoryImpl extends AbstractFactory implements Default
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         if (obj instanceof DefaultConfig) {
 
             DefaultConfig dc = (DefaultConfig) obj;
 
             buf.append("insert into " + FabricRegistry.DEFAULT_CONFIG + "  values(");
-            buf.append("'").append(dc.getName()).append("',");
-            buf.append("'").append(dc.getValue()).append("')");
+            buf.append('\'').append(dc.getName()).append('\'').append(',');
+            buf.append('\'').append(dc.getValue()).append("')");
         }
 
         return buf.toString();
@@ -139,25 +139,25 @@ public class DefaultConfigFactoryImpl extends AbstractFactory implements Default
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         if (obj instanceof DefaultConfig) {
 
             DefaultConfig dc = (DefaultConfig) obj;
 
             buf.append("update " + FabricRegistry.DEFAULT_CONFIG + " set ");
-            buf.append("VALUE='").append(dc.getValue()).append("'");
+            buf.append("VALUE='").append(dc.getValue()).append('\'');
             buf.append(" WHERE ");
 
             /* If it exists, use the shadow values for the WHERE clause */
             if (dc.getShadow() != null) {
 
                 DefaultConfig shadow = (DefaultConfig) dc.getShadow();
-                buf.append("NAME='").append(shadow.getName()).append("'");
+                buf.append("NAME='").append(shadow.getName()).append('\'');
 
             } else {
 
-                buf.append("NAME='").append(dc.getName()).append("'");
+                buf.append("NAME='").append(dc.getName()).append('\'');
 
             }
         }
@@ -273,7 +273,7 @@ public class DefaultConfigFactoryImpl extends AbstractFactory implements Default
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof DefaultConfig) {
             return super.insert(obj, this);

@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Node;
 import fabric.registry.NodeFactory;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -95,7 +95,7 @@ public class NodeFactoryImpl extends AbstractFactory implements NodeFactory {
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Node) {
             Node node = (Node) obj;
             buf.append("delete from " + FabricRegistry.NODES + " where(");
@@ -107,56 +107,56 @@ public class NodeFactoryImpl extends AbstractFactory implements NodeFactory {
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Node) {
             Node node = (Node) obj;
             buf.append("insert into " + FabricRegistry.NODES + "  values(");
-            buf.append("'").append(node.getId()).append("',");
-            buf.append("'").append(node.getTypeId()).append("',");
-            buf.append("'").append(node.getAffiliation()).append("',");
-            buf.append("'").append(node.getSecurityClassification()).append("',");
-            buf.append("'").append(node.getReadiness()).append("',");
-            buf.append("'").append(node.getAvailability()).append("',");
-            buf.append(node.getLatitude()).append(",");
-            buf.append(node.getLongitude()).append(",");
-            buf.append(node.getAltitude()).append(",");
-            buf.append(node.getBearing()).append(",");
-            buf.append(node.getVelocity()).append(",");
-            buf.append("'").append(node.getDescription()).append("',");
-            buf.append("'").append(node.getAttributes()).append("',");
-            buf.append("'").append(node.getAttributesURI()).append("')");
+            buf.append('\'').append(node.getId()).append('\'').append(',');
+            buf.append('\'').append(node.getTypeId()).append('\'').append(',');
+            buf.append('\'').append(node.getAffiliation()).append('\'').append(',');
+            buf.append('\'').append(node.getSecurityClassification()).append('\'').append(',');
+            buf.append('\'').append(node.getReadiness()).append('\'').append(',');
+            buf.append('\'').append(node.getAvailability()).append('\'').append(',');
+            buf.append(node.getLatitude()).append(',');
+            buf.append(node.getLongitude()).append(',');
+            buf.append(node.getAltitude()).append(',');
+            buf.append(node.getBearing()).append(',');
+            buf.append(node.getVelocity()).append(',');
+            buf.append('\'').append(node.getDescription()).append('\'').append(',');
+            buf.append('\'').append(node.getAttributes()).append('\'').append(',');
+            buf.append('\'').append(node.getAttributesURI()).append("')");
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Node) {
             Node node = (Node) obj;
             buf.append("update " + FabricRegistry.NODES + " set ");
-            buf.append("NODE_ID='").append(node.getId()).append("',");
-            buf.append("TYPE_ID='").append(node.getTypeId()).append("',");
-            buf.append("AFFILIATION='").append(node.getAffiliation()).append("',");
-            buf.append("CREDENTIALS='").append(node.getSecurityClassification()).append("',");
-            buf.append("READINESS='").append(node.getReadiness()).append("',");
-            buf.append("AVAILABILITY='").append(node.getAvailability()).append("',");
-            buf.append("LATITUDE=").append(node.getLatitude()).append(",");
-            buf.append("LONGITUDE=").append(node.getLongitude()).append(",");
-            buf.append("ALTITUDE=").append(node.getAltitude()).append(",");
-            buf.append("BEARING=").append(node.getBearing()).append(",");
-            buf.append("VELOCITY=").append(node.getVelocity()).append(",");
-            buf.append("DESCRIPTION='").append(node.getDescription()).append("',");
-            buf.append("ATTRIBUTES='").append(node.getAttributes()).append("',");
-            buf.append("ATTRIBUTES_URI='").append(node.getAttributesURI()).append("'");
+            buf.append("NODE_ID='").append(node.getId()).append('\'').append(',');
+            buf.append("TYPE_ID='").append(node.getTypeId()).append('\'').append(',');
+            buf.append("AFFILIATION='").append(node.getAffiliation()).append('\'').append(',');
+            buf.append("CREDENTIALS='").append(node.getSecurityClassification()).append('\'').append(',');
+            buf.append("READINESS='").append(node.getReadiness()).append('\'').append(',');
+            buf.append("AVAILABILITY='").append(node.getAvailability()).append('\'').append(',');
+            buf.append("LATITUDE=").append(node.getLatitude()).append(',');
+            buf.append("LONGITUDE=").append(node.getLongitude()).append(',');
+            buf.append("ALTITUDE=").append(node.getAltitude()).append(',');
+            buf.append("BEARING=").append(node.getBearing()).append(',');
+            buf.append("VELOCITY=").append(node.getVelocity()).append(',');
+            buf.append("DESCRIPTION='").append(node.getDescription()).append('\'').append(',');
+            buf.append("ATTRIBUTES='").append(node.getAttributes()).append('\'').append(',');
+            buf.append("ATTRIBUTES_URI='").append(node.getAttributesURI()).append('\'');
             buf.append(" WHERE ");
 
             /* if it exists, use the shadow values for the WHERE clause */
             if (node.getShadow() != null) {
                 Node shadow = (Node) node.getShadow();
-                buf.append("NODE_ID='").append(shadow.getId()).append("'");
+                buf.append("NODE_ID='").append(shadow.getId()).append('\'');
             } else {
-                buf.append("NODE_ID='").append(node.getId()).append("'");
+                buf.append("NODE_ID='").append(node.getId()).append('\'');
             }
         }
         return buf.toString();
@@ -284,7 +284,7 @@ public class NodeFactoryImpl extends AbstractFactory implements NodeFactory {
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof Node) {
             return super.insert(obj, this);

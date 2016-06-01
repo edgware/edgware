@@ -137,7 +137,7 @@ public class TaskImpl extends AbstractRegistryObject implements Task {
     @Override
     public String toString() {
 
-        StringBuffer buffy = new StringBuffer("Task::");
+        StringBuilder buffy = new StringBuilder("Task::");
         buffy.append(" Task ID: ").append(id);
         buffy.append(", Priority: ").append(priority);
         buffy.append(", Affiliation: ").append(affiliation);

@@ -8,8 +8,8 @@
 package fabric.registry.impl;
 
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.TaskService;
 import fabric.registry.TaskServiceFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -134,7 +134,7 @@ public class TaskServiceFactoryImpl extends AbstractFactory implements TaskServi
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskService) {
             TaskService taskService = (TaskService) obj;
             buf.append("delete from " + FabricRegistry.TASK_SYSTEMS + " where(");
@@ -152,17 +152,17 @@ public class TaskServiceFactoryImpl extends AbstractFactory implements TaskServi
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskService) {
             TaskService taskService = (TaskService) obj;
             buf.append("insert into " + FabricRegistry.TASK_SYSTEMS + " values(");
-            buf.append(nullOrString(taskService.getTaskId())).append(",");
-            buf.append(nullOrString(taskService.getPlatformId())).append(",");
-            buf.append(nullOrString(taskService.getSystemId())).append(",");
-            buf.append(nullOrString(taskService.getServiceId())).append(",");
-            buf.append(nullOrString(taskService.getDescription())).append(",");
-            buf.append(nullOrString(taskService.getConfiguration())).append(",");
-            buf.append(nullOrString(taskService.getConfigurationURI())).append(")");
+            buf.append(nullOrString(taskService.getTaskId())).append(',');
+            buf.append(nullOrString(taskService.getPlatformId())).append(',');
+            buf.append(nullOrString(taskService.getSystemId())).append(',');
+            buf.append(nullOrString(taskService.getServiceId())).append(',');
+            buf.append(nullOrString(taskService.getDescription())).append(',');
+            buf.append(nullOrString(taskService.getConfiguration())).append(',');
+            buf.append(nullOrString(taskService.getConfigurationURI())).append(')');
         }
         return buf.toString();
     }
@@ -173,16 +173,16 @@ public class TaskServiceFactoryImpl extends AbstractFactory implements TaskServi
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskService) {
             TaskService taskService = (TaskService) obj;
             buf.append("update " + FabricRegistry.TASK_SYSTEMS + " set ");
-            buf.append("TASK_ID='").append(taskService.getTaskId()).append("',");
-            buf.append("PLATFORM_ID='").append(taskService.getPlatformId()).append("',");
-            buf.append("SERVICE_ID='").append(taskService.getSystemId()).append("',");
-            buf.append("DATA_FEED_ID='").append(taskService.getServiceId()).append("',");
-            buf.append("DESCRIPTION=").append(nullOrString(taskService.getDescription())).append(",");
-            buf.append("CONFIGURATION=").append(nullOrString(taskService.getConfiguration())).append(",");
+            buf.append("TASK_ID='").append(taskService.getTaskId()).append('\'').append(',');
+            buf.append("PLATFORM_ID='").append(taskService.getPlatformId()).append('\'').append(',');
+            buf.append("SERVICE_ID='").append(taskService.getSystemId()).append('\'').append(',');
+            buf.append("DATA_FEED_ID='").append(taskService.getServiceId()).append('\'').append(',');
+            buf.append("DESCRIPTION=").append(nullOrString(taskService.getDescription())).append(',');
+            buf.append("CONFIGURATION=").append(nullOrString(taskService.getConfiguration())).append(',');
             buf.append("CONFIGURATION_URI=").append(nullOrString(taskService.getConfigurationURI()));
             buf.append(" WHERE");
 
@@ -192,12 +192,12 @@ public class TaskServiceFactoryImpl extends AbstractFactory implements TaskServi
                 buf.append(" TASK_ID='").append(shadow.getTaskId()).append("' AND");
                 buf.append(" DATA_FEED_ID='").append(shadow.getServiceId()).append("' AND");
                 buf.append(" SERVICE_ID='").append(shadow.getSystemId()).append("' AND");
-                buf.append(" PLATFORM_ID='").append(shadow.getPlatformId()).append("'");
+                buf.append(" PLATFORM_ID='").append(shadow.getPlatformId()).append('\'');
             } else {
                 buf.append(" TASK_ID='").append(taskService.getTaskId()).append("' AND");
                 buf.append(" DATA_FEED_ID='").append(taskService.getServiceId()).append("' AND");
                 buf.append(" SERVICE_ID='").append(taskService.getSystemId()).append("' AND");
-                buf.append(" PLATFORM_ID='").append(taskService.getPlatformId()).append("'");
+                buf.append(" PLATFORM_ID='").append(taskService.getPlatformId()).append('\'');
             }
         }
         return buf.toString();
@@ -336,7 +336,7 @@ public class TaskServiceFactoryImpl extends AbstractFactory implements TaskServi
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof TaskService) {
             return super.insert(obj, this);

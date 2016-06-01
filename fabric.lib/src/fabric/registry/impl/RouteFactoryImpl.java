@@ -13,10 +13,10 @@ import fabric.Fabric;
 import fabric.FabricBus;
 import fabric.bus.routing.IRoutingFactory;
 import fabric.registry.FabricRegistry;
+import fabric.registry.QueryScope;
 import fabric.registry.RegistryObject;
 import fabric.registry.Route;
 import fabric.registry.RouteFactory;
-import fabric.registry.QueryScope;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -132,7 +132,7 @@ public class RouteFactoryImpl extends AbstractFactory implements RouteFactory {
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Route) {
             Route route = (Route) obj;
             buf.append("delete from " + FabricRegistry.ROUTES + " where(");
@@ -145,14 +145,14 @@ public class RouteFactoryImpl extends AbstractFactory implements RouteFactory {
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Route) {
             Route route = (Route) obj;
             buf.append("insert into " + FabricRegistry.ROUTES + " values(");
-            buf.append(nullOrString(route.getStartNode())).append(",");
-            buf.append(nullOrString(route.getEndNode())).append(",");
-            buf.append(route.getOrdinal()).append(",");
-            buf.append(nullOrString(route.getRoute())).append(")");
+            buf.append(nullOrString(route.getStartNode())).append(',');
+            buf.append(nullOrString(route.getEndNode())).append(',');
+            buf.append(route.getOrdinal()).append(',');
+            buf.append(nullOrString(route.getRoute())).append(')');
         }
         return buf.toString();
     }
@@ -160,24 +160,24 @@ public class RouteFactoryImpl extends AbstractFactory implements RouteFactory {
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Route) {
             Route route = (Route) obj;
             buf.append("update " + FabricRegistry.ROUTES + " set ");
-            buf.append("START_NODE_ID='").append(route.getStartNode()).append("',");
-            buf.append("END_NODE_ID='").append(route.getEndNode()).append("',");
-            buf.append("ORDINAL=").append(route.getOrdinal()).append(",");
+            buf.append("START_NODE_ID='").append(route.getStartNode()).append('\'').append(',');
+            buf.append("END_NODE_ID='").append(route.getEndNode()).append('\'').append(',');
+            buf.append("ORDINAL=").append(route.getOrdinal()).append(',');
             buf.append("ROUTE=").append(nullOrString(route.getRoute()));
             buf.append(" WHERE");
 
             /* if it exists, use the shadow values for the WHERE clause */
             if (route.getShadow() != null) {
                 Route shadow = (Route) route.getShadow();
-                buf.append(" START_NODE_ID='").append(shadow.getStartNode()).append("'");
-                buf.append(" AND END_NODE_ID='").append(shadow.getEndNode()).append("'");
+                buf.append(" START_NODE_ID='").append(shadow.getStartNode()).append('\'');
+                buf.append(" AND END_NODE_ID='").append(shadow.getEndNode()).append('\'');
             } else {
-                buf.append(" START_NODE_ID='").append(route.getStartNode()).append("'");
-                buf.append(" AND END_NODE_ID='").append(route.getEndNode()).append("'");
+                buf.append(" START_NODE_ID='").append(route.getStartNode()).append('\'');
+                buf.append(" AND END_NODE_ID='").append(route.getEndNode()).append('\'');
             }
         }
         return buf.toString();
@@ -309,7 +309,7 @@ public class RouteFactoryImpl extends AbstractFactory implements RouteFactory {
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof Route) {
             return super.insert(obj, this);

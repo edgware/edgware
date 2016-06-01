@@ -147,7 +147,7 @@ public class NodeNeighbourImpl extends AbstractRegistryObject implements NodeNei
 
     @Override
     public String toString() {
-        StringBuffer buffy = new StringBuffer("NodeNeighbour::");
+        StringBuilder buffy = new StringBuilder("NodeNeighbour::");
         buffy.append(" Node ID: ").append(nodeId);
         buffy.append(" Node Interface: ").append(nodeInterface);
         buffy.append(" Neighbour ID: ").append(neighbourId);
@@ -164,21 +164,21 @@ public class NodeNeighbourImpl extends AbstractRegistryObject implements NodeNei
             NodeNeighbour neighbour = (NodeNeighbour) obj;
             if (neighbour.getNodeId().equals(nodeId) && neighbour.getNodeInterface() == null ? nodeInterface == null
                     : neighbour.getNodeInterface().equals(nodeInterface) && neighbour.getNeighbourId() == null ? neighbourId == null
-                            : neighbour.getNeighbourId().equals(neighbourId)
-                                    && neighbour.getNeighbourInterface() == null ? neighbourInterface == null
-                                    : neighbour.getNeighbourInterface().equals(neighbourInterface)
-                                            && neighbour.getDiscoveredBy() == null ? discoveredBy == null
-                                            : neighbour.getDiscoveredBy().equals(discoveredBy)
-                                                    && neighbour.getAvailability() == null ? availability == null
-                                                    : neighbour.getAvailability().equals(availability)
-                                                            && neighbour.getBearerId() == null ? bearerId == null
-                                                            : neighbour.getBearerId().equals(bearerId)
-                                                                    && neighbour.getConnectionAttributes() == null ? connectionAttributes == null
-                                                                    : neighbour.getConnectionAttributes().equals(
-                                                                            connectionAttributes)
-                                                                            && neighbour.getConnectionAttributesUri() == null ? connectionAttributesUri == null
-                                                                            : neighbour.getConnectionAttributesUri()
-                                                                                    .equals(connectionAttributesUri)) {
+                    : neighbour.getNeighbourId().equals(neighbourId)
+                    && neighbour.getNeighbourInterface() == null ? neighbourInterface == null
+                    : neighbour.getNeighbourInterface().equals(neighbourInterface)
+                    && neighbour.getDiscoveredBy() == null ? discoveredBy == null
+                    : neighbour.getDiscoveredBy().equals(discoveredBy)
+                    && neighbour.getAvailability() == null ? availability == null
+                    : neighbour.getAvailability().equals(availability)
+                    && neighbour.getBearerId() == null ? bearerId == null
+                    : neighbour.getBearerId().equals(bearerId)
+                    && neighbour.getConnectionAttributes() == null ? connectionAttributes == null
+                    : neighbour.getConnectionAttributes().equals(
+                            connectionAttributes)
+                            && neighbour.getConnectionAttributesUri() == null ? connectionAttributesUri == null
+                            : neighbour.getConnectionAttributesUri()
+                            .equals(connectionAttributesUri)) {
 
                 equal = true;
             }
@@ -189,14 +189,14 @@ public class NodeNeighbourImpl extends AbstractRegistryObject implements NodeNei
     @Override
     public String key() {
 
-        return new StringBuffer(this.getNodeId()).append("/").append(this.getNodeInterface()).append("/").append(
-                this.getNeighbourId()).append("/").append(this.getNeighbourInterface()).toString();
+        return new StringBuilder(this.getNodeId()).append('/').append(this.getNodeInterface()).append('/').append(
+                this.getNeighbourId()).append('/').append(this.getNeighbourInterface()).toString();
     }
 
     @Override
     public NodeIpMapping getIpMappingForNeighbour() {
-        return NodeIpMappingFactoryImpl.getInstance(QueryScope.LOCAL).getMappingForNode(neighbourId,
-                neighbourInterface);
+        return NodeIpMappingFactoryImpl.getInstance(QueryScope.LOCAL)
+                .getMappingForNode(neighbourId, neighbourInterface);
     }
 
 }

@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodeNeighbour;
 import fabric.registry.NodeNeighbourFactory;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -147,7 +147,7 @@ public class NodeNeighbourFactoryImpl extends AbstractFactory implements NodeNei
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodeNeighbour) {
             NodeNeighbour neighbour = (NodeNeighbour) obj;
             buf.append("delete from " + FabricRegistry.NODE_NEIGHBOURS + " where(");
@@ -161,34 +161,34 @@ public class NodeNeighbourFactoryImpl extends AbstractFactory implements NodeNei
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodeNeighbour) {
             NodeNeighbour neighbour = (NodeNeighbour) obj;
             buf.append("insert into " + FabricRegistry.NODE_NEIGHBOURS + " values(");
-            buf.append("'").append(neighbour.getNodeId()).append("',");
-            buf.append("'").append(neighbour.getNodeInterface()).append("',");
-            buf.append("'").append(neighbour.getNeighbourId()).append("',");
-            buf.append("'").append(neighbour.getNeighbourInterface()).append("',");
-            buf.append("'").append(neighbour.getDiscoveredBy()).append("',");
-            buf.append("'").append(neighbour.getAvailability()).append("',");
-            buf.append("'").append(neighbour.getBearerId()).append("',");
-            buf.append("'").append(neighbour.getConnectionAttributes()).append("',");
-            buf.append("'").append(neighbour.getConnectionAttributesUri()).append("')");
+            buf.append('\'').append(neighbour.getNodeId()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getNodeInterface()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getNeighbourId()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getNeighbourInterface()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getDiscoveredBy()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getAvailability()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getBearerId()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getConnectionAttributes()).append('\'').append(',');
+            buf.append('\'').append(neighbour.getConnectionAttributesUri()).append("')");
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodeNeighbour) {
             NodeNeighbour neighbour = (NodeNeighbour) obj;
             buf.append("update " + FabricRegistry.NODE_NEIGHBOURS + " set ");
-            buf.append("DISCOVEREDBY='").append(neighbour.getDiscoveredBy()).append("',");
-            buf.append("AVAILABILITY='").append(neighbour.getAvailability()).append("',");
-            buf.append("BEARER_ID='").append(neighbour.getBearerId()).append("',");
-            buf.append("CONNECTION_ATTRIBUTES='").append(neighbour.getConnectionAttributes()).append("',");
-            buf.append("CONNECTION_ATTRIBUTES_URI='").append(neighbour.getConnectionAttributesUri()).append("'");
+            buf.append("DISCOVEREDBY='").append(neighbour.getDiscoveredBy()).append('\'').append(',');
+            buf.append("AVAILABILITY='").append(neighbour.getAvailability()).append('\'').append(',');
+            buf.append("BEARER_ID='").append(neighbour.getBearerId()).append('\'').append(',');
+            buf.append("CONNECTION_ATTRIBUTES='").append(neighbour.getConnectionAttributes()).append('\'').append(',');
+            buf.append("CONNECTION_ATTRIBUTES_URI='").append(neighbour.getConnectionAttributesUri()).append('\'');
             buf.append(" WHERE");
 
             /* if it exists, use the shadow values for the WHERE clause */
@@ -197,12 +197,12 @@ public class NodeNeighbourFactoryImpl extends AbstractFactory implements NodeNei
                 buf.append(" NODE_ID='").append(shadow.getNodeId()).append("' AND");
                 buf.append(" NODE_INTERFACE='").append(shadow.getNodeInterface()).append("' AND");
                 buf.append(" NEIGHBOUR_ID='").append(shadow.getNeighbourId()).append("' AND");
-                buf.append(" NEIGHBOUR_INTERFACE='").append(shadow.getNeighbourInterface()).append("'");
+                buf.append(" NEIGHBOUR_INTERFACE='").append(shadow.getNeighbourInterface()).append('\'');
             } else {
                 buf.append(" NODE_ID='").append(neighbour.getNodeId()).append("' AND");
                 buf.append(" NODE_INTERFACE='").append(neighbour.getNodeInterface()).append("' AND");
                 buf.append(" NEIGHBOUR_ID='").append(neighbour.getNeighbourId()).append("' AND");
-                buf.append(" NEIGHBOUR_INTERFACE='").append(neighbour.getNeighbourInterface()).append("'");
+                buf.append(" NEIGHBOUR_INTERFACE='").append(neighbour.getNeighbourInterface()).append('\'');
             }
         }
         return buf.toString();
@@ -303,7 +303,7 @@ public class NodeNeighbourFactoryImpl extends AbstractFactory implements NodeNei
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof NodeNeighbour) {
             return super.insert(obj, this);

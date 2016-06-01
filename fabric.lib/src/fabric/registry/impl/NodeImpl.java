@@ -255,7 +255,7 @@ public class NodeImpl extends AbstractRegistryObject implements Node {
     @Override
     public String toString() {
 
-        StringBuffer buffy = new StringBuffer("Node::");
+        StringBuilder buffy = new StringBuilder("Node::");
         buffy.append(" Node ID: ").append(id);
         buffy.append(", Type ID: ").append(typeId);
         buffy.append(", Affiliation: ").append(affiliation);
@@ -281,17 +281,17 @@ public class NodeImpl extends AbstractRegistryObject implements Node {
             NodeImpl n = (NodeImpl) obj;
             if (n.getId().equals(id) && n.getTypeId().equals(typeId) && n.getAffiliation() == null ? affiliation == null
                     : n.getAffiliation().equals(affiliation) && n.getSecurityClassification() == null ? securityClassification == null
-                            : n.getSecurityClassification().equals(securityClassification) && n.getReadiness() == null ? readiness == null
-                                    : n.getReadiness().equals(readiness) && n.getAvailability() == null ? availability == null
-                                            : n.getAvailability().equals(availability) && n.getLatitude() == latitude
-                                                    && n.getLongitude() == longitude && n.getAltitude() == altitude
-                                                    && n.getBearing() == bearing && n.getVelocity() == velocity
-                                                    && n.getDescription() == null ? description == null : n
-                                                    .getDescription().equals(description)
-                                                    && n.getAttributes() == null ? attributes == null : n
-                                                    .getAttributes().equals(attributes)
-                                                    && n.getAttributesURI() == null ? attributesUri == null : n
-                                                    .getAttributesURI().equals(attributesUri)) {
+                    : n.getSecurityClassification().equals(securityClassification) && n.getReadiness() == null ? readiness == null
+                    : n.getReadiness().equals(readiness) && n.getAvailability() == null ? availability == null
+                    : n.getAvailability().equals(availability) && n.getLatitude() == latitude
+                    && n.getLongitude() == longitude && n.getAltitude() == altitude
+                    && n.getBearing() == bearing && n.getVelocity() == velocity
+                    && n.getDescription() == null ? description == null : n
+                    .getDescription().equals(description)
+                    && n.getAttributes() == null ? attributes == null : n
+                    .getAttributes().equals(attributes)
+                    && n.getAttributesURI() == null ? attributesUri == null : n
+                    .getAttributesURI().equals(attributesUri)) {
 
                 equal = true;
             }
@@ -308,8 +308,7 @@ public class NodeImpl extends AbstractRegistryObject implements Node {
     @Override
     public NodeNeighbour[] getUniqueNeighbours() {
 
-        return NodeNeighbourFactoryImpl.getInstance(QueryScope.DISTRIBUTED).getUniqueNeighboursByNeighbourId(
-                id);
+        return NodeNeighbourFactoryImpl.getInstance(QueryScope.DISTRIBUTED).getUniqueNeighboursByNeighbourId(id);
     }
 
     @Override
@@ -333,7 +332,7 @@ public class NodeImpl extends AbstractRegistryObject implements Node {
     @Override
     public String key() {
 
-        return new StringBuffer(this.getId()).append("/").append(this.getTypeId()).toString();
+        return new StringBuilder(this.getId()).append('/').append(this.getTypeId()).toString();
     }
 
 }

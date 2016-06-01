@@ -8,8 +8,8 @@
 package fabric.registry.impl;
 
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.TaskSubscription;
 import fabric.registry.TaskSubscriptionFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -168,7 +168,7 @@ public class TaskSubscriptionFactoryImpl extends AbstractFactory implements Task
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskSubscription) {
             TaskSubscription taskClient = (TaskSubscription) obj;
             buf.append("delete from " + FabricRegistry.TASK_SUBSCRIPTIONS + " where(");
@@ -184,32 +184,32 @@ public class TaskSubscriptionFactoryImpl extends AbstractFactory implements Task
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskSubscription) {
             TaskSubscription taskClient = (TaskSubscription) obj;
             buf.append("insert into " + FabricRegistry.TASK_SUBSCRIPTIONS + " values(");
-            buf.append("'").append(taskClient.getTaskId()).append("',");
-            buf.append("'").append(taskClient.getActorId()).append("',");
-            buf.append("'").append(taskClient.getPlatformId()).append("',");
-            buf.append("'").append(taskClient.getSystemId()).append("',");
-            buf.append("'").append(taskClient.getFeedId()).append("',");
-            buf.append("'").append(taskClient.getActorPlatformId()).append("')");
+            buf.append('\'').append(taskClient.getTaskId()).append('\'').append(',');
+            buf.append('\'').append(taskClient.getActorId()).append('\'').append(',');
+            buf.append('\'').append(taskClient.getPlatformId()).append('\'').append(',');
+            buf.append('\'').append(taskClient.getSystemId()).append('\'').append(',');
+            buf.append('\'').append(taskClient.getFeedId()).append('\'').append(',');
+            buf.append('\'').append(taskClient.getActorPlatformId()).append("')");
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskSubscription) {
             TaskSubscription taskClient = (TaskSubscription) obj;
             buf.append("update " + FabricRegistry.TASK_SUBSCRIPTIONS + " set ");
-            buf.append("TASK_ID='").append(taskClient.getTaskId()).append("',");
-            buf.append("ACTOR_ID='").append(taskClient.getActorId()).append("',");
-            buf.append("PLATFORM_ID='").append(taskClient.getPlatformId()).append("',");
-            buf.append("SERVICE_ID='").append(taskClient.getSystemId()).append("',");
-            buf.append("DATA_FEED_ID='").append(taskClient.getFeedId()).append("',");
-            buf.append("ACTOR_PLATFORM_ID='").append(taskClient.getActorPlatformId()).append("'");
+            buf.append("TASK_ID='").append(taskClient.getTaskId()).append('\'').append(',');
+            buf.append("ACTOR_ID='").append(taskClient.getActorId()).append('\'').append(',');
+            buf.append("PLATFORM_ID='").append(taskClient.getPlatformId()).append('\'').append(',');
+            buf.append("SERVICE_ID='").append(taskClient.getSystemId()).append('\'').append(',');
+            buf.append("DATA_FEED_ID='").append(taskClient.getFeedId()).append('\'').append(',');
+            buf.append("ACTOR_PLATFORM_ID='").append(taskClient.getActorPlatformId()).append('\'');
             buf.append(" WHERE ");
 
             /* if it exists, use the shadow values for the WHERE clause */
@@ -220,14 +220,14 @@ public class TaskSubscriptionFactoryImpl extends AbstractFactory implements Task
                 buf.append("PLATFORM_ID='").append(shadow.getPlatformId()).append("' AND ");
                 buf.append("SERVICE_ID='").append(shadow.getSystemId()).append("' AND ");
                 buf.append("DATA_FEED_ID='").append(shadow.getFeedId()).append("' AND ");
-                buf.append("ACTOR_PLATFORM_ID='").append(shadow.getActorPlatformId()).append("'");
+                buf.append("ACTOR_PLATFORM_ID='").append(shadow.getActorPlatformId()).append('\'');
             } else {
                 buf.append("TASK_ID='").append(taskClient.getTaskId()).append("' AND ");
                 buf.append("ACTOR_ID='").append(taskClient.getActorId()).append("' AND ");
                 buf.append("PLATFORM_ID='").append(taskClient.getPlatformId()).append("' AND ");
                 buf.append("SERVICE_ID='").append(taskClient.getSystemId()).append("' AND ");
                 buf.append("DATA_FEED_ID='").append(taskClient.getFeedId()).append("' AND ");
-                buf.append("ACTOR_PLATFORM_ID='").append(taskClient.getActorPlatformId()).append("'");
+                buf.append("ACTOR_PLATFORM_ID='").append(taskClient.getActorPlatformId()).append('\'');
             }
         }
 
@@ -283,7 +283,7 @@ public class TaskSubscriptionFactoryImpl extends AbstractFactory implements Task
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof TaskSubscription) {
             return super.insert(obj, this);

@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.Actor;
 import fabric.registry.ActorFactory;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -91,7 +91,7 @@ public class ActorFactoryImpl extends AbstractFactory implements ActorFactory {
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Actor) {
             Actor client = (Actor) obj;
             buf.append("delete from " + FabricRegistry.ACTORS + " where(");
@@ -102,35 +102,35 @@ public class ActorFactoryImpl extends AbstractFactory implements ActorFactory {
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Actor) {
             Actor client = (Actor) obj;
             buf.append("insert into " + FabricRegistry.ACTORS + " values(");
-            buf.append(nullOrString(client.getId())).append(",");
-            buf.append(nullOrString(client.getTypeId())).append(",");
-            buf.append(nullOrString(client.getAffiliation())).append(",");
-            buf.append(nullOrString(client.getRoles())).append(",");
-            buf.append(nullOrString(client.getCredentials())).append(",");
-            buf.append(nullOrString(client.getDescription())).append(",");
-            buf.append(nullOrString(client.getAttributes())).append(",");
-            buf.append(nullOrString(client.getAttributesUri())).append(")");
+            buf.append(nullOrString(client.getId())).append(',');
+            buf.append(nullOrString(client.getTypeId())).append(',');
+            buf.append(nullOrString(client.getAffiliation())).append(',');
+            buf.append(nullOrString(client.getRoles())).append(',');
+            buf.append(nullOrString(client.getCredentials())).append(',');
+            buf.append(nullOrString(client.getDescription())).append(',');
+            buf.append(nullOrString(client.getAttributes())).append(',');
+            buf.append(nullOrString(client.getAttributesUri())).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Actor) {
             Actor client = (Actor) obj;
             buf.append("update " + FabricRegistry.ACTORS + " set ");
-            buf.append("ACTOR_ID='").append(client.getId()).append("',");
-            buf.append("TYPE_ID=").append(nullOrString(client.getTypeId())).append(",");
-            buf.append("ROLES=").append(nullOrString(client.getRoles())).append(",");
-            buf.append("CREDENTIALS=").append(nullOrString(client.getCredentials())).append(",");
-            buf.append("AFFILIATION=").append(nullOrString(client.getAffiliation())).append(",");
-            buf.append("DESCRIPTION=").append(nullOrString(client.getDescription())).append(",");
-            buf.append("ATTRIBUTES=").append(nullOrString(client.getAttributes())).append(",");
+            buf.append("ACTOR_ID='").append(client.getId()).append('\'').append(',');
+            buf.append("TYPE_ID=").append(nullOrString(client.getTypeId())).append(',');
+            buf.append("ROLES=").append(nullOrString(client.getRoles())).append(',');
+            buf.append("CREDENTIALS=").append(nullOrString(client.getCredentials())).append(',');
+            buf.append("AFFILIATION=").append(nullOrString(client.getAffiliation())).append(',');
+            buf.append("DESCRIPTION=").append(nullOrString(client.getDescription())).append(',');
+            buf.append("ATTRIBUTES=").append(nullOrString(client.getAttributes())).append(',');
             buf.append("ATTRIBUTES_URI=").append(nullOrString(client.getAttributesUri()));
             buf.append(" WHERE ");
 
@@ -138,10 +138,10 @@ public class ActorFactoryImpl extends AbstractFactory implements ActorFactory {
             if (client.getShadow() != null) {
                 Actor originalClient = (Actor) client.getShadow();
                 buf.append("ACTOR_ID='").append(originalClient.getId()).append("' AND ");
-                buf.append("TYPE_ID='").append(originalClient.getTypeId()).append("'");
+                buf.append("TYPE_ID='").append(originalClient.getTypeId()).append('\'');
             } else {
                 buf.append("ACTOR_ID='").append(client.getId()).append("' AND ");
-                buf.append("TYPE_ID='").append(client.getTypeId()).append("'");
+                buf.append("TYPE_ID='").append(client.getTypeId()).append('\'');
             }
         }
         return buf.toString();

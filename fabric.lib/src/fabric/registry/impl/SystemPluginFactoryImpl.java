@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.FabricPlugin;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodePlugin;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.SystemPlugin;
 import fabric.registry.SystemPluginFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -68,13 +68,13 @@ public class SystemPluginFactoryImpl extends AbstractFactory implements SystemPl
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof SystemPlugin) {
             NodePlugin plugin = (NodePlugin) obj;
             buf.append("update ");
             buf.append(FabricRegistry.SYSTEM_PLUGINS);
             buf.append(" set ");
-            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(",");
+            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(',');
             buf.append("ARGUMENTS=").append(nullOrString(plugin.getArguments()));
             buf.append(" WHERE ");
 
@@ -84,12 +84,12 @@ public class SystemPluginFactoryImpl extends AbstractFactory implements SystemPl
                 buf.append("NODE_ID='").append(shadow.getNodeId()).append("' AND ");
                 buf.append("NAME='").append(shadow.getName()).append("' AND ");
                 buf.append("FAMILY='").append(shadow.getFamilyName()).append("' AND ");
-                buf.append("TYPE='").append(shadow.getPluginType()).append("'");
+                buf.append("TYPE='").append(shadow.getPluginType()).append('\'');
             } else {
                 buf.append("NODE_ID='").append(plugin.getNodeId()).append("' AND ");
                 buf.append("NAME='").append(plugin.getName()).append("' AND ");
                 buf.append("FAMILY='").append(plugin.getFamilyName()).append("' AND ");
-                buf.append("TYPE='").append(plugin.getPluginType()).append("'");
+                buf.append("TYPE='").append(plugin.getPluginType()).append('\'');
             }
         }
         return buf.toString();
@@ -98,18 +98,18 @@ public class SystemPluginFactoryImpl extends AbstractFactory implements SystemPl
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof SystemPlugin) {
             SystemPlugin plugin = (SystemPlugin) obj;
             buf.append("insert into ");
             buf.append(FabricRegistry.SYSTEM_PLUGINS);
             buf.append(" values(");
-            buf.append("'").append(plugin.getNodeId()).append("',");
-            buf.append("'").append(plugin.getName()).append("',");
-            buf.append(nullOrString(plugin.getFamilyName())).append(",");
-            buf.append("'").append(plugin.getPluginType()).append("',");
-            buf.append(nullOrString(plugin.getDescription())).append(",");
-            buf.append(nullOrString(plugin.getArguments())).append(")");
+            buf.append('\'').append(plugin.getNodeId()).append('\'').append(',');
+            buf.append('\'').append(plugin.getName()).append('\'').append(',');
+            buf.append(nullOrString(plugin.getFamilyName())).append(',');
+            buf.append('\'').append(plugin.getPluginType()).append('\'').append(',');
+            buf.append(nullOrString(plugin.getDescription())).append(',');
+            buf.append(nullOrString(plugin.getArguments())).append(')');
         }
         return buf.toString();
     }
@@ -242,7 +242,7 @@ public class SystemPluginFactoryImpl extends AbstractFactory implements SystemPl
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof FabricPlugin) {
             return super.insert(obj, this);
@@ -268,7 +268,7 @@ public class SystemPluginFactoryImpl extends AbstractFactory implements SystemPl
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         SystemPlugin plugin = (SystemPlugin) obj;
         buf.append("delete FROM ");
@@ -279,12 +279,12 @@ public class SystemPluginFactoryImpl extends AbstractFactory implements SystemPl
         buf.append("NAME='");
         buf.append(plugin.getName()).append("' AND ");
         buf.append("FAMILY='");
-        buf.append(plugin.getFamilyName()).append("'");
+        buf.append(plugin.getFamilyName()).append('\'');
 
         buf.append(" AND TYPE='");
-        buf.append(plugin.getPluginType()).append("'");
+        buf.append(plugin.getPluginType()).append('\'');
 
-        buf.append(")");
+        buf.append(')');
 
         return buf.toString();
     }

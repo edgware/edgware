@@ -1,6 +1,6 @@
 /*
  * (C) Copyright IBM Corp. 2006
- * 
+ *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
  */
@@ -16,90 +16,90 @@ import java.util.Iterator;
  */
 public class XMLElement extends XMLNode {
 
-	/** Copyright notice. */
-	public static final String copyrightNotice = "(C) Copyright IBM Corp. 2006";
+    /** Copyright notice. */
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2006";
 
-	/*
-	 * Class fields
-	 */
+    /*
+     * Class fields
+     */
 
-	/** To hold the attributes of the element */
-	private HashMap<String, String> attributes = new HashMap<String, String>();
+    /** To hold the attributes of the element */
+    private HashMap<String, String> attributes = new HashMap<String, String>();
 
-	/** To hold the sub-nodes of this element */
-	private ArrayList<XMLNode> subnodes = new ArrayList<XMLNode>();
+    /** To hold the sub-nodes of this element */
+    private ArrayList<XMLNode> subnodes = new ArrayList<XMLNode>();
 
-	/*
-	 * Class methods
-	 */
+    /*
+     * Class methods
+     */
 
-	/**
-	 * Constructs a new instance.
-	 * 
-	 * @param nodeName
-	 *            the name of the node.
-	 * @param parent
-	 *            the parent node.
-	 */
-	public XMLElement(String nodeName, XMLNode parent) {
+    /**
+     * Constructs a new instance.
+     *
+     * @param nodeName
+     *            the name of the node.
+     * @param parent
+     *            the parent node.
+     */
+    public XMLElement(String nodeName, XMLNode parent) {
 
-		super(nodeName, parent);
+        super(nodeName, parent);
 
-	}
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
+    /*
+     * (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
 
-		StringBuffer toString = new StringBuffer();
+        StringBuilder toString = new StringBuilder();
 
-		try {
+        try {
 
-			/* Add the element nodeName */
-			toString.append(getNodeName());
+            /* Add the element nodeName */
+            toString.append(getNodeName());
 
-			/* Add its attributes */
+            /* Add its attributes */
 
-			Iterator<String> a = attributes.keySet().iterator();
+            Iterator<String> a = attributes.keySet().iterator();
 
-			while (a.hasNext()) {
-				String attributeName = a.next();
-				String attributeValue = attributes.get(attributeName);
-				String encodedAttributeValue = XML.encodeEntityRefs(attributeValue);
-				toString.append(" " + attributeName + "=\"" + encodedAttributeValue + "\"");
-			}
+            while (a.hasNext()) {
+                String attributeName = a.next();
+                String attributeValue = attributes.get(attributeName);
+                String encodedAttributeValue = XML.encodeEntityRefs(attributeValue);
+                toString.append(' ' + attributeName + '=' + '"' + encodedAttributeValue + '"');
+            }
 
-		} catch (Exception e) {
+        } catch (Exception e) {
 
-			e.printStackTrace();
-			toString.setLength(0);
-			toString.append(super.toString());
+            e.printStackTrace();
+            toString.setLength(0);
+            toString.append(super.toString());
 
-		}
+        }
 
-		return toString.toString();
-	}
+        return toString.toString();
+    }
 
-	public HashMap<String, String> getAttributes() {
+    public HashMap<String, String> getAttributes() {
 
-		return attributes;
-	}
+        return attributes;
+    }
 
-	public void setAttributes(HashMap<String, String> attributes) {
+    public void setAttributes(HashMap<String, String> attributes) {
 
-		this.attributes = attributes;
-	}
+        this.attributes = attributes;
+    }
 
-	public ArrayList<XMLNode> getSubnodes() {
+    public ArrayList<XMLNode> getSubnodes() {
 
-		return subnodes;
-	}
+        return subnodes;
+    }
 
-	public void setSubnodes(ArrayList<XMLNode> subnodes) {
+    public void setSubnodes(ArrayList<XMLNode> subnodes) {
 
-		this.subnodes = subnodes;
-	}
+        this.subnodes = subnodes;
+    }
 }

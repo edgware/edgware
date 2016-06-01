@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.CompositeService;
 import fabric.registry.CompositeServiceFactory;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -93,53 +93,53 @@ public class CompositeServiceFactoryImpl extends AbstractFactory implements Comp
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CompositeService) {
             CompositeService service = (CompositeService) obj;
             buf.append("delete from " + FabricRegistry.COMPOSITE_SYSTEMS + " where ");
-            buf.append("ID='").append(service.getId()).append("'");
+            buf.append("ID='").append(service.getId()).append('\'');
         }
         return buf.toString();
     }
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CompositeService) {
             CompositeService service = (CompositeService) obj;
             buf.append("insert into " + FabricRegistry.COMPOSITE_SYSTEMS + " values(");
-            buf.append("'").append(service.getId()).append("',");
-            buf.append("").append(nullOrString(service.getType())).append(",");
-            buf.append("").append(nullOrString(service.getAffiliation())).append(",");
-            buf.append("").append(nullOrString(service.getCredentials())).append(",");
-            buf.append("").append(nullOrString(service.getDescription())).append(",");
-            buf.append("").append(nullOrString(service.getAttributes())).append(",");
-            buf.append("").append(nullOrString(service.getAttributesURI())).append(")");
+            buf.append('\'').append(service.getId()).append('\'').append(',');
+            buf.append("").append(nullOrString(service.getType())).append(',');
+            buf.append("").append(nullOrString(service.getAffiliation())).append(',');
+            buf.append("").append(nullOrString(service.getCredentials())).append(',');
+            buf.append("").append(nullOrString(service.getDescription())).append(',');
+            buf.append("").append(nullOrString(service.getAttributes())).append(',');
+            buf.append("").append(nullOrString(service.getAttributesURI())).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CompositeService) {
             CompositeService service = (CompositeService) obj;
             buf.append("update " + FabricRegistry.COMPOSITE_SYSTEMS + " set ");
-            buf.append("ID='").append(service.getId()).append("',");
-            buf.append("TYPE=").append(nullOrString(service.getType())).append(",");
-            buf.append("AFFILIATION=").append(nullOrString(service.getAffiliation())).append(",");
-            buf.append("Credentials=").append(nullOrString(service.getCredentials())).append(",");
-            buf.append("Description=").append(nullOrString(service.getDescription())).append(",");
-            buf.append("Attributes=").append(nullOrString(service.getAttributes())).append(",");
+            buf.append("ID='").append(service.getId()).append('\'').append(',');
+            buf.append("TYPE=").append(nullOrString(service.getType())).append(',');
+            buf.append("AFFILIATION=").append(nullOrString(service.getAffiliation())).append(',');
+            buf.append("Credentials=").append(nullOrString(service.getCredentials())).append(',');
+            buf.append("Description=").append(nullOrString(service.getDescription())).append(',');
+            buf.append("Attributes=").append(nullOrString(service.getAttributes())).append(',');
             buf.append("Attributes_URI=").append(nullOrString(service.getAttributesURI())).append("");
             buf.append(" WHERE ");
 
             /* if it exists, use the shadow values for the WHERE clause */
             if (service.getShadow() != null) {
                 CompositeService originalService = (CompositeService) service.getShadow();
-                buf.append(" ID='").append(originalService.getId()).append("'");
+                buf.append(" ID='").append(originalService.getId()).append('\'');
             } else {
-                buf.append(" ID='").append(service.getId()).append("'");
+                buf.append(" ID='").append(service.getId()).append('\'');
             }
         }
         return buf.toString();
@@ -242,7 +242,7 @@ public class CompositeServiceFactoryImpl extends AbstractFactory implements Comp
 
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof CompositeService) {
             return super.insert(obj, this);

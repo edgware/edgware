@@ -281,7 +281,7 @@ public class PlatformImpl extends AbstractRegistryObject implements Platform {
     @Override
     public String toString() {
 
-        StringBuffer buffy = new StringBuffer("Platform::");
+        StringBuilder buffy = new StringBuilder("Platform::");
         buffy.append(" Platform ID: ").append(id);
         buffy.append(", Type ID: ").append(typeId);
         buffy.append(", Node ID: ").append(nodeId);
@@ -312,16 +312,16 @@ public class PlatformImpl extends AbstractRegistryObject implements Platform {
                     && p.getCredentials() == null ? credentials == null : p.getCredentials().equals(credentials)
                     && p.getReadiness() == null ? readiness == null
                     : p.getReadiness().equals(readiness) && p.getAvailability() == null ? availability == null : p
-                            .getAvailability().equals(availability)
-                            && p.getLatitude() == latitude
-                            && p.getLongitude() == longitude
-                            && p.getAltitude() == altitude
-                            && p.getBearing() == bearing
-                            && p.getVelocity() == velocity
-                            && p.getDescription() == null ? description == null : p.getDescription()
-                            .equals(description)
-                            && p.getAttributes() == null ? attributes == null : p.getAttributes().equals(attributes)
-                            && p.getAttributesURI() == null ? attributesUri == null : p.getAttributesURI().equals(
+                    .getAvailability().equals(availability)
+                    && p.getLatitude() == latitude
+                    && p.getLongitude() == longitude
+                    && p.getAltitude() == altitude
+                    && p.getBearing() == bearing
+                    && p.getVelocity() == velocity
+                    && p.getDescription() == null ? description == null : p.getDescription()
+                    .equals(description)
+                    && p.getAttributes() == null ? attributes == null : p.getAttributes().equals(attributes)
+                    && p.getAttributesURI() == null ? attributesUri == null : p.getAttributesURI().equals(
                             attributesUri)) {
 
                 equal = true;

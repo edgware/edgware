@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.Bearer;
 import fabric.registry.BearerFactory;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -91,7 +91,7 @@ public class BearerFactoryImpl extends AbstractFactory implements BearerFactory 
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Bearer) {
             Bearer bearer = (Bearer) obj;
             buf.append("delete from " + FabricRegistry.BEARERS + " where(");
@@ -103,15 +103,15 @@ public class BearerFactoryImpl extends AbstractFactory implements BearerFactory 
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Bearer) {
             Bearer bearer = (Bearer) obj;
             buf.append("insert into " + FabricRegistry.BEARERS + "  values(");
-            buf.append("'").append(bearer.getId()).append("',");
-            buf.append("'").append(bearer.getAvailable()).append("',");
-            buf.append("'").append(bearer.getDescription()).append("',");
-            buf.append("'").append(bearer.getAttributes()).append("',");
-            buf.append("'").append(bearer.getAttributesURI()).append("')");
+            buf.append('\'').append(bearer.getId()).append('\'').append(',');
+            buf.append('\'').append(bearer.getAvailable()).append('\'').append(',');
+            buf.append('\'').append(bearer.getDescription()).append('\'').append(',');
+            buf.append('\'').append(bearer.getAttributes()).append('\'').append(',');
+            buf.append('\'').append(bearer.getAttributesURI()).append("')");
         }
         return buf.toString();
     }
@@ -119,23 +119,23 @@ public class BearerFactoryImpl extends AbstractFactory implements BearerFactory 
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Bearer) {
             Bearer bearer = (Bearer) obj;
             buf.append("update " + FabricRegistry.BEARERS + " set ");
-            buf.append("BEARER_ID='").append(bearer.getId()).append("',");
-            buf.append("AVAILABLE='").append(bearer.getAvailable()).append("',");
-            buf.append("DESCRIPTION='").append(bearer.getDescription()).append("',");
-            buf.append("ATTRIBUTES='").append(bearer.getAttributes()).append("',");
-            buf.append("ATTRIBUTES_URI='").append(bearer.getAttributesURI()).append("'");
+            buf.append("BEARER_ID='").append(bearer.getId()).append('\'').append(',');
+            buf.append("AVAILABLE='").append(bearer.getAvailable()).append('\'').append(',');
+            buf.append("DESCRIPTION='").append(bearer.getDescription()).append('\'').append(',');
+            buf.append("ATTRIBUTES='").append(bearer.getAttributes()).append('\'').append(',');
+            buf.append("ATTRIBUTES_URI='").append(bearer.getAttributesURI()).append('\'');
             buf.append(" WHERE ");
 
             /* If it exists, use the shadow values for the WHERE clause */
             if (bearer.getShadow() != null) {
                 Bearer shadow = (Bearer) bearer.getShadow();
-                buf.append("BEARER_ID='").append(shadow.getId()).append("'");
+                buf.append("BEARER_ID='").append(shadow.getId()).append('\'');
             } else {
-                buf.append("BEARER_ID='").append(bearer.getId()).append("'");
+                buf.append("BEARER_ID='").append(bearer.getId()).append('\'');
             }
         }
         return buf.toString();
@@ -254,7 +254,7 @@ public class BearerFactoryImpl extends AbstractFactory implements BearerFactory 
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof Bearer) {
             return super.insert(obj, this);

@@ -9,8 +9,8 @@ package fabric.registry.impl;
 
 import fabric.Fabric;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.Service;
 import fabric.registry.ServiceFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -394,13 +394,13 @@ public class ServiceFactoryImpl extends AbstractFactory implements ServiceFactor
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Service) {
             Service service = (Service) obj;
             buf.append("delete from " + FabricRegistry.DATA_FEEDS + " where(");
             buf.append("Platform_ID=").append(nullOrString(service.getPlatformId())).append(" AND ");
             buf.append("SERVICE_ID=").append(nullOrString(service.getSystemId())).append(" AND ");
-            buf.append("ID=").append(nullOrString(service.getId())).append(")");
+            buf.append("ID=").append(nullOrString(service.getId())).append(')');
         }
         return buf.toString();
     }
@@ -411,19 +411,19 @@ public class ServiceFactoryImpl extends AbstractFactory implements ServiceFactor
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Service) {
             Service service = (Service) obj;
             buf.append("update " + FabricRegistry.DATA_FEEDS + " set ");
-            buf.append("PLATFORM_ID=").append(nullOrString(service.getPlatformId())).append(",");
-            buf.append("SERVICE_ID=").append(nullOrString(service.getSystemId())).append(",");
-            buf.append("ID=").append(nullOrString(service.getId())).append(",");
-            buf.append("Type_ID=").append(nullOrString(service.getTypeId())).append(",");
-            buf.append("Credentials=").append(nullOrString(service.getCredentials())).append(",");
-            buf.append("Availability=").append(nullOrString(service.getAvailability())).append(",");
-            buf.append("Description=").append(nullOrString(service.getDescription())).append(",");
-            buf.append("Attributes=").append(nullOrString(service.getAttributes())).append(",");
-            buf.append("Direction=").append(nullOrString(service.getMode())).append(",");
+            buf.append("PLATFORM_ID=").append(nullOrString(service.getPlatformId())).append(',');
+            buf.append("SERVICE_ID=").append(nullOrString(service.getSystemId())).append(',');
+            buf.append("ID=").append(nullOrString(service.getId())).append(',');
+            buf.append("Type_ID=").append(nullOrString(service.getTypeId())).append(',');
+            buf.append("Credentials=").append(nullOrString(service.getCredentials())).append(',');
+            buf.append("Availability=").append(nullOrString(service.getAvailability())).append(',');
+            buf.append("Description=").append(nullOrString(service.getDescription())).append(',');
+            buf.append("Attributes=").append(nullOrString(service.getAttributes())).append(',');
+            buf.append("Direction=").append(nullOrString(service.getMode())).append(',');
             buf.append("Attributes_URI=").append(nullOrString(service.getAttributesURI()));
             buf.append(" WHERE ");
 
@@ -448,20 +448,20 @@ public class ServiceFactoryImpl extends AbstractFactory implements ServiceFactor
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Service) {
             Service service = (Service) obj;
             buf.append("insert into " + FabricRegistry.DATA_FEEDS + " values(");
-            buf.append(nullOrString(service.getPlatformId())).append(",");
-            buf.append(nullOrString(service.getSystemId())).append(",");
-            buf.append(nullOrString(service.getId())).append(",");
-            buf.append(nullOrString(service.getTypeId())).append(",");
-            buf.append(nullOrString(service.getMode())).append(",");
-            buf.append(nullOrString(service.getCredentials())).append(",");
-            buf.append(nullOrString(service.getAvailability())).append(",");
-            buf.append(nullOrString(service.getDescription())).append(",");
-            buf.append(nullOrString(service.getAttributes())).append(",");
-            buf.append(nullOrString(service.getAttributesURI())).append(")");
+            buf.append(nullOrString(service.getPlatformId())).append(',');
+            buf.append(nullOrString(service.getSystemId())).append(',');
+            buf.append(nullOrString(service.getId())).append(',');
+            buf.append(nullOrString(service.getTypeId())).append(',');
+            buf.append(nullOrString(service.getMode())).append(',');
+            buf.append(nullOrString(service.getCredentials())).append(',');
+            buf.append(nullOrString(service.getAvailability())).append(',');
+            buf.append(nullOrString(service.getDescription())).append(',');
+            buf.append(nullOrString(service.getAttributes())).append(',');
+            buf.append(nullOrString(service.getAttributesURI())).append(')');
         }
         return buf.toString();
     }
@@ -516,7 +516,7 @@ public class ServiceFactoryImpl extends AbstractFactory implements ServiceFactor
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof Service) {
             return super.insert(obj, this);

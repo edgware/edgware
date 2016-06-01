@@ -8,8 +8,8 @@
 package fabric.registry.impl;
 
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.Task;
 import fabric.registry.TaskFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -91,7 +91,7 @@ public class TaskFactoryImpl extends AbstractFactory implements TaskFactory {
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Task) {
             Task task = (Task) obj;
             buf.append("delete from " + FabricRegistry.TASKS + " where(");
@@ -102,40 +102,40 @@ public class TaskFactoryImpl extends AbstractFactory implements TaskFactory {
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Task) {
             Task task = (Task) obj;
             buf.append("insert into " + FabricRegistry.TASKS + " values(");
-            buf.append("'").append(task.getId()).append("',");
-            buf.append(task.getPriority()).append(",");
-            buf.append(nullOrString(task.getAffiliation())).append(",");
-            buf.append(nullOrString(task.getDescription())).append(",");
-            buf.append(nullOrString(task.getDetail())).append(",");
-            buf.append(nullOrString(task.getDetailUri())).append(")");
+            buf.append('\'').append(task.getId()).append('\'').append(',');
+            buf.append(task.getPriority()).append(',');
+            buf.append(nullOrString(task.getAffiliation())).append(',');
+            buf.append(nullOrString(task.getDescription())).append(',');
+            buf.append(nullOrString(task.getDetail())).append(',');
+            buf.append(nullOrString(task.getDetailUri())).append(')');
         }
         return buf.toString();
     }
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof Task) {
             Task task = (Task) obj;
             buf.append("update " + FabricRegistry.TASKS + " set ");
-            buf.append("TASK_ID='").append(task.getId()).append("',");
-            buf.append("PRIORITY=").append(task.getPriority()).append(",");
-            buf.append("AFFILIATION=").append(nullOrString(task.getAffiliation())).append(",");
-            buf.append("DESCRIPTION=").append(nullOrString(task.getDescription())).append(",");
-            buf.append("TASK_DETAIL=").append(nullOrString(task.getDetail())).append(",");
+            buf.append("TASK_ID='").append(task.getId()).append('\'').append(',');
+            buf.append("PRIORITY=").append(task.getPriority()).append(',');
+            buf.append("AFFILIATION=").append(nullOrString(task.getAffiliation())).append(',');
+            buf.append("DESCRIPTION=").append(nullOrString(task.getDescription())).append(',');
+            buf.append("TASK_DETAIL=").append(nullOrString(task.getDetail())).append(',');
             buf.append("TASK_DETAIL_URI=").append(nullOrString(task.getDetailUri())).append("");
             buf.append(" WHERE ");
 
             /* if it exists, use the shadow values for the WHERE clause */
             if (task.getShadow() != null) {
                 Task shadow = (Task) task.getShadow();
-                buf.append("TASK_ID='").append(shadow.getId()).append("'");
+                buf.append("TASK_ID='").append(shadow.getId()).append('\'');
             } else {
-                buf.append("TASK_ID='").append(task.getId()).append("'");
+                buf.append("TASK_ID='").append(task.getId()).append('\'');
             }
         }
         return buf.toString();
@@ -257,7 +257,7 @@ public class TaskFactoryImpl extends AbstractFactory implements TaskFactory {
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof Task) {
             return super.insert(obj, this);

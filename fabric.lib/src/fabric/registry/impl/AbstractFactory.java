@@ -91,7 +91,7 @@ public abstract class AbstractFactory extends Fabric {
      * @throws PersistenceException
      */
     public boolean insert(RegistryObject obj, AbstractFactory factory) throws IncompleteObjectException,
-    DuplicateKeyException, PersistenceException {
+        DuplicateKeyException, PersistenceException {
 
         if (obj != null && obj.isValid()) {
             try {
@@ -121,7 +121,7 @@ public abstract class AbstractFactory extends Fabric {
     }
 
     public boolean update(RegistryObject obj, AbstractFactory factory) throws IncompleteObjectException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj.isValid()) {
             logger.log(Level.FINEST, "Update SQL: {0}", factory.getUpdateSql(obj));
@@ -252,8 +252,8 @@ public abstract class AbstractFactory extends Fabric {
         if (value == null) {
             return null;
         } else {
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("'").append(value).append("'");
+            StringBuilder buffer = new StringBuilder();
+            buffer.append('\'').append(value).append('\'');
             return buffer.toString();
         }
     }
@@ -320,16 +320,16 @@ public abstract class AbstractFactory extends Fabric {
 
         String delimitedString = null;
         if (map != null) {
-            StringBuffer buffy = new StringBuffer();
+            StringBuilder buffy = new StringBuilder();
             Iterator<String> keys = map.keySet().iterator();
             String key = null;
             while (keys.hasNext()) {
                 key = keys.next();
                 buffy.append(key);
-                buffy.append("=");
+                buffy.append('=');
                 buffy.append(map.get(key));
                 if (keys.hasNext()) {
-                    buffy.append("&");
+                    buffy.append('&');
                 }
             }
             delimitedString = buffy.toString();

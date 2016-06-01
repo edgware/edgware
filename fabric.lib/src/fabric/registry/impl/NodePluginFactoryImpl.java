@@ -11,8 +11,8 @@ import fabric.registry.FabricPlugin;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodePlugin;
 import fabric.registry.NodePluginFactory;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -67,13 +67,13 @@ public class NodePluginFactoryImpl extends AbstractFactory implements NodePlugin
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodePlugin) {
             NodePlugin plugin = (NodePlugin) obj;
             buf.append("update ");
             buf.append(FabricRegistry.NODE_PLUGINS);
             buf.append(" set ");
-            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(",");
+            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(',');
             buf.append("ARGUMENTS=").append(nullOrString(plugin.getArguments()));
             buf.append(" WHERE ");
 
@@ -82,11 +82,11 @@ public class NodePluginFactoryImpl extends AbstractFactory implements NodePlugin
                 NodePlugin shadow = (NodePlugin) plugin.getShadow();
                 buf.append("NODE_ID='").append(shadow.getNodeId()).append("' AND ");
                 buf.append("ORDINAL=").append(shadow.getOrdinal()).append(" AND ");
-                buf.append("TYPE='").append(shadow.getPluginType()).append("'");
+                buf.append("TYPE='").append(shadow.getPluginType()).append('\'');
             } else {
                 buf.append("NODE_ID='").append(plugin.getNodeId()).append("' AND ");
                 buf.append("ORDINAL=").append(plugin.getOrdinal()).append(" AND ");
-                buf.append("TYPE='").append(plugin.getPluginType()).append("'");
+                buf.append("TYPE='").append(plugin.getPluginType()).append('\'');
             }
         }
         return buf.toString();
@@ -94,19 +94,19 @@ public class NodePluginFactoryImpl extends AbstractFactory implements NodePlugin
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof NodePlugin) {
             NodePlugin plugin = (NodePlugin) obj;
             buf.append("insert into ");
             buf.append(FabricRegistry.NODE_PLUGINS);
             buf.append(" values(");
-            buf.append("'").append(plugin.getNodeId()).append("',");
-            buf.append("'").append(plugin.getName()).append("',");
-            buf.append(nullOrString(plugin.getFamilyName())).append(",");
-            buf.append("'").append(plugin.getPluginType()).append("',");
-            buf.append(plugin.getOrdinal()).append(",");
-            buf.append(nullOrString(plugin.getDescription())).append(",");
-            buf.append(nullOrString(plugin.getArguments())).append(")");
+            buf.append('\'').append(plugin.getNodeId()).append('\'').append(',');
+            buf.append('\'').append(plugin.getName()).append('\'').append(',');
+            buf.append(nullOrString(plugin.getFamilyName())).append(',');
+            buf.append('\'').append(plugin.getPluginType()).append('\'').append(',');
+            buf.append(plugin.getOrdinal()).append(',');
+            buf.append(nullOrString(plugin.getDescription())).append(',');
+            buf.append(nullOrString(plugin.getArguments())).append(')');
         }
         return buf.toString();
     }
@@ -240,7 +240,7 @@ public class NodePluginFactoryImpl extends AbstractFactory implements NodePlugin
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof FabricPlugin) {
             return super.insert(obj, this);
@@ -266,7 +266,7 @@ public class NodePluginFactoryImpl extends AbstractFactory implements NodePlugin
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         NodePlugin plugin = (NodePlugin) obj;
         buf.append("DELETE FROM " + FabricRegistry.NODE_PLUGINS + " WHERE NODE_ID = '");
@@ -281,7 +281,7 @@ public class NodePluginFactoryImpl extends AbstractFactory implements NodePlugin
         buf.append(plugin.getOrdinal());
         buf.append(" AND DESCRIPTION = '");
         buf.append(plugin.getDescription());
-        buf.append("'");
+        buf.append('\'');
         return buf.toString();
     }
 

@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.CachedMessage;
 import fabric.registry.CachedMessageFactory;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -51,15 +51,15 @@ public class CachedMessageFactoryImpl extends AbstractFactory implements CachedM
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CachedMessage) {
             CachedMessage msg = (CachedMessage) obj;
             buf.append("insert into " + FabricRegistry.MESSAGE_CACHE + " values(");
             String ts = (new java.sql.Timestamp(msg.getTimestamp())).toString();
-            buf.append("'").append(ts).append("',");
-            buf.append("'").append(msg.getSource().replaceAll("'", "''")).append("',");
-            buf.append("'").append(msg.getDestination().replaceAll("'", "''")).append("',");
-            buf.append("'").append(msg.getMessage().replaceAll("'", "''")).append("')");
+            buf.append('\'').append(ts).append('\'').append(',');
+            buf.append('\'').append(msg.getSource().replaceAll("'", "''")).append('\'').append(',');
+            buf.append('\'').append(msg.getDestination().replaceAll("'", "''")).append('\'').append(',');
+            buf.append('\'').append(msg.getMessage().replaceAll("'", "''")).append("')");
         }
         return buf.toString();
     }
@@ -71,7 +71,7 @@ public class CachedMessageFactoryImpl extends AbstractFactory implements CachedM
 
     @Override
     public String getDeleteSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof CachedMessage) {
             CachedMessage msg = (CachedMessage) obj;
             buf.append("delete from " + FabricRegistry.MESSAGE_CACHE + " where(");
@@ -102,7 +102,7 @@ public class CachedMessageFactoryImpl extends AbstractFactory implements CachedM
 
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
         if (obj != null && obj instanceof CachedMessage) {
             return super.insert(obj, this);
         } else {

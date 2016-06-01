@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.FabricRegistry;
 import fabric.registry.NodeConfig;
 import fabric.registry.NodeConfigFactory;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -100,7 +100,7 @@ public class NodeConfigFactoryImpl extends AbstractFactory implements NodeConfig
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         if (obj instanceof NodeConfig) {
 
@@ -122,16 +122,16 @@ public class NodeConfigFactoryImpl extends AbstractFactory implements NodeConfig
     @Override
     public String getInsertSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         if (obj instanceof NodeConfig) {
 
             NodeConfig nc = (NodeConfig) obj;
 
             buf.append("insert into " + FabricRegistry.NODE_CONFIG + "  values(");
-            buf.append("'").append(nc.getNode()).append("',");
-            buf.append("'").append(nc.getName()).append("',");
-            buf.append("'").append(nc.getValue()).append("')");
+            buf.append('\'').append(nc.getNode()).append('\'').append(',');
+            buf.append('\'').append(nc.getName()).append('\'').append(',');
+            buf.append('\'').append(nc.getValue()).append("')");
         }
 
         return buf.toString();
@@ -144,14 +144,14 @@ public class NodeConfigFactoryImpl extends AbstractFactory implements NodeConfig
     @Override
     public String getUpdateSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         if (obj instanceof NodeConfig) {
 
             NodeConfig nc = (NodeConfig) obj;
 
             buf.append("update " + FabricRegistry.NODE_CONFIG + " set ");
-            buf.append("VALUE='").append(nc.getValue()).append("'");
+            buf.append("VALUE='").append(nc.getValue()).append('\'');
             buf.append(" WHERE ");
 
             NodeConfig configValue = null;
@@ -164,7 +164,7 @@ public class NodeConfigFactoryImpl extends AbstractFactory implements NodeConfig
             }
 
             buf.append("NODE_ID='").append(configValue.getNode()).append("' AND ");
-            buf.append("NAME='").append(configValue.getName()).append("'");
+            buf.append("NAME='").append(configValue.getName()).append('\'');
         }
 
         return buf.toString();
@@ -278,7 +278,7 @@ public class NodeConfigFactoryImpl extends AbstractFactory implements NodeConfig
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-            PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof NodeConfig) {
             return super.insert(obj, this);

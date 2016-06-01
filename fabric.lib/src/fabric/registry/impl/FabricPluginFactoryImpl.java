@@ -10,8 +10,8 @@ package fabric.registry.impl;
 import fabric.registry.FabricPlugin;
 import fabric.registry.FabricPluginFactory;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.exception.DuplicateKeyException;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
@@ -66,15 +66,15 @@ public class FabricPluginFactoryImpl extends AbstractFactory implements FabricPl
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof FabricPlugin) {
             FabricPlugin plugin = (FabricPlugin) obj;
             buf.append("update ");
             buf.append(FabricRegistry.FABLET_PLUGINS);
             buf.append(" set ");
-            buf.append("NODE_ID='").append(plugin.getNodeId()).append("',");
-            buf.append("NAME='").append(plugin.getName()).append("',");
-            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(",");
+            buf.append("NODE_ID='").append(plugin.getNodeId()).append('\'').append(',');
+            buf.append("NAME='").append(plugin.getName()).append('\'').append(',');
+            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(',');
             buf.append("ARGUMENTS=").append(nullOrString(plugin.getArguments()));
             buf.append(" WHERE ");
 
@@ -82,10 +82,10 @@ public class FabricPluginFactoryImpl extends AbstractFactory implements FabricPl
             if (plugin.getShadow() != null) {
                 FabricPlugin shadow = (FabricPlugin) plugin.getShadow();
                 buf.append("NODE_ID='").append(shadow.getNodeId()).append("' AND ");
-                buf.append("NAME='").append(shadow.getName()).append("'");
+                buf.append("NAME='").append(shadow.getName()).append('\'');
             } else {
                 buf.append("NODE_ID='").append(plugin.getNodeId()).append("' AND ");
-                buf.append("NAME='").append(plugin.getName()).append("'");
+                buf.append("NAME='").append(plugin.getName()).append('\'');
             }
         }
         return buf.toString();
@@ -93,17 +93,17 @@ public class FabricPluginFactoryImpl extends AbstractFactory implements FabricPl
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof FabricPlugin) {
             FabricPlugin plugin = (FabricPlugin) obj;
             buf.append("insert into ");
             buf.append(FabricRegistry.FABLET_PLUGINS);
             buf.append(" values(");
-            buf.append("'").append(plugin.getNodeId()).append("',");
-            buf.append("'").append(plugin.getName()).append("',");
-            buf.append(nullOrString(plugin.getFamilyName())).append(",");
-            buf.append(nullOrString(plugin.getDescription())).append(",");
-            buf.append(nullOrString(plugin.getArguments())).append(")");
+            buf.append('\'').append(plugin.getNodeId()).append('\'').append(',');
+            buf.append('\'').append(plugin.getName()).append('\'').append(',');
+            buf.append(nullOrString(plugin.getFamilyName())).append(',');
+            buf.append(nullOrString(plugin.getDescription())).append(',');
+            buf.append(nullOrString(plugin.getArguments())).append(')');
         }
         return buf.toString();
     }
@@ -235,7 +235,7 @@ public class FabricPluginFactoryImpl extends AbstractFactory implements FabricPl
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof FabricPlugin) {
             return super.insert(obj, this);
@@ -261,7 +261,7 @@ public class FabricPluginFactoryImpl extends AbstractFactory implements FabricPl
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         FabricPlugin plugin = (FabricPlugin) obj;
         buf.append("delete FROM ");
@@ -272,9 +272,9 @@ public class FabricPluginFactoryImpl extends AbstractFactory implements FabricPl
         buf.append("NAME='");
         buf.append(plugin.getName()).append("' AND ");
         buf.append("FAMILY='");
-        buf.append(plugin.getFamilyName()).append("'");
+        buf.append(plugin.getFamilyName()).append('\'');
 
-        buf.append(")");
+        buf.append(')');
 
         return buf.toString();
     }

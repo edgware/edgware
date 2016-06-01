@@ -9,8 +9,8 @@ package fabric.registry.impl;
 
 import fabric.registry.FabricPlugin;
 import fabric.registry.FabricRegistry;
-import fabric.registry.RegistryObject;
 import fabric.registry.QueryScope;
+import fabric.registry.RegistryObject;
 import fabric.registry.TaskPlugin;
 import fabric.registry.TaskPluginFactory;
 import fabric.registry.exception.DuplicateKeyException;
@@ -67,17 +67,17 @@ public class TaskPluginFactoryImpl extends AbstractFactory implements TaskPlugin
 
     @Override
     public String getUpdateSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskPlugin) {
             TaskPlugin plugin = (TaskPlugin) obj;
             buf.append("update ");
             buf.append(FabricRegistry.TASK_PLUGINS);
             buf.append(" set ");
-            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(",");
-            buf.append("ARGUMENTS=").append(nullOrString(plugin.getArguments())).append(",");
-            buf.append("PLATFORM_ID='").append(plugin.getPlatformId()).append("',");
-            buf.append("SERVICE_ID='").append(plugin.getSensorId()).append("',");
-            buf.append("DATA_FEED_ID=").append(plugin.getFeedId()).append("'");
+            buf.append("DESCRIPTION=").append(nullOrString(plugin.getDescription())).append(',');
+            buf.append("ARGUMENTS=").append(nullOrString(plugin.getArguments())).append(',');
+            buf.append("PLATFORM_ID='").append(plugin.getPlatformId()).append('\'').append(',');
+            buf.append("SERVICE_ID='").append(plugin.getSensorId()).append('\'').append(',');
+            buf.append("DATA_FEED_ID=").append(plugin.getFeedId()).append('\'');
             buf.append(" WHERE ");
 
             /* if it exists, use the shadow values for the WHERE clause */
@@ -87,13 +87,13 @@ public class TaskPluginFactoryImpl extends AbstractFactory implements TaskPlugin
                 buf.append("TASK_ID='").append(shadow.getTaskId()).append("' AND ");
                 buf.append("NAME='").append(shadow.getName()).append("' AND ");
                 buf.append("ORDINAL=").append(shadow.getOrdinal()).append(" AND ");
-                buf.append("TYPE='").append(shadow.getPluginType()).append("'");
+                buf.append("TYPE='").append(shadow.getPluginType()).append('\'');
             } else {
                 buf.append("NODE_ID='").append(plugin.getNodeId()).append("' AND ");
                 buf.append("TASK_ID='").append(plugin.getTaskId()).append("' AND ");
                 buf.append("NAME='").append(plugin.getName()).append("' AND ");
                 buf.append("ORDINAL=").append(plugin.getOrdinal()).append(" AND ");
-                buf.append("TYPE='").append(plugin.getPluginType()).append("'");
+                buf.append("TYPE='").append(plugin.getPluginType()).append('\'');
             }
 
         }
@@ -102,23 +102,23 @@ public class TaskPluginFactoryImpl extends AbstractFactory implements TaskPlugin
 
     @Override
     public String getInsertSql(RegistryObject obj) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (obj instanceof TaskPlugin) {
             TaskPlugin plugin = (TaskPlugin) obj;
             buf.append("insert into ");
             buf.append(FabricRegistry.TASK_PLUGINS);
             buf.append(" values(");
-            buf.append("'").append(plugin.getNodeId()).append("',");
-            buf.append("'").append(plugin.getTaskId()).append("',");
-            buf.append("'").append(plugin.getName()).append("',");
-            buf.append(nullOrString(plugin.getFamilyName())).append(",");
-            buf.append("'").append(plugin.getPluginType()).append("',");
-            buf.append(plugin.getOrdinal()).append(",");
-            buf.append("'").append(plugin.getPlatformId()).append("',");
-            buf.append("'").append(plugin.getSensorId()).append("',");
-            buf.append("'").append(plugin.getFeedId()).append("',");
-            buf.append(nullOrString(plugin.getDescription())).append(",");
-            buf.append(nullOrString(plugin.getArguments())).append(")");
+            buf.append('\'').append(plugin.getNodeId()).append('\'').append(',');
+            buf.append('\'').append(plugin.getTaskId()).append('\'').append(',');
+            buf.append('\'').append(plugin.getName()).append('\'').append(',');
+            buf.append(nullOrString(plugin.getFamilyName())).append(',');
+            buf.append('\'').append(plugin.getPluginType()).append('\'').append(',');
+            buf.append(plugin.getOrdinal()).append(',');
+            buf.append('\'').append(plugin.getPlatformId()).append('\'').append(',');
+            buf.append('\'').append(plugin.getSensorId()).append('\'').append(',');
+            buf.append('\'').append(plugin.getFeedId()).append('\'').append(',');
+            buf.append(nullOrString(plugin.getDescription())).append(',');
+            buf.append(nullOrString(plugin.getArguments())).append(')');
         }
         return buf.toString();
     }
@@ -259,7 +259,7 @@ public class TaskPluginFactoryImpl extends AbstractFactory implements TaskPlugin
      */
     @Override
     public boolean insert(RegistryObject obj) throws IncompleteObjectException, DuplicateKeyException,
-    PersistenceException {
+        PersistenceException {
 
         if (obj != null && obj instanceof FabricPlugin) {
             return super.insert(obj, this);
@@ -285,7 +285,7 @@ public class TaskPluginFactoryImpl extends AbstractFactory implements TaskPlugin
     @Override
     public String getDeleteSql(RegistryObject obj) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         TaskPlugin plugin = (TaskPlugin) obj;
         buf.append("DELETE FROM " + FabricRegistry.TASK_PLUGINS + " WHERE NODE_ID = '");
@@ -308,7 +308,7 @@ public class TaskPluginFactoryImpl extends AbstractFactory implements TaskPlugin
         buf.append(plugin.getFeedId());
         buf.append("' AND DESCRIPTION = '");
         buf.append(plugin.getDescription());
-        buf.append("'");
+        buf.append('\'');
         return buf.toString();
     }
 
