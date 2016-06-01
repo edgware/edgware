@@ -1,4 +1,4 @@
-@ECHO OFF
+@echo off
 rem **************************************************************************
 rem (C) Copyright IBM Corp. 2012
 rem
@@ -6,9 +6,9 @@ rem LICENSE: Eclipse Public License v1.0
 rem http://www.eclipse.org/legal/epl-v10.html
 rem **************************************************************************
 
-REM **************************************************************************
-REM Invoke the Registry command line tool.
-REM **************************************************************************
+rem **************************************************************************
+rem Invoke the Registry command line tool.
+rem **************************************************************************
 
 SetLocal EnableDelayedExpansion
 
@@ -17,7 +17,7 @@ if not exist "!FABRIC_HOME!" (
 	goto :EOF
 )
 
-REM Remove any spaces from the FABRIC_HOME path
+rem Remove any spaces from the FABRIC_HOME path
 for %%H in ("!FABRIC_HOME!") do set FABRIC_HOME=%%~sH
 
 set CLASSPATH=!FABRIC_HOME!\lib\db-derby\lib\derbyclient.jar;!FABRIC_HOME!\lib\oslib\commons-cli-1.3.1.jar
