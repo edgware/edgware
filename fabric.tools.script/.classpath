@@ -6,7 +6,7 @@
 	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-annotations-2.5.1.jar"/>
 	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-core-2.5.1.jar"/>
 	<classpathentry kind="lib" path="/bundle.jackson/jars/jackson-databind-2.5.1.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fabric.services.interfaces.json"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/fabric.core"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
