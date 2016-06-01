@@ -14,6 +14,8 @@ import java.util.logging.Logger;
 
 import fabric.ServiceDescriptor;
 import fabric.SystemDescriptor;
+import fabric.core.json.JSON;
+import fabric.core.json.JSONArray;
 import fabric.registry.FabricRegistry;
 import fabric.registry.QueryScope;
 import fabric.registry.Service;
@@ -24,8 +26,6 @@ import fabric.registry.TaskService;
 import fabric.registry.TaskServiceFactory;
 import fabric.registry.Type;
 import fabric.registry.TypeFactory;
-import fabric.services.json.JSON;
-import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.JSONAdapter;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;

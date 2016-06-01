@@ -7,12 +7,12 @@
 
 package fabric.services.jsonclient.articles;
 
+import fabric.core.json.JSON;
+import fabric.core.json.JSONArray;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Platform;
 import fabric.registry.PlatformFactory;
 import fabric.registry.QueryScope;
-import fabric.services.json.JSON;
-import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 

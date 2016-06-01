@@ -446,7 +446,7 @@
 		<antcall target="buildJar">
 			<param name="src.dir" value="${project-src.fabric.core}" />
 			<param name="bin.dir" value="${project-bin.fabric.core}" />
-			<param name="classpath" value="${jar.paho.mqtt.java};${jar.apache.commons.codec}" />
+			<param name="classpath" value="${jar.paho.mqtt.java};${jar.apache.commons.codec};${classpath.json}" />
 			<param name="jar.file" value="${project-bundle.fabric.core}" />
 		</antcall>
 
@@ -552,7 +552,7 @@
 		<antcall target="buildJar">
 			<param name="src.dir" value="${project-src.fabric.tools.script}" />
 			<param name="bin.dir" value="${project-bin.fabric.tools.script}" />
-			<param name="classpath" value="${project-bundle.fabric.services.interfaces.json};${jar.paho.mqtt.java};${classpath.json}" />
+			<param name="classpath" value="${project-bundle.fabric.core};${classpath.json};${jar.paho.mqtt.java};${project-bundle.fabric.services.interfaces.json}" />
 			<param name="jar.file" value="${project-bundle.fabric.tools.script}" />
 		</antcall>
 		

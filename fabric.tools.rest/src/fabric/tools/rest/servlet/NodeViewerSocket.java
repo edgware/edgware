@@ -18,7 +18,7 @@ import org.eclipse.jetty.websocket.api.WebSocketListener;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
-import fabric.services.json.JSON;
+import fabric.core.json.JSON;
 import fabric.services.jsonclient.HTTPAdapter;
 
 /**

@@ -15,7 +15,7 @@ import fabric.bus.feeds.ISubscription;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.core.io.OutputTopic;
-import fabric.services.json.JSON;
+import fabric.core.json.JSON;
 
 /**
  * Class implementing the adapter proxy for an MQTT JSON Fabric client.

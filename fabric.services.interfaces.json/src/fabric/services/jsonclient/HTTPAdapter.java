@@ -10,7 +10,7 @@ package fabric.services.jsonclient;
 import org.eclipse.jetty.websocket.api.Session;
 
 import fabric.core.io.mqtt.MqttConfig;
-import fabric.services.json.JSON;
+import fabric.core.json.JSON;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 
 /**

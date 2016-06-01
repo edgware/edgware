@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import fabric.FabricBus;
+import fabric.core.json.JSON;
 import fabric.registry.DefaultConfig;
 import fabric.registry.DefaultConfigFactory;
 import fabric.registry.FabricRegistry;
@@ -22,7 +23,6 @@ import fabric.registry.NodeConfigFactory;
 import fabric.registry.QueryScope;
 import fabric.registry.exception.IncompleteObjectException;
 import fabric.registry.exception.PersistenceException;
-import fabric.services.json.JSON;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 
 /**

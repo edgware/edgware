@@ -26,7 +26,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
-import fabric.services.json.JSON;
+import fabric.core.json.JSON;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 
 public abstract class JSONScript implements MqttCallback {

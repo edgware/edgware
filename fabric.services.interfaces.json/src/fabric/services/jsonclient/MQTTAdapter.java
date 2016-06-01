@@ -20,8 +20,8 @@ import fabric.core.io.InputTopic;
 import fabric.core.io.Message;
 import fabric.core.io.OutputTopic;
 import fabric.core.io.mqtt.MqttConfig;
+import fabric.core.json.JSON;
 import fabric.core.logging.FLog;
-import fabric.services.json.JSON;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 

@@ -20,7 +20,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import fabric.services.json.JSON;
+import fabric.core.json.JSON;
 
 /**
  * MQTT Socket class that deals with incoming and outgoing MQTT messages, and MQTT connections.

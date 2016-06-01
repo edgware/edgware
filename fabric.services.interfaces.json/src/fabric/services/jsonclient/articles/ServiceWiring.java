@@ -10,10 +10,10 @@ package fabric.services.jsonclient.articles;
 import java.util.ArrayList;
 import java.util.List;
 
+import fabric.core.json.JSON;
 import fabric.registry.FabricRegistry;
 import fabric.registry.SystemWiring;
 import fabric.registry.SystemWiringFactory;
-import fabric.services.json.JSON;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 

@@ -12,12 +12,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import fabric.core.json.JSON;
+import fabric.core.json.JSONArray;
 import fabric.registry.FabricRegistry;
 import fabric.registry.QueryScope;
 import fabric.registry.Type;
 import fabric.registry.TypeFactory;
-import fabric.services.json.JSON;
-import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
 import fabric.services.jsonclient.utilities.JsonUtils;
@@ -88,7 +88,7 @@ public class SystemTypes extends Article {
                             serviceTypeList.append(mode);
                             serviceTypeList.append(':');
                             serviceTypeList.append(name);
-                            serviceTypeList.append(",");
+                            serviceTypeList.append(',');
 
                             break;
 

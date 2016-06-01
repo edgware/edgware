@@ -8,7 +8,7 @@
 package fabric.services.jsonclient.articles;
 
 import fabric.FabricBus;
-import fabric.services.json.JSON;
+import fabric.core.json.JSON;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.JsonUtils;
 

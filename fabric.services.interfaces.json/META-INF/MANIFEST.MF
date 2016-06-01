@@ -7,7 +7,6 @@ Bundle-Copyright: (C) Copyright IBM Corp. 2013, 2016
 Bundle-Vendor: IBM
 Eclipse-RegisterBuddy: fabric.lib
 Export-Package: fabric.services.interfaces.json.osgi;uses:="org.osgi.framework",
- fabric.services.json;uses:="com.fasterxml.jackson.databind,com.fasterxml.jackson.databind.node",
  fabric.services.jsonclient;
   uses:="fabric.client.services,
    org.eclipse.jetty.websocket.api,
@@ -29,5 +28,4 @@ Import-Package: org.eclipse.paho.client.mqttv3,
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: fabric.services.interfaces.json.osgi.Activator
 Require-Bundle: fabric.core;bundle-version="0.4.1",
- fabric.lib;bundle-version="0.4.1",
- bundle.jackson
+ fabric.lib;bundle-version="0.4.1"

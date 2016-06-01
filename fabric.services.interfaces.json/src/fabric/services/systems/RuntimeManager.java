@@ -25,6 +25,8 @@ import fabric.bus.feeds.impl.Subscription;
 import fabric.bus.messages.IFeedMessage;
 import fabric.bus.messages.IServiceMessage;
 import fabric.client.FabricPlatform;
+import fabric.core.json.JSON;
+import fabric.core.json.JSONArray;
 import fabric.core.logging.FLog;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Node;
@@ -35,8 +37,6 @@ import fabric.registry.ServiceFactory;
 import fabric.registry.System;
 import fabric.registry.SystemFactory;
 import fabric.registry.exception.RegistryQueryException;
-import fabric.services.json.JSON;
-import fabric.services.json.JSONArray;
 import fabric.services.jsonclient.JSONAdapter;
 
 /**

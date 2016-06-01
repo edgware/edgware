@@ -34,6 +34,7 @@ import fabric.bus.routing.impl.StaticRouting;
 import fabric.client.FabricClient;
 import fabric.client.FabricPlatform;
 import fabric.client.services.IClientNotificationHandler;
+import fabric.core.json.JSON;
 import fabric.core.logging.FLog;
 import fabric.registry.FabricRegistry;
 import fabric.registry.Platform;
@@ -45,7 +46,6 @@ import fabric.registry.Service;
 import fabric.registry.ServiceFactory;
 import fabric.registry.System;
 import fabric.registry.SystemFactory;
-import fabric.services.json.JSON;
 
 /**
  * Container class managing a service instance.
@@ -558,7 +558,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      * @throws Exception
      */
     public void unsubscribe(ServiceDescriptor[] outputFeedServices, ServiceDescriptor inputFeedService)
-            throws Exception {
+        throws Exception {
 
         /* If this is a valid input feed... */
         if (systemServices.inputFeedIDs().contains(inputFeedService.service())) {
@@ -612,7 +612,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
      * @throws Exception
      */
     public HashMap<ServiceDescriptor, List<ServiceDescriptor>> unsubscribe(ServiceDescriptor[] outputFeedServices)
-            throws Exception {
+        throws Exception {
 
         Fabric fabric = new Fabric();
         HashMap<ServiceDescriptor, List<ServiceDescriptor>> allUnwired = new HashMap<ServiceDescriptor, List<ServiceDescriptor>>();
@@ -1376,7 +1376,7 @@ public class SystemRuntime extends Fabric implements ISubscriptionCallback, ICli
          */
 
         /* Initialize the instance with the name of the container Fabric service class */
-        StringBuffer toString = new StringBuffer(systemDescriptor.toString());
+        StringBuilder toString = new StringBuilder(systemDescriptor.toString());
         toString.append('/');
         toString.append(className);
 

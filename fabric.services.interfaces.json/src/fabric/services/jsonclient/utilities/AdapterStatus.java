@@ -9,7 +9,7 @@ package fabric.services.jsonclient.utilities;
 
 import com.fasterxml.jackson.core.io.JsonStringEncoder;
 
-import fabric.services.json.JSON;
+import fabric.core.json.JSON;
 
 /**
  * Class representing adapter status's.
