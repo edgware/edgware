@@ -7,7 +7,7 @@
 # http://www.eclipse.org/legal/epl-v10.html
 # **************************************************************************
 
-#FABRIC_DEBUG=true
+#FABRIC_DEBUG=false
 
 # **************************************************************************
 # Function declarations
@@ -324,7 +324,7 @@ DBTYPE=gaian
 DAEMON=0
 ACTION=
 TYPE=
-NODE=default
+NODE=`hostname`
 CONSOLE=
 PORT=9080
 REGISTRY_NOTIFICATIONS=ALL
