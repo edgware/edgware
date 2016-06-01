@@ -5,11 +5,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */
 
-package fabric.services.jsonclient.utilities;
+package fabric.core.json;
 
 import java.io.IOException;
-
-import fabric.core.json.JSON;
 
 /**
  * This class provides some null gating utilities for JSON objects.

@@ -14,13 +14,13 @@ import java.util.List;
 
 import fabric.core.json.JSON;
 import fabric.core.json.JSONArray;
+import fabric.core.json.JsonUtils;
 import fabric.registry.FabricRegistry;
 import fabric.registry.QueryScope;
 import fabric.registry.Type;
 import fabric.registry.TypeFactory;
 import fabric.services.jsonclient.utilities.AdapterConstants;
 import fabric.services.jsonclient.utilities.AdapterStatus;
-import fabric.services.jsonclient.utilities.JsonUtils;
 
 /**
  * Class that handles JSON operations that deal with System Types.

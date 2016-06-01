@@ -9,8 +9,8 @@ package fabric.services.jsonclient.articles;
 
 import fabric.FabricBus;
 import fabric.core.json.JSON;
+import fabric.core.json.JsonUtils;
 import fabric.services.jsonclient.utilities.AdapterConstants;
-import fabric.services.jsonclient.utilities.JsonUtils;
 
 /**
  * Base class for JSON client article handlers.
