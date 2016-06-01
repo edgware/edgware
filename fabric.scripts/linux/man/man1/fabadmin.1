@@ -5,15 +5,15 @@
 
 .SH SYNOPSIS
 .P
-\fBfabadmin\fR \fB-s\fR [\fB-d\fR] \fB-gaian\fR|\fB-distributed\fR \fB-r\fR \fBnode\fR
+\fBfabadmin\fR \fB-s\fR [\fB-d\fR] [\fB-gaian\fR|\fB-distributed\fR] \fB-r\fR [\fB-n\fR \fBnode\fR]
 .P
-\fBfabadmin\fR \fB-s\fR [\fB-d\fR] \fB-n\fR [\fB-c\fR] \fBnode\fR
+\fBfabadmin\fR \fB-s\fR [\fB-d\fR] [\fB-c\fR] [\fB-n\fR \fBnode\fR]
 .P
-\fBfabadmin\fR \fB-s\fR [\fB-d\fR] \fB-w\fR \fBnode\fR
+\fBfabadmin\fR \fB-s\fR [\fB-d\fR] \fB-w\fR [\fB-n\fR \fBnode\fR]
 .P
-\fBfabadmin\fR \fB-st\fR \fB-gaian\fR|\fB-distributed\fR \fB-r\fR 
+\fBfabadmin\fR \fB-st\fR [\fB-gaian\fR|\fB-distributed\fR] \fB-r\fR 
 .P
-\fBfabadmin\fR \fB-st\fR \fB-n\fR \fBnode\fR
+\fBfabadmin\fR \fB-st\fR \fB-n\fR [\fB-n\fR \fBnode\fR]
 .P
 \fBfabadmin\fR \fB-st\fR \fB-w\fR
 .P
@@ -21,7 +21,7 @@
 .P
 \fBfabadmin\fR \fB-status\fR
 .P
-\fBfabadmin\fR \fB-clean\fR \fB-gaian\fR|\fB-distributed\fR \fB-r\fR 
+\fBfabadmin\fR \fB-clean\fR [\fB-gaian\fR|\fB-distributed\fR] \fB-r\fR 
 .P
 \fBfabadmin\fR \fB-p\fR [\fBarguments\fR]
 
@@ -91,14 +91,14 @@ perform the specified action on the Fabric Registry.
 .PD 0
 .IP "\fB\--web\fR" 4
 .PD
-perform the specified action on the Web server.
+perform the specified action on the Fabric Web server.
 
 .IP "\fB\-n\fR" 4
 .PD 0
 .IP "\fB\--node\fR" 4
 .PD
-perform the specified action on the Fabric OSGi runtime.
+perform the specified action on the Fabric Manager (i.e. the Fabric node).
 
 .SH "COPYRIGHT"
 
-(C) Copyright IBM Corp. 2008, 2014. All Rights Reserved.
+(C) Copyright IBM Corp. 2008, 2016. All Rights Reserved.

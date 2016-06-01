@@ -14,7 +14,7 @@ for %%F in (!FABRIC_HOME!\lib\fabric\*.jar) do set CLASSPATH=!CLASSPATH!;%%F
 for %%F in (!FABRIC_HOME!\lib\gaiandb\lib`*.jar) do set CLASSPATH=!CLASSPATH!;%%F
 for %%F in (!FABRIC_HOME!\lib\oslib\*.jar) do set CLASSPATH=!CLASSPATH!;%%F
 
-set NODE=!COMPUTERNAME!
+for /f "usebackq" %%H in (`hostname`) do set NODE=%%H
 set GET_NODE=0
 set IP=127.0.0.1
 set GET_IP=0
