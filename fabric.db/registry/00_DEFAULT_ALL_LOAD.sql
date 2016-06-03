@@ -317,7 +317,8 @@ insert into fabric.fablet_plugins values ('*', 'fabric.fablets.heartbeat.Heartbe
 --
 -- Note that at run-time adapter clients must further qualify this topic with
 -- a sub-topic corresponding to their MQTT client ID.
-insert into fabric.default_config values ('fabric.adapters.mqtt.intopic', '$fabric/{0}/$adapters/$mqtt/$in');
+--insert into fabric.default_config values ('fabric.adapters.mqtt.intopic', '$fabric/{0}/$adapters/$mqtt/$in');
+insert into fabric.default_config values ('fabric.adapters.mqtt.intopic', '$fabric/$adapters/$mqtt/$in');
 
 -- The base topic on which the adapter sends responses in reply to JSON
 -- operations, where:
@@ -327,7 +328,8 @@ insert into fabric.default_config values ('fabric.adapters.mqtt.intopic', '$fabr
 -- Note that at run-time this topic will be further qualified with a sub-topic
 -- corresponding to the MQTT client ID upon which the corresponding op message
 -- was received.
-insert into fabric.default_config values ('fabric.adapters.mqtt.outtopic', '$fabric/{0}/$adapters/$mqtt/$out');
+--insert into fabric.default_config values ('fabric.adapters.mqtt.outtopic', '$fabric/{0}/$adapters/$mqtt/$out');
+insert into fabric.default_config values ('fabric.adapters.mqtt.outtopic', '$fabric/$adapters/$mqtt/$out');
 
 -- The interval at which feed subscriptions are updated, namely the acquisition
 -- of new feeds that match existing subscription requests, and the clean-up of
@@ -339,8 +341,8 @@ insert into fabric.default_config values ('fabric.runtimeManager.refreshInterval
 
 -- Flag indicating if Registry topology update messages are to be actioned:
 --
---     true: action topology updates
---     false: do not action topology updates
+--    true: action topology updates
+--    false: do not action topology updates
 insert into fabric.default_config values ('fabric.runtimeManager.actionTopologyUpdates', 'true');
 
 -------------------------------------------------------------------------------
