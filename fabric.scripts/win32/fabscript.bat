@@ -16,7 +16,7 @@ for %%F in (!FABRIC_HOME!\lib\oslib\*.jar) do set CLASSPATH=!CLASSPATH!;%%F
 
 for /f "usebackq" %%H in (`hostname`) do set NODE=%%H
 set GET_NODE=0
-set IP=127.0.0.1
+set IP=127.0.0.1:1884
 set GET_IP=0
 set SCRIPT=
 set GET_SCRIPT=0
@@ -47,7 +47,7 @@ set SYSTEM_PROPS=
 		)
 		
 		if "!_T!"=="-help" (
-			echo Usage: fabscript.bat -n node -i node-ip -s script-file
+			echo Usage: fabscript.bat [ -Djsonscript.intopic=<in-topic> -Djsonscript.outtopic=<out-topic> ] [ -n node ] [ -i node-ip ] -s script-file
 			exit /b
 
 		)

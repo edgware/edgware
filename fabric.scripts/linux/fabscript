@@ -14,7 +14,7 @@ FABRIC_LIBS=$FABRIC_LIBS:$(echo $FABRIC_HOME/lib/oslib/*.jar | tr ' ' ':')
 
 NODE=`hostname`
 GET_NODE=0
-IP="127.0.0.1"
+IP="127.0.0.1:1884"
 GET_IP=0
 SCRIPT=""
 GET_SCRIPT=0
@@ -65,7 +65,7 @@ done
 
 if [ "$NODE" = "" -o "$IP" = "" -o "$SCRIPT" = "" ]
 then
-	echo "Usage: fabscript [ -n node ] -i node-ip -s script-file"
+	echo "Usage: fabscript [ -Djsonscript.intopic=<in-topic> -Djsonscript.outtopic=<out-topic> ] [ -n node ] [ -i node-ip ] -s script-file"
 	exit 1
 else
 	java $SYSTEM_PROPS -cp $FABRIC_LIBS fabric.script.RunScript "$NODE" "$IP" "FABSCRIPT-$$" "$SCRIPT"
