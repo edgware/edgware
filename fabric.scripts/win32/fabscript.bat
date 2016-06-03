@@ -99,5 +99,5 @@ if "!NODE!" neq "" (
 	)
 )
 
-echo Usage: fabscript.bat -n node -i node-ip -s script-file
+echo Usage: fabscript.bat [ -n node ] -i node-ip -s script-file
 exit /b 1

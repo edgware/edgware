@@ -61,7 +61,7 @@ done
 
 if [ "$NODE" = "" -o "$IP" = "" -o "$SCRIPT" = "" ]
 then
-	echo "Usage: fabscript -n node -i node-ip -s script-file"
+	echo "Usage: fabscript [ -n node ] -i node-ip -s script-file"
 	exit 1
 else
 	java -cp $FABRIC_LIBS fabric.script.RunScript "$NODE" "$IP" "FABSCRIPT-$$" "$SCRIPT"
