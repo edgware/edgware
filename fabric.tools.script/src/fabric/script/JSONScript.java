@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.HashMap;
@@ -129,10 +130,20 @@ public abstract class JSONScript implements MqttCallback {
         // this.clientID = MqttConfig.generateClient(clientID);
         this.clientID = clientID;
 
-        sendToAdapterTopic = "$fabric/" + node + "/$adapters/$mqtt/$in/" + this.clientID;
+        sendToAdapterTopic = System.getProperty("jsonscript.intopic");
+        if (sendToAdapterTopic == null) {
+            sendToAdapterTopic = "$fabric/$adapters/$mqtt/$in";
+        }
+        sendToAdapterTopic += "/{1}";
+        sendToAdapterTopic = MessageFormat.format(sendToAdapterTopic, node, this.clientID);
         log(INFORMATION, String.format("Sending to topic [%s]", sendToAdapterTopic));
 
-        receiveFromAdapterTopic = "$fabric/" + node + "/$adapters/$mqtt/$out/" + this.clientID;
+        receiveFromAdapterTopic = System.getProperty("jsonscript.outtopic");
+        if (receiveFromAdapterTopic == null) {
+            receiveFromAdapterTopic = "$fabric/$adapters/$mqtt/$out";
+        }
+        receiveFromAdapterTopic += "/{1}";
+        receiveFromAdapterTopic = MessageFormat.format(receiveFromAdapterTopic, node, this.clientID);
         log(INFORMATION, String.format("Listening to topic [%s]", receiveFromAdapterTopic));
 
         disconnectMessage = String.format("{\"op\":\"disconnect\",\"client-id\":\"%s\"}", this.clientID);
