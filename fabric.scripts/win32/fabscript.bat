@@ -20,6 +20,7 @@ set IP=127.0.0.1
 set GET_IP=0
 set SCRIPT=
 set GET_SCRIPT=0
+set SYSTEM_PROPS=
 
 :loop
 
@@ -49,6 +50,10 @@ set GET_SCRIPT=0
 			echo Usage: fabscript.bat -n node -i node-ip -s script-file
 			exit /b
 
+		)
+		
+		if "!_T:~0,2!"=="-D" (
+			set SYSTEM_PROPS="!SYSTEM_PROPS! !_T!"
 		)
 		
 		if "!GET_NODE!"=="1" (
@@ -93,7 +98,7 @@ if "!NODE!" neq "" (
 	if "!IP!" neq "" (
 		if "!SCRIPT!" neq "" (
 			title Fabric Script
-			java -Xmx128m fabric.script.RunScript !NODE! !IP! FABRIC-%RANDOM% !SCRIPT!
+			java !SYSTEM_PROPS! -Xmx128m fabric.script.RunScript !NODE! !IP! FABRIC-%RANDOM% !SCRIPT!
 			goto:EOF
 		)
 	)

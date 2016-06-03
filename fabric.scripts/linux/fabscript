@@ -18,6 +18,7 @@ IP="127.0.0.1"
 GET_IP=0
 SCRIPT=""
 GET_SCRIPT=0
+SYSTEM_PROPS=""
 
 for arg in "$@"
 do
@@ -40,6 +41,9 @@ do
 		'-help')
 			echo "Usage: fabscript -n node -i node-ip -s script-file"
 			exit 0
+			;;
+		'-D*')
+			SYSTEM_PROPS="$arg $SYSTEM_PROPS"
 			;;
 		*)
 			if [ $GET_NODE -eq 1 ]
@@ -64,5 +68,5 @@ then
 	echo "Usage: fabscript [ -n node ] -i node-ip -s script-file"
 	exit 1
 else
-	java -cp $FABRIC_LIBS fabric.script.RunScript "$NODE" "$IP" "FABSCRIPT-$$" "$SCRIPT"
+	java $SYSTEM_PROPS -cp $FABRIC_LIBS fabric.script.RunScript "$NODE" "$IP" "FABSCRIPT-$$" "$SCRIPT"
 fi
