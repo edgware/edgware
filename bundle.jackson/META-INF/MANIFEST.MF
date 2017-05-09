@@ -38,3 +38,4 @@ Export-Package: bundle.jackson,
  com.fasterxml.jackson.databind.ser.std,
  com.fasterxml.jackson.databind.type,
  com.fasterxml.jackson.databind.util
+Bundle-ActivationPolicy: lazy
