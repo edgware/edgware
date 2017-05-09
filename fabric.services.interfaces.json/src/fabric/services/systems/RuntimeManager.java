@@ -476,9 +476,11 @@ public class RuntimeManager extends FabricBus implements ISubscriptionCallback {
 
         try {
 
-            /* Update the availability and commit */
-            system.setAvailability(availability);
-            systemFactory.update(system);
+            if (system != null) {
+                /* Update the availability and commit */
+                system.setAvailability(availability);
+                systemFactory.update(system);
+            }
 
         } catch (Exception e) {
 
