@@ -43,8 +43,8 @@ other purpose.
 
 You can download the CLAs here:
 
- - [Individual CLA](http://edgware-fabric.org/cla/edgware-cla-individual.pdf)
- - [Corporate CLA](http://edgware-fabric.org/cla/edgware-cla-corporate.pdf)
+ - [Individual CLA](https://github.com/edgware/edgware/blob/master/fabric.docs/cla/edgware-cla-individual.pdf)
+ - [Corporate CLA](https://github.com/edgware/edgware/blob/master/fabric.docs/cla/edgware-cla-corporate.pdf)
 
 If you are an IBMer, please contact us directly as the contribution process is
 slightly different.
