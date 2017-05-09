@@ -49,7 +49,7 @@
 	<!-- Version number -->
 	<property name="release.major" value="0" />
 	<property name="release.minor" value="4" />
-	<property name="release.mod" value="1" />
+	<property name="release.mod" value="2" />
 	<property name="release.id" value="edgware-${release.major}.${release.minor}.${release.mod}" />
 
 	<!-- The branch to build -->
