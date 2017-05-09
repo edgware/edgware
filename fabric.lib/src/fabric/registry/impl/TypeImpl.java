@@ -111,14 +111,11 @@ public class TypeImpl extends AbstractRegistryObject implements Type {
         boolean equal = false;
         if (object != null && object instanceof Type) {
             Type type = (Type) object;
-            if (type.getId() == null ? id == null
-                    : type.getId().equals(id) && type.getDescription() == null ? description == null : type
-                            .getDescription().equals(description)
-                            && type.getAttributes() == null ? attributes == null : type.getAttributes().equals(
-                            attributes)
-                            && type.getAttributesUri() == null ? attributesUri == null : type.getAttributesUri()
-                            .equals(attributesUri)) {
-
+            boolean idEqual = type.getId() == null ? id == null : type.getId().equals(id);
+            boolean descrEqual = type.getDescription() == null ? description == null : type.getDescription().equals(description);
+            boolean attrEqual = type.getAttributes() == null ? attributes == null : type.getAttributes().equals(attributes);
+            boolean uriEqual = type.getAttributesUri() == null ? attributesUri == null : type.getAttributesUri().equals(attributesUri);
+            if (idEqual && descrEqual && attrEqual && uriEqual) {
                 equal = true;
             }
         }
