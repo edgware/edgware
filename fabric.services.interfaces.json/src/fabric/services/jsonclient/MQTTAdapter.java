@@ -122,6 +122,10 @@ public class MQTTAdapter extends JSONAdapter implements IFabricShutdownHookActio
     @Override
     public void init() throws Exception {
 
+        String startMsg = "MQTT adapter: starting";
+        System.out.println(startMsg);
+        logger.info(startMsg);
+
         setAdapterUserID(MqttConfig.generateClient("MA"));
         setAdapterPlatformID(MqttConfig.generateClient("MA"));
         setAdapterPlatformType("MQTT_ADAPTER");
@@ -132,6 +136,10 @@ public class MQTTAdapter extends JSONAdapter implements IFabricShutdownHookActio
 
         /* Start pre-registered systems */
         startSystems();
+
+        String readyMsg = "MQTT adapter: ready";
+        System.out.println(readyMsg);
+        logger.info(readyMsg);
 
     }
 
