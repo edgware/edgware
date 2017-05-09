@@ -3,7 +3,7 @@ Eclipse-BuddyPolicy: registered,dependent
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric API
 Bundle-SymbolicName: fabric.lib
-Bundle-Version: 0.4.1
+Bundle-Version: 0.4.2
 Bundle-Copyright: (C) Copyright IBM Corp. 2006, 2016
 Bundle-Vendor: IBM
 Require-Bundle: fabric.core,

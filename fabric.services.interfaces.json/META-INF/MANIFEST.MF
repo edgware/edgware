@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric JSON Interface
 Bundle-SymbolicName: fabric.services.interfaces.json
-Bundle-Version: 0.4.1
+Bundle-Version: 0.4.2
 Bundle-Copyright: (C) Copyright IBM Corp. 2013, 2016
 Bundle-Vendor: IBM
 Eclipse-RegisterBuddy: fabric.lib
@@ -23,7 +23,9 @@ Export-Package: fabric.services.interfaces.json.osgi;uses:="org.osgi.framework",
    fabric.bus.feeds,
    fabric.client,
    fabric.bus.messages"
-Import-Package: org.eclipse.paho.client.mqttv3,
+Import-Package: com.fasterxml.jackson.core.io,
+ com.fasterxml.jackson.databind,
+ org.eclipse.paho.client.mqttv3,
  org.osgi.framework
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: fabric.services.interfaces.json.osgi.Activator

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Script
 Bundle-SymbolicName: fabric.tools.script
-Bundle-Version: 0.4.1
+Bundle-Version: 0.4.2
 Bundle-Copyright: (C) Copyright IBM Corp. 2016
 Bundle-ClassPath: script.jar,
  jars/org.eclipse.paho.client.mqttv3_1.0.2.jar,

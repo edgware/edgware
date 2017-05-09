@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Fabric Availability Fablet
 Bundle-SymbolicName: fabric.fablets.availability
-Bundle-Version: 0.4.1
+Bundle-Version: 0.4.2
 Bundle-Copyright: (C) Copyright IBM Corp. 2010, 2012
 Import-Package: fabric,
  fabric.bus,
