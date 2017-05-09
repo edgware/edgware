@@ -288,7 +288,8 @@ public class SystemTypes extends Article {
 
                         /* Get the list of services offered by this system type */
 
-                        String[] servicesOffered = attrString.split(",");
+                        String serviceTypeString = attr.getString("serviceTypes");
+                        String[] servicesOffered = serviceTypeString.split(",");
                         JSONArray servicesOfferedJSONArray = new JSONArray();
 
                         for (String service : servicesOffered) {
@@ -297,7 +298,7 @@ public class SystemTypes extends Article {
                             Type serviceToAdd = typeMap.get(serviceParts[0]);
 
                             String serviceTypeJSONString = String.format(
-                                    "\"type\":\"%s\",\"attr\":\"%s\",\"desc\":\"%s\"", serviceToAdd.getId(),
+                                    "{\"type\":\"%s\",\"attr\":\"%s\",\"desc\":\"%s\"}", serviceToAdd.getId(),
                                     serviceToAdd.getAttributes(), serviceToAdd.getDescription());
                             JSON serviceTypeJSON = new JSON(serviceTypeJSONString);
                             servicesOfferedJSONArray.add(serviceTypeJSON);
@@ -313,6 +314,7 @@ public class SystemTypes extends Article {
 
         } catch (Exception e) {
 
+            e.printStackTrace();
             String message = e.getClass().getName() + ": " + e.getMessage();
             status = new AdapterStatus(AdapterConstants.ERROR_ACTION, AdapterConstants.OP_CODE_QUERY,
                     AdapterConstants.ARTICLE_SYSTEM_TYPE, message, correlId);
