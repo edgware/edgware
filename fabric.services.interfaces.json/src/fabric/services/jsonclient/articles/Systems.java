@@ -894,7 +894,6 @@ public class Systems extends Article {
 
             JSONArray outputFeedPatterns = op.getJSONArray(AdapterConstants.FIELD_OUTPUT_FEEDS);
             inputFeed = op.getString(AdapterConstants.FIELD_INPUT_FEED);
-            ServiceDescriptor inputFeedDescriptor = new ServiceDescriptor(inputFeed);
 
             if (outputFeedPatterns == null || inputFeed == null || correlId == null) {
 
@@ -903,6 +902,7 @@ public class Systems extends Article {
 
             } else {
 
+                ServiceDescriptor inputFeedDescriptor = new ServiceDescriptor(inputFeed);
                 List<ServiceDescriptor> patternList = new ArrayList<ServiceDescriptor>();
 
                 /* Extract the list of output feed patterns from the message */
