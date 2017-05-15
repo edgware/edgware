@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2013, 2016
+ * (C) Copyright IBM Corp. 2013, 2017
  *
  * LICENSE: Eclipse Public License v1.0
  * http://www.eclipse.org/legal/epl-v10.html
@@ -33,7 +33,7 @@ import fabric.services.jsonclient.utilities.AdapterConstants;
 public abstract class JSONScript implements MqttCallback {
 
     /** Copyright notice. */
-    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2013, 2016";
+    public static final String copyrightNotice = "(C) Copyright IBM Corp. 2013, 2017";
 
     /*
      * Script directives
@@ -48,6 +48,7 @@ public abstract class JSONScript implements MqttCallback {
     private static final String DIRECTIVE_SEND = "$send";
     private static final String DIRECTIVE_SLEEP = "$sleep";
     private static final String DIRECTIVE_WAITFOR = "$waitfor";
+    private static final String DIRECTIVE_SAVE = "$save";
 
     /*
      * Logging categories
@@ -67,6 +68,7 @@ public abstract class JSONScript implements MqttCallback {
     protected static final String SENDING = "SND";
     protected static final String SLEEPING = "SLP";
     protected static final String WAITING = "WAIT";
+    protected static final String SAVE = "SAVE";
 
     /*
      * Script parsing states
@@ -98,7 +100,11 @@ public abstract class JSONScript implements MqttCallback {
     protected Stack<Repeat> repeats = new Stack<Repeat>();
     protected String waitForMessage = null;
     protected boolean waitingForMessage = false;
+    protected String saveID = null;
+    protected boolean waitingToSave = false;
+    protected JSON idMessage = null;
     protected HashMap<String, String> symbols = new HashMap<String, String>();
+    protected HashMap<String, JSON> savedMessages = new HashMap<String, JSON>();
 
     /*
      * Inner classes
@@ -301,9 +307,10 @@ public abstract class JSONScript implements MqttCallback {
     protected void sendMessage(String msg) throws MqttException, MqttPersistenceException {
 
         String correlID = messageCorrelID(msg);
+        String exMsg = substituteJSON(msg);
         correlID = (correlID != null) ? ':' + correlID : "";
-        log(SENDING + correlID, msg);
-        mqttClient.getTopic(sendToAdapterTopic).publish(msg.getBytes(), 2, false);
+        log(SENDING + correlID, exMsg);
+        mqttClient.getTopic(sendToAdapterTopic).publish(exMsg.getBytes(), 2, false);
 
     }
 
@@ -349,6 +356,125 @@ public abstract class JSONScript implements MqttCallback {
         }
 
         return expandedLine;
+    }
+
+    /**
+     * Substitutes symbols in the code with their corresponding values take from Edgware JSON messages.
+     *
+     * @param line
+     *            the line to be expanded.
+     *
+     * @return the expanded line.
+     */
+    private String substituteJSON(String line) {
+
+        final int STATE_NORMAL_CHAR = 1;
+        final int STATE_SUB_START = 2;
+        final int STATE_CORREL_ID = 3;
+        final int STATE_FIELD_NAME = 4;
+        final int STATE_SUB_END = 5;
+
+        char[] lineChars = line.toCharArray();
+        StringBuilder ex = new StringBuilder();
+        StringBuilder cid = new StringBuilder();
+        StringBuilder field = new StringBuilder();
+
+        int state = STATE_NORMAL_CHAR;
+
+        for (int l = 0; l < lineChars.length; l++) {
+            char c = lineChars[l];
+            switch (state) {
+                case STATE_NORMAL_CHAR:
+                    if (c != '%') {
+                        ex.append(c);
+                    } else {
+                        state = STATE_SUB_START;
+                    }
+                    break;
+                case STATE_SUB_START:
+                    if (c != '%') {
+                        ex.append('%');
+                        ex.append(c);
+                        state = STATE_NORMAL_CHAR;
+                    } else {
+                        state = STATE_CORREL_ID;
+                    }
+                    break;
+                case STATE_CORREL_ID:
+                    if (c != ':') {
+                        cid.append(c);
+                    } else {
+                        state = STATE_FIELD_NAME;
+                    }
+                    break;
+                case STATE_FIELD_NAME:
+                    if (c != '%') {
+                        field.append(c);
+                    } else {
+                        state = STATE_SUB_END;
+                    }
+                    break;
+                case STATE_SUB_END:
+                    if (c != '%') {
+                        log(RUNTIME_ERROR, String.format(
+                                "Unexpected character at end of field name [%c]; '%%' expected", c));
+                        insertField(cid.toString(), field.toString(), ex);
+                        ex.append(c);
+                    } else {
+                        insertField(cid.toString(), field.toString(), ex);
+                    }
+                    cid.setLength(0);
+                    field.setLength(0);
+                    state = STATE_NORMAL_CHAR;
+            }
+        }
+
+        if (state != STATE_NORMAL_CHAR) {
+
+            log(RUNTIME_ERROR, "Syntax error in field insertion");
+
+            /* Try and recover as much as possible */
+            ex.append(cid);
+            if (field.length() > 0) {
+                ex.append(':');
+                ex.append(field);
+            }
+        }
+
+        return ex.toString();
+    }
+
+    /**
+     * Insets the value of the specified field of the saved message correldID into the supplied buffer.
+     * <p>
+     * If either the message or the field does not exist then the string null will be added to the string.
+     * </p>
+     *
+     * @param corredID
+     *            the correlation ID of a saved message.
+     *
+     * @param fieldName
+     *            the name of the field from the saved message to be copied to the buffer.
+     *
+     * @param buffer
+     *            the target buffer.
+     */
+    private void insertField(String correlID, String fieldName, StringBuilder buffer) {
+
+        String toInsert = "null";
+
+        JSON savedMessage = savedMessages.get(correlID);
+
+        if (savedMessage != null) {
+
+            String fieldValue = savedMessage.getString(fieldName);
+
+            if (fieldValue != null) {
+                toInsert = fieldValue;
+            }
+        }
+
+        buffer.append(toInsert);
     }
 
     private void saveMessage(StringBuilder buffer, int lineCount) {
@@ -484,6 +610,10 @@ public abstract class JSONScript implements MqttCallback {
         } else if (directive.startsWith(DIRECTIVE_WAITFOR)) {
 
             directiveWaitFor(directive);
+
+        } else if (directive.startsWith(DIRECTIVE_SAVE)) {
+
+            directiveSave(directive);
 
         } else {
 
@@ -678,6 +808,7 @@ public abstract class JSONScript implements MqttCallback {
     private void directiveWaitFor(String directive) {
 
         waitForMessage = extractParameter(DIRECTIVE_WAITFOR, directive);
+        waitForMessage = substituteJSON(waitForMessage);
 
         if (!waitForMessage.equals("")) {
 
@@ -694,6 +825,34 @@ public abstract class JSONScript implements MqttCallback {
         } else {
 
             log(SCRIPT_ERROR, String.format("Usage: %s <expected-json-message>", DIRECTIVE_WAITFOR));
+
+        }
+    }
+
+    /**
+     * Executes the <code>save</code> directive.
+     *
+     * @param directive
+     */
+    private void directiveSave(String directive) {
+
+        saveID = extractParameter(DIRECTIVE_SAVE, directive);
+
+        if (!saveID.equals("")) {
+
+            waitingToSave = true;
+
+            log(SAVE, String.format("Waiting for correlation ID [%s]", saveID));
+
+            while (waitingToSave) {
+                sleep(1);
+            }
+
+            log(SAVE, "Continuing");
+
+        } else {
+
+            log(SCRIPT_ERROR, String.format("Usage: %s <expected-json-message-correlation-id>", DIRECTIVE_SAVE));
 
         }
     }
@@ -883,6 +1042,8 @@ public abstract class JSONScript implements MqttCallback {
 
             if (correl != null && (expectedJSONAsString = expected.get(correl)) != null) {
 
+                expectedJSONAsString = substituteJSON(expectedJSONAsString);
+
                 if (messageJSONAsString.equals(expectedJSONAsString)) {
                     log(RESPONSE_OK + ':' + correl, expectedJSONAsString);
                 } else {
@@ -898,6 +1059,12 @@ public abstract class JSONScript implements MqttCallback {
             if (waitingForMessage && messageJSONAsString.equals(waitForMessage)) {
                 waitForMessage = null;
                 waitingForMessage = false;
+            }
+
+            if (waitingToSave && saveID.equals(correl)) {
+                savedMessages.put(correl, messageJSON);
+                saveID = null;
+                waitingToSave = false;
             }
 
         } catch (Exception e) {
